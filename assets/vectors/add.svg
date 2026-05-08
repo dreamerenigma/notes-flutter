@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- icon666.com - MILLIONS OF FREE VECTOR ICONS -->
+
+<svg
+   clip-rule="evenodd"
+   fill-rule="evenodd"
+   stroke-linejoin="round"
+   stroke-miterlimit="2"
+   viewBox="0 0 800 800"
+   version="1.1"
+   id="svg3"
+   sodipodi:docname="add.svg"
+   width="800"
+   height="800"
+   inkscape:version="1.4.3 (0d15f75, 2025-12-25)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs3" />
+  <sodipodi:namedview
+     id="namedview3"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="0.74301455"
+     inkscape:cx="230.81648"
+     inkscape:cy="477.11044"
+     inkscape:window-width="1920"
+     inkscape:window-height="1009"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="Icon" />
+  <g
+     id="Icon">
+    <path
+       d="m 367.48232,87.821506 c 0,-23.758805 12.88962,-43.041315 36.64844,-43.041315 23.7588,0 38.33076,19.28251 38.33076,43.041315 V 719.09413 c 0,23.7588 -14.57196,43.04132 -38.33076,43.04132 -23.75882,0 -36.64844,-19.28252 -36.64844,-43.04132 z"
+       id="path1"
+       style="stroke-width:57.3884"
+       sodipodi:nodetypes="sssssss" />
+    <path
+       d="m 83.783901,446.49912 c -23.758805,0 -43.992988,-12.90943 -43.992988,-36.66823 0,-23.75882 19.28251,-37.99432 43.041315,-37.99432 H 714.10486 c 23.7588,0 43.04132,14.2355 43.04132,37.99432 0,23.7588 -18.33085,36.66823 -42.08965,36.66823 z"
+       id="path2"
+       style="stroke-width:57.3884"
+       sodipodi:nodetypes="sssssss" />
+  </g>
+</svg>

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   version="1.1"
+   id="svg1"
+   width="800"
+   height="800"
+   viewBox="0 0 800 800"
+   sodipodi:docname="close.svg"
+   inkscape:version="1.4.3 (0d15f75, 2025-12-25)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="0.55726091"
+     inkscape:cx="554.49789"
+     inkscape:cy="562.5731"
+     inkscape:window-width="1920"
+     inkscape:window-height="1009"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg1" />
+  <path
+     style="fill:#000000;stroke-width:1.82248"
+     d="M 92.473348,695.87834 C 89.542029,692.94704 88,689.34409 88,685.42639 88,679.93619 99.648683,667.79557 230.59289,536.81181 L 373.1858,394.17585 230.59289,251.53989 C 99.648683,120.55613 88,108.41552 88,102.92531 88,94.900903 94.900903,88 102.92531,88 c 5.49021,0 17.63082,11.648683 148.61458,142.59289 L 394.17585,373.1858 536.81181,230.59289 C 667.79557,99.648683 679.93619,88 685.42639,88 c 8.0244,0 14.92531,6.900903 14.92531,14.92531 0,5.49021 -11.64868,17.63082 -142.59289,148.61458 L 415.1659,394.17585 557.75881,536.81181 c 130.94421,130.98376 142.59289,143.12438 142.59289,148.61458 0,8.0244 -6.90091,14.92531 -14.92531,14.92531 -5.4902,0 -17.63082,-11.64868 -148.61458,-142.59289 L 394.17585,415.1659 251.53989,557.75881 C 120.55613,688.70302 108.41552,700.3517 102.92531,700.3517 c -3.917696,0 -7.520642,-1.54203 -10.451962,-4.47336 z"
+     id="path1" />
+</svg>
