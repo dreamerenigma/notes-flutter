@@ -66,13 +66,7 @@ class NoteItemListState extends State<NoteItemList> {
         if (!widget.showCheckboxes) {
           Navigator.push(
             context,
-            createPageRoute(AddEditNoteScreen(
-              noteType: 'Edit',
-              noteTitle: widget.note.title,
-              noteDescription: widget.note.description,
-              noteID: widget.note.id,
-              createdAt: widget.note.createdAt,
-            )),
+            createPageRoute(AddEditNoteScreen(noteType: 'Edit', noteTitle: widget.note.title, noteDescription: widget.note.description, noteID: widget.note.id, createdAt: widget.note.createdAt)),
           ).then((result) {
             if (result == 'saved') {
               ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Заметка обновлена')));

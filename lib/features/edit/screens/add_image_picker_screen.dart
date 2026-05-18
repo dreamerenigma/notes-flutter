@@ -3,7 +3,7 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:notes/routes/custom_page_route.dart';
-import 'package:notes/features/utils/widgets/no_glow_scroll_behavior.dart';
+import 'package:notes/features/utils/widgets/scrolls/no_glow_scroll_behavior.dart';
 import 'package:photo_manager/photo_manager.dart';
 import '../widgets/images/asset_entity_images.dart';
 import 'full_screen_image_screen.dart';

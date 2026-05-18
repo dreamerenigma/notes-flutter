@@ -16,19 +16,17 @@ class BottomNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-
     return Theme(
       data: Theme.of(context).copyWith(splashFactory: NoSplash.splashFactory),
       child: Container(
         height: 55,
-        decoration: BoxDecoration(color: isDarkMode ? AppColors.black : AppColors.white),
+        decoration: BoxDecoration(color: context.isDarkMode ? AppColors.black : AppColors.white),
         child: Row(
           children: [
             _buildItem(
               context: context,
               icon: SvgPicture.asset(
-                selectedIndex == 0 ? AppVectors.documentBlue : isDarkMode ? AppVectors.documentGreyDark : AppVectors.documentGreyLight,
+                selectedIndex == 0 ? AppVectors.documentBlue : context.isDarkMode ? AppVectors.documentGreyDark : AppVectors.documentGreyLight,
                 width: 25,
                 height: 25,
               ),
@@ -38,7 +36,7 @@ class BottomNavBar extends StatelessWidget {
             _buildItem(
               context: context,
               icon: SvgPicture.asset(
-                selectedIndex == 1 ? AppVectors.checkBlue : isDarkMode ? AppVectors.checkGreyDark : AppVectors.checkGreyLight,
+                selectedIndex == 1 ? AppVectors.checkBlue : context.isDarkMode ? AppVectors.checkGreyDark : AppVectors.checkGreyLight,
                 width: 25,
                 height: 25,
               ),

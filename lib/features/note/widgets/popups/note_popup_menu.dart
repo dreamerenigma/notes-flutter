@@ -86,12 +86,7 @@ class NotePopupMenuState extends State<NotePopupMenu> {
                 overlayColor: WidgetStateProperty.all(AppColors.softNight.withAlpha((0.1 * 255).toInt())),
               ),
               color: Theme.of(context).brightness == Brightness.dark ? AppColors.greySlate : AppColors.white,
-              icon: SvgPicture.asset(
-                AppVectors.moreGrid,
-                width: 22,
-                height: 22,
-                colorFilter: ColorFilter.mode(Theme.of(context).brightness == Brightness.dark ? AppColors.white : AppColors.black, BlendMode.srcIn),
-              ),
+              icon: SvgPicture.asset(AppVectors.moreGrid, width: 22, height: 22, colorFilter: ColorFilter.mode(context.isDarkMode ? AppColors.white : AppColors.black, BlendMode.srcIn)),
               itemBuilder: (context) => [
                 PopupMenuItem(
                   value: 1,

@@ -7,18 +7,11 @@ void showNewNoteBottomSheetDialog(BuildContext context) {
     context: context,
     isScrollControlled: true,
     shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+    showDragHandle: false,
     backgroundColor: Theme.of(context).brightness == Brightness.dark ? AppColors.blackGrey : AppColors.white,
     builder: (BuildContext context) {
+      final colors = AppColors.categoryColors;
       int selectedColorIndex = 0;
-      List<Color> colors = [
-        Colors.red,
-        Colors.blue,
-        Colors.green,
-        Colors.yellow,
-        Colors.orange,
-        Colors.purple,
-        Colors.teal
-      ];
 
       return StatefulBuilder(
         builder: (BuildContext context, StateSetter setState) {
@@ -31,7 +24,7 @@ void showNewNoteBottomSheetDialog(BuildContext context) {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 25),
+                    padding: const EdgeInsets.symmetric(horizontal: 26),
                     child: Text('Новый блокнот', style: TextStyle(fontSize: AppSizes.fontSizeXl, fontWeight: FontWeight.w400)),
                   ),
                   const SizedBox(height: 16),
@@ -121,26 +114,44 @@ void showNewNoteBottomSheetDialog(BuildContext context) {
                     ],
                   ),
                   const SizedBox(height: 20),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextButton(
-                          onPressed: () {
-                            Navigator.pop(context);
-                          },
-                          child: Text('ОТМЕНА', style: TextStyle(fontSize: AppSizes.fontSizeLg, color: AppColors.blueAccent)),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 30),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: TextButton(
+                            onPressed: () {
+                              Navigator.pop(context);
+                            },
+                            style: TextButton.styleFrom(
+                              foregroundColor: AppColors.blueAccent,
+                              overlayColor: AppColors.blueAccent.withAlpha((0.2 * 255).toInt()),
+                              backgroundColor: AppColors.transparent,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                            ),
+                            child: Text('ОТМЕНА', style: TextStyle(fontSize: AppSizes.fontSizeLg, color: AppColors.blueAccent)),
+                          ),
                         ),
-                      ),
-                      Container(width: 1, height: 22, color: AppColors.darkerGrey),
-                      Expanded(
-                        child: TextButton(
-                          onPressed: () {
-                            Navigator.pop(context);
-                          },
-                          child: Text('СОХРАНИТЬ', style: TextStyle(fontSize: AppSizes.fontSizeLg, color: AppColors.blueAccent)),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          child: Container(width: 1, height: 22, color: AppColors.darkerGrey),
                         ),
-                      ),
-                    ],
+                        Expanded(
+                          child: TextButton(
+                            onPressed: () {
+                              Navigator.pop(context);
+                            },
+                            style: TextButton.styleFrom(
+                              foregroundColor: AppColors.blueAccent,
+                              overlayColor: AppColors.blueAccent.withAlpha((0.2 * 255).toInt()),
+                              backgroundColor: AppColors.transparent,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                            ),
+                            child: Text('СОХРАНИТЬ', style: TextStyle(fontSize: AppSizes.fontSizeLg, color: AppColors.blueAccent)),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),

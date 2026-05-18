@@ -3,7 +3,7 @@ description: "Notes"
 
 publish_to: 'none'
 
-version: 1.0.2+1
+version: 1.0.3+55
 
 environment:
   sdk: ^3.10.8
@@ -53,6 +53,8 @@ dependencies:
   feather_icons: ^1.2.0
   flutter_tabler_icons: ^1.39.0
   iconsax: ^0.0.8
+  iconoir_flutter: ^7.11.0
+  ionicons: ^0.2.2
 
   # State Management
   get: ^4.7.3

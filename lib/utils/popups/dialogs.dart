@@ -27,11 +27,7 @@ class Dialogs {
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(
-          msg,
-          textAlign: TextAlign.center,
-          style: TextStyle(color: AppColors.white, fontSize: fontSize),
-        ),
+        content: Text(msg, textAlign: TextAlign.center, style: TextStyle(color: AppColors.white, fontSize: fontSize)),
         backgroundColor: AppColors.blue.withAlpha((0.8 * 255).toInt()),
         behavior: SnackBarBehavior.floating,
         margin: margin,
@@ -147,10 +143,7 @@ class Dialogs {
           child: Container(
             width: dialogWidth ?? 310,
             padding: const EdgeInsets.all(16.0),
-            decoration: BoxDecoration(
-              color: context.isDarkMode ? AppColors.black.withAlpha((0.8 * 255).toInt()) : AppColors.white,
-              borderRadius: BorderRadius.circular(12),
-            ),
+            decoration: BoxDecoration(color: context.isDarkMode ? AppColors.black.withAlpha((0.8 * 255).toInt()) : AppColors.white, borderRadius: BorderRadius.circular(12)),
             child: _buildDialogContent(context, message),
           ),
         )
@@ -217,7 +210,7 @@ class CustomSnackBar {
 class CustomIconSnackBar {
   static bool _isSnackBarVisible = false;
 
-  static Future<void> showAnimatedSnackBar(BuildContext context, String message, {Widget? icon, Color? iconColor}) async {
+  static Future<void> showAnimatedSnackBar(BuildContext context, String message, {Widget? icon, Color? iconColor, Color? backgroundColor}) async {
     if (_isSnackBarVisible) return;
 
     OverlayState? overlayState = Overlay.of(context);
@@ -227,13 +220,14 @@ class CustomIconSnackBar {
 
     overlayEntry = OverlayEntry(
       builder: (context) {
-        double appBarHeight = AppBar().preferredSize.height;
+        final bottomPadding = MediaQuery.of(context).padding.bottom;
+        const bottomBarHeight = 60.0;
 
         return Positioned(
-          top: appBarHeight + 40,
+          bottom: bottomPadding + bottomBarHeight + 16,
           left: 16,
           right: 16,
-          child: AnimatedSnackBar(key: snackBarKey, message: message, icon: icon, iconColor: iconColor),
+          child: AnimatedSnackBar(key: snackBarKey, message: message, icon: icon, iconColor: iconColor, backgroundColor: backgroundColor),
         );
       },
     );

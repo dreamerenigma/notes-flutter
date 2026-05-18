@@ -1,16 +1,26 @@
 import 'dart:developer';
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
+import 'package:get/get_utils/src/extensions/context_extensions.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:provider/provider.dart';
+import '../../../core/enums/folder_dialog_type.dart';
 import '../../../routes/custom_page_route.dart';
 import '../../../utils/constants/app_colors.dart';
+import '../../../utils/constants/app_images.dart';
 import '../../../utils/constants/app_sizes.dart';
-import '../../utils/widgets/no_glow_scroll_behavior.dart';
+import '../../../utils/constants/app_vectors.dart';
+import '../../task/widgets/items/category_items.dart';
+import '../../task/widgets/popups/add_task_bottom_sheet_dialog.dart';
+import '../../task/widgets/popups/select_notebook_bottom_sheet_dialog.dart';
+import '../../utils/widgets/buttons/app_fab.dart';
+import '../../utils/widgets/scrolls/no_glow_scroll_behavior.dart';
 import '../models/note_model.dart';
 import '../../task/models/task_model.dart';
 import '../../edit/widgets/popups/delete_dialog.dart';
 import '../models/note_view_model.dart';
-import '../widgets/app_bar/note_app_bar.dart';
-import '../widgets/buttons/note_fab.dart';
+import '../widgets/app_bars/note_app_bar.dart';
 import '../widgets/inputs/notes_search_field.dart';
 import '../widgets/nav_bar/bottom_nav_bar.dart';
 import '../widgets/nav_bar/select_bottom_nav_bar.dart';
@@ -21,6 +31,10 @@ import 'add_edit_note_screen.dart';
 import 'note_content_screen.dart';
 import '../../task/screens/task_screen.dart';
 
+abstract class SelectableItem {
+  int get id;
+}
+
 class NoteScreen extends StatefulWidget {
   const NoteScreen({super.key});
 
@@ -29,30 +43,30 @@ class NoteScreen extends StatefulWidget {
 }
 
 class NoteScreenState extends State<NoteScreen> with SingleTickerProviderStateMixin {
+  final GetStorage box = GetStorage();
   final FocusNode _focusNode = FocusNode();
+  final GlobalKey<NoteContentScreenState> noteContentScreenKey = GlobalKey<NoteContentScreenState>();
+  final TextEditingController searchController = TextEditingController();
+  late final AnimationController animationController;
+  late Animation<double> rotationAnimation;
   int noteCount = 0;
   int selectedIndex = 0;
   int selectedNoteCount = 0;
-  bool hasSelectedNotes = false;
-  bool hasSelectedTasks = false;
   bool isAddingTask = false;
-  bool isExpanded = false;
-  bool showBottomNavBar = true;
-  bool showButtonFab = true;
-  bool showAppBar = true;
   bool isGridView = false;
-  bool areAllNotesSelected = false;
+  bool isExpanded = false;
+  bool showAppBar = true;
   bool isFocused = false;
-  bool selectionMode = false;
   bool showCheckboxes = false;
+  bool isFolderDialogOpen = false;
+  bool areAllNotesSelected = false;
   String searchQuery = '';
   String taskText = '';
   Set<int> selectedNotes = {};
   List<TaskModel> selectedTasks = [];
   ValueNotifier<int> noteCountNotifier = ValueNotifier(0);
-  final GlobalKey<NoteContentScreenState> noteContentScreenKey = GlobalKey<NoteContentScreenState>();
-  final TextEditingController searchController = TextEditingController();
-  late final AnimationController animationController;
+
+  bool get selectionMode => selectedNotes.isNotEmpty || selectedTasks.isNotEmpty;
 
   String getNoteCountText(int count) {
     if (count % 10 == 1 && count % 100 != 11) {
@@ -72,7 +86,7 @@ class NoteScreenState extends State<NoteScreen> with SingleTickerProviderStateMi
     }
   }
 
-  String get _title {
+  String get _getTitleText {
     final count = selectedNotes.length;
 
     if (!selectionMode) return 'Все заметки';
@@ -85,7 +99,9 @@ class NoteScreenState extends State<NoteScreen> with SingleTickerProviderStateMi
   @override
   void initState() {
     super.initState();
+    isGridView = box.read('isGridView') ?? false;
     animationController = AnimationController(vsync: this, duration: const Duration(milliseconds: 300));
+    rotationAnimation = Tween<double>(begin: 0.0, end: 1).animate(CurvedAnimation(parent: animationController, curve: Curves.fastOutSlowIn, reverseCurve: Curves.fastOutSlowIn));
     _focusNode.addListener(() {
       setState(() {
         isFocused = _focusNode.hasFocus;
@@ -107,35 +123,29 @@ class NoteScreenState extends State<NoteScreen> with SingleTickerProviderStateMi
     });
   }
 
-  void toggleExpand() async {
-    if (!isExpanded) {
-      setState(() {
-        isExpanded = true;
-        animationController.forward();
-      });
-
-      final result = await showDialog<Map<String, dynamic>>(
-        context: context,
-        barrierColor: AppColors.transparent,
-        builder: (BuildContext context) {
-          return const CustomFolderDialog();
-        },
-      );
-
-      if (result != null) {
-        setState(() {});
-      }
-      setState(() {
-        isExpanded = false;
-        animationController.reverse();
-      });
-    } else {
-      setState(() {
-        isExpanded = false;
-        animationController.reverse();
-      });
+  Future<void> toggleExpand() async {
+    if (isExpanded) {
       Navigator.of(context).pop();
+      return;
     }
+
+    setState(() {
+      isExpanded = true;
+      isFolderDialogOpen = true;
+    });
+
+    animationController.forward();
+
+    await showDialog<Map<String, dynamic>>(context: context, barrierColor: AppColors.transparent, builder: (_) => const CustomFolderDialog(type: FolderDialogType.notes));
+
+    if (!mounted) return;
+
+    setState(() {
+      isExpanded = false;
+      isFolderDialogOpen = false;
+    });
+
+    animationController.reverse();
   }
 
   void toggleExpansion() {
@@ -156,15 +166,7 @@ class NoteScreenState extends State<NoteScreen> with SingleTickerProviderStateMi
   void onItemTapped(int index) {
     setState(() {
       selectedIndex = index;
-      updateBottomNavBarVisibility(index == 1 ? '/tasks' : '/notes');
-      updateButtonFabVisibility(index == 1 ? '/tasks' : '/notes');
-      updateAppBarVisibility(index == 1 ? '/tasks' : '/notes');
     });
-    if (selectedIndex == 0) {
-      BottomNavBar(selectedIndex: selectedIndex, onItemTapped: onItemTapped);
-    } else if (selectedIndex == 1) {
-      BottomNavBar(selectedIndex: selectedIndex, onItemTapped: onItemTapped);
-    }
   }
 
   void clearNoteSelection() {
@@ -173,8 +175,6 @@ class NoteScreenState extends State<NoteScreen> with SingleTickerProviderStateMi
     setState(() {
       selectedNotes.clear();
       selectedNoteCount = 0;
-      hasSelectedNotes = false;
-      selectionMode = false;
     });
   }
 
@@ -186,12 +186,10 @@ class NoteScreenState extends State<NoteScreen> with SingleTickerProviderStateMi
 
       if (isAllSelected) {
         selectedNotes.clear();
-        hasSelectedNotes = false;
         areAllNotesSelected = false;
       } else {
         showCheckboxes = true;
         selectedNotes = allNotes.map((e) => e.id).toSet();
-        hasSelectedNotes = true;
         areAllNotesSelected = true;
       }
 
@@ -202,29 +200,15 @@ class NoteScreenState extends State<NoteScreen> with SingleTickerProviderStateMi
     });
   }
 
-  void updateBottomNavBarVisibility(String routeName) {
-    setState(() {
-      showBottomNavBar = routeName != '/tasks';
-    });
-  }
-
-  void updateButtonFabVisibility(String routeName) {
-    setState(() {
-      showButtonFab = routeName != '/tasks';
-    });
-  }
-
-  void updateAppBarVisibility(String routeName) {
-    setState(() {
-      showButtonFab = routeName != '/tasks';
-    });
+  static void moveNotes(BuildContext context, List<NoteModel> notes) {
+    selectNotebookBottomSheetDialog(context: context, categories: CategoryItems.categories, selected: null);
   }
 
   void deleteSelectedNotes(BuildContext context, List<NoteModel> selectedNotes, List<NoteModel> allNotes, NoteViewModel? noteViewModel) {
     if (selectedNotes.isNotEmpty) {
       showDeleteDialog(
         context,
-        () async {
+            () async {
           for (var note in selectedNotes) {
             await noteViewModel?.deleteNote(note);
           }
@@ -237,14 +221,31 @@ class NoteScreenState extends State<NoteScreen> with SingleTickerProviderStateMi
     }
   }
 
+  void showAddTaskBottomSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      showDragHandle: false,
+      backgroundColor: Theme.of(context).brightness == Brightness.dark ? AppColors.greySlate : AppColors.white,
+      builder: (BuildContext context) {
+        return AddTaskBottomSheet(
+          task: null,
+          onTime: (value) {},
+          onWarning: (value) {},
+          taskType: 'Add',
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final noteViewModel = Provider.of<NoteViewModel>(context, listen: false);
-    final allNotes = context.watch<NoteViewModel>().allNotes;
+    final allNotes = context.watch<NoteViewModel>().sortedNotes;
+    final hasNotes = allNotes.isNotEmpty;
 
     return Scaffold(
       appBar: NoteAppBar(
-        hasSelectedNotes: hasSelectedNotes,
+        hasSelectedNotes: selectedNotes.isNotEmpty,
         isSelectionMode: selectionMode,
         noteContentScreenKey: noteContentScreenKey,
         clearNoteSelection: clearNoteSelection,
@@ -266,107 +267,157 @@ class NoteScreenState extends State<NoteScreen> with SingleTickerProviderStateMi
                       mainAxisAlignment: MainAxisAlignment.start,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(_title, style: const TextStyle(fontSize: 32)),
+                        Text(_getTitleText, style: const TextStyle(fontSize: 32)),
                       ],
                     ),
                     const SizedBox(width: 4),
                     if (!selectionMode)
-                    AnimatedBuilder(
-                      animation: animationController,
-                      builder: (context, child) {
-                        return Transform.rotate(angle: animationController.value * 3.14, child: const Icon(Icons.arrow_drop_down_rounded, size: 35));
-                      },
-                    ),
+                      SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: Center(
+                          child: AnimatedBuilder(
+                            animation: rotationAnimation,
+                            builder: (context, child) {
+                              return Transform.rotate(angle: rotationAnimation.value * math.pi, alignment: const Alignment(0, -0.8), child: child);
+                            },
+                            child: SvgPicture.asset(AppVectors.arrowDropDown, width: 14, height: 14, colorFilter: ColorFilter.mode(context.isDarkMode ? AppColors.white : AppColors.black, BlendMode.srcIn)),
+                          ),
+                        ),
+                      ),
                   ],
                 ),
               ),
             ),
-          if (selectedIndex == 0)
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 18),
-            child: selectionMode ? const SizedBox(height: 20) : Consumer<NoteViewModel>(
-              builder: (context, vm, _) {
-                final count = vm.noteCount;
+          if (selectedIndex == 0 && hasNotes)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 18),
+              child: selectionMode ? const SizedBox(height: 20) : Consumer<NoteViewModel>(
+                builder: (context, vm, _) {
+                  final count = vm.noteCount;
 
-                return Text('$count ${getNoteCountText(count)}', style: TextStyle(fontSize: AppSizes.fontSizeSm, color: AppColors.darkGrey));
-              },
+                  return Text('$count ${getNoteCountText(count)}', style: TextStyle(fontSize: AppSizes.fontSizeSm, color: AppColors.darkGrey));
+                },
+              ),
             ),
-          ),
-          if (selectedIndex == 0) const SizedBox(height: 20),
-          if (selectedIndex == 0)
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Stack(
-              children: [
-                NotesSearchField(
-                  controller: searchController,
-                  focusNode: _focusNode,
-                  selectionMode: selectionMode,
-                  isFocused: isFocused,
-                  onChanged: (query) {
-                    setState(() {
-                      searchQuery = query;
-                    });
+          if (selectedIndex == 0 && hasNotes) const SizedBox(height: 20),
+          if (selectedIndex == 0 && hasNotes)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Stack(
+                children: [
+                  NotesSearchField(
+                    controller: searchController,
+                    focusNode: _focusNode,
+                    selectionMode: selectionMode,
+                    isFocused: isFocused,
+                    onChanged: (query) {
+                      setState(() {
+                        searchQuery = query;
+                      });
 
-                    final state = noteContentScreenKey.currentState;
-                    state?.updateFilteredNotes(state.allNotes, query);
-                  },
-                  onClear: () {
-                    searchController.clear();
+                      final state = noteContentScreenKey.currentState;
+                      state?.updateFilteredNotes(state.allNotes, query);
+                    },
+                    onClear: () {
+                      searchController.clear();
 
-                    setState(() {
-                      searchQuery = '';
-                    });
+                      setState(() {
+                        searchQuery = '';
+                      });
 
-                    final state = noteContentScreenKey.currentState;
-                    state?.updateFilteredNotes(state.allNotes, '');
-                  },
-                ),
-                Positioned.fill(
-                  child: selectionMode
-                    ? const SizedBox()
-                    : Material(
-                        color: AppColors.transparent,
-                        child: InkWell(
-                          splashFactory: NoSplash.splashFactory,
-                          borderRadius: BorderRadius.circular(30),
-                          splashColor: AppColors.darkerGrey.withAlpha((0.2 * 255).toInt()),
-                          highlightColor: AppColors.darkGrey.withAlpha((0.2 * 255).toInt()),
-                          onTap: () {
-                            FocusScope.of(context).requestFocus(_focusNode);
-                          },
-                        ),
+                      final state = noteContentScreenKey.currentState;
+                      state?.updateFilteredNotes(state.allNotes, '');
+                    },
+                  ),
+                  Positioned.fill(
+                    child: selectionMode
+                      ? const SizedBox()
+                      : Material(
+                          color: AppColors.transparent,
+                          child: InkWell(
+                            splashFactory: NoSplash.splashFactory,
+                            borderRadius: BorderRadius.circular(30),
+                            splashColor: AppColors.darkerGrey.withAlpha((0.2 * 255).toInt()),
+                            highlightColor: AppColors.darkGrey.withAlpha((0.2 * 255).toInt()),
+                            onTap: () {
+                              FocusScope.of(context).requestFocus(_focusNode);
+                            },
                       ),
-                ),
-              ],
+                    ),
+                  ),
+                ],
+              ),
             ),
+          Expanded(
+            child: selectedIndex == 0
+              ? (allNotes.isEmpty
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Image.asset(AppImages.noNotes, width: 120, height: 120),
+                        const SizedBox(height: 8),
+                        Text('Нет заметок', textAlign: TextAlign.center, style: TextStyle(fontSize: 15, color: context.isDarkMode ? AppColors.darkGrey : AppColors.softGrey)),
+                      ],
+                    ),
+                  )
+                : ScrollConfiguration(behavior: NoGlowScrollBehavior(), child: _buildPages()))
+              : ScrollConfiguration(behavior: NoGlowScrollBehavior(), child: _buildPages()),
           ),
-          Expanded(child: ScrollConfiguration(behavior: NoGlowScrollBehavior(), child: _buildPages())),
         ],
       ),
-      floatingActionButton: (showButtonFab && !hasSelectedNotes) ? _buildFAB() : null,
+      floatingActionButton: _buildFAB(),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       bottomNavigationBar: _buildBottomNavBar(allNotes, noteViewModel),
     );
   }
 
-  Widget _buildPopupMenu() {
+  Widget? _buildPopupMenu() {
     if (selectedIndex != 0) return const SizedBox();
 
     return NotePopupMenu(
       onGridViewChanged: (isGrid) {
         setState(() => isGridView = isGrid);
+        box.write('isGridView', isGrid);
       },
     );
   }
 
   Widget? _buildFAB() {
-    if (selectedIndex != 0) return null;
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
+    const bottomNavHeight = 55;
+    final totalBottomOffset = bottomNavHeight + bottomPadding;
 
-    return NoteFAB(
-      onPressed: () {
-        Navigator.push(context, createPageRoute(AddEditNoteScreen(createdAt: DateTime.now())));
-      },
-    );
+    final isSelectionActive = selectionMode;
+
+    if (isSelectionActive || isFolderDialogOpen) return null;
+
+    if (selectedIndex == 0) {
+      return Padding(
+        padding: EdgeInsets.only(bottom: bottomPadding + 16),
+        child: AppFAB(
+          heroTag: 'note',
+          onPressed: () {
+            Navigator.push(context, createPageRoute(AddEditNoteScreen(createdAt: DateTime.now())));
+          },
+        ),
+      );
+    }
+
+    if (selectedIndex == 1) {
+      return Padding(
+        padding: EdgeInsets.only(bottom: totalBottomOffset + 16),
+        child: AppFAB(
+          heroTag: 'task',
+          onPressed: () {
+            showAddTaskBottomSheet(context);
+          },
+        ),
+      );
+    }
+
+    return null;
   }
 
   Widget _buildPages() {
@@ -382,15 +433,12 @@ class NoteScreenState extends State<NoteScreen> with SingleTickerProviderStateMi
             setState(() {
               selectedNotes = selected.map((e) => e.id).toSet();
               selectedNoteCount = selected.length;
-              selectionMode = true;
-              hasSelectedNotes = selected.isNotEmpty;
             });
           },
         ),
         TaskScreen(
           onSelectionChanged: (hasSelected, selected) {
             setState(() {
-              hasSelectedTasks = hasSelected;
               selectedTasks = selected;
             });
           },
@@ -400,14 +448,16 @@ class NoteScreenState extends State<NoteScreen> with SingleTickerProviderStateMi
   }
 
   Widget _buildBottomNavBar(List<NoteModel> allNotes, NoteViewModel vm) {
-    if (!showBottomNavBar) return const SizedBox();
+    if (selectedIndex != 0) {
+      return const SizedBox();
+    }
 
     if (selectionMode) {
       final selected = allNotes.where((n) => selectedNotes.contains(n.id)).toList();
 
       return SelectBottomNavBar(
         onShare: () {},
-        onMove: () {},
+        onMove: () => moveNotes(context, selected),
         onDelete: () => deleteSelectedNotes(context, selected, allNotes, vm),
         onSelectAll: selectAllNotes,
         selectedNotes: selected,

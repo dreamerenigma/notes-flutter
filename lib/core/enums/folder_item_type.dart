@@ -1,0 +1,1 @@
+enum FolderItemType { all, uncategorized, favorite, deleted }

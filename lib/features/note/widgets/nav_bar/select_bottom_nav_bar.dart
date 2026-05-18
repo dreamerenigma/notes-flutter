@@ -51,7 +51,7 @@ class _SelectBottomNavBarState extends State<SelectBottomNavBar> {
 
   @override
   Widget build(BuildContext context) {
-    final bool hasSelectedItems = widget.selectedNotes.isNotEmpty;
+    final bool hasSelectedItems = widget.selectedNotes.isNotEmpty || widget.selectedTasks.isNotEmpty;
     final bool isActiveMode = isSelectionMode || hasSelectedItems;
     final bool isAllSelected = widget.areAllSelected;
     final String selectAllLabel = isAllSelected ? 'Отменить выбор' : 'Выбрать все';
@@ -69,51 +69,37 @@ class _SelectBottomNavBarState extends State<SelectBottomNavBar> {
               Expanded(
                 child: _buildBottomAppBarItem(
                   context,
-                  Icon(Icons.share_outlined, color: Theme.of(context).brightness == Brightness.dark ? AppColors.white : AppColors.black),
+                  Icon(Icons.share_outlined, color: context.isDarkMode ? AppColors.white : AppColors.black),
                   'Отправить',
                   isActiveMode  ? widget.onShare : null,
-                  Theme.of(context).brightness == Brightness.dark ? AppColors.white : AppColors.black,
+                  context.isDarkMode ? AppColors.white : AppColors.black,
                   hasSelectedItems,
                 ),
               ),
             Expanded(
               child: _buildBottomAppBarItem(
                 context,
-                Icon(
-                  Icons.create_new_folder_outlined,
-                  color: Theme.of(context).brightness == Brightness.dark ? AppColors.white : AppColors.black,
-                ),
+                SvgPicture.asset(AppVectors.moveFolder, width: 26, height: 26, colorFilter: ColorFilter.mode(selectAllColor, BlendMode.srcIn)),
                 'Переместить',
                 isActiveMode  ? widget.onMove : null,
-                Theme.of(context).brightness == Brightness.dark ? AppColors.white : AppColors.black,
+                context.isDarkMode ? AppColors.white : AppColors.black,
                 hasSelectedItems,
               ),
             ),
             Expanded(
               child: _buildBottomAppBarItem(
                 context,
-                Icon(
-                  FluentIcons.delete_48_regular,
-                  color: Theme.of(context).brightness == Brightness.dark ? AppColors.white : AppColors.black,
-                ),
+                Icon(FluentIcons.delete_48_regular, color: context.isDarkMode ? AppColors.white : AppColors.black),
                 'Удалить',
                 isActiveMode ? widget.onDelete : null,
-                Theme.of(context).brightness == Brightness.dark ? AppColors.white : AppColors.black,
+                context.isDarkMode ? AppColors.white : AppColors.black,
                 hasSelectedItems,
               ),
             ),
             Expanded(
               child: _buildBottomAppBarItem(
                 context,
-                Padding(
-                  padding: const EdgeInsets.only(top: 2),
-                  child: SvgPicture.asset(
-                    AppVectors.selectAll,
-                    width: 19,
-                    height: 19,
-                    colorFilter: ColorFilter.mode(selectAllColor, BlendMode.srcIn),
-                  ),
-                ),
+                SvgPicture.asset(AppVectors.selectAll, width: 21, height: 21, colorFilter: ColorFilter.mode(selectAllColor, BlendMode.srcIn)),
                 selectAllLabel,
                 widget.onSelectAll,
                 spacing: 4,
@@ -128,7 +114,7 @@ class _SelectBottomNavBarState extends State<SelectBottomNavBar> {
     );
   }
 
-  Widget _buildBottomAppBarItem(BuildContext context, Widget icon, String label, VoidCallback? onTap, Color activeColor, bool isEnabled, {double spacing = 2, bool alwaysActive = false}) {
+  Widget _buildBottomAppBarItem(BuildContext context, Widget icon, String label, VoidCallback? onTap, Color activeColor, bool isEnabled, {double spacing = 0, bool alwaysActive = false}) {
     final bool canTap = alwaysActive || isEnabled;
     final disabledColor = Theme.of(context).brightness == Brightness.dark ? AppColors.steelGrey : AppColors.grey;
     final Color color = canTap ? activeColor : disabledColor;

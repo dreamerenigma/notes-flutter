@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:bootstrap_icons/bootstrap_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
@@ -6,12 +8,12 @@ import 'package:provider/provider.dart';
 import '../../../../utils/constants/app_colors.dart';
 import '../../../../utils/constants/app_sizes.dart';
 import '../../models/task_view_model.dart';
-import '../popups/calendar_dialog.dart';
+import 'calendar_dialog.dart';
 import '../../models/task_model.dart';
 
 class AddTaskBottomSheet extends StatefulWidget {
   final TaskModel? task;
-  final VoidCallback onTime;
+  final ValueChanged<String> onTime;
   final ValueChanged<bool> onWarning;
   final String taskType;
 
@@ -34,6 +36,7 @@ class AddTaskBottomSheetState extends State<AddTaskBottomSheet> {
   late final String currentDate;
   bool isSaveButtonEnabled = false;
   bool isWarningIconSelected = false;
+  DateTime? selectedDueDate;
 
   @override
   void initState() {
@@ -41,6 +44,9 @@ class AddTaskBottomSheetState extends State<AddTaskBottomSheet> {
     viewModel = Provider.of<TaskViewModel>(context, listen: false);
     currentDate = widget.taskType == 'Edit' ? DateFormat('dd MMMM yyyy г., HH:mm').format(DateTime.now()) : DateFormat('dd MMMM yyyy г.').format(DateTime.now());
     _textController.addListener(_handleTextInputChange);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _requestFocus();
+    });
   }
 
   @override
@@ -60,18 +66,31 @@ class AddTaskBottomSheetState extends State<AddTaskBottomSheet> {
     FocusScope.of(context).requestFocus(_focusNode);
   }
 
-  void saveText() {
+  void saveText() async {
     if (isSaveButtonEnabled) {
       final taskTitle = _textController.text.trim();
 
       if (widget.task == null) {
-        final newTask = TaskModel(title: taskTitle, description: '', createdAt: DateTime.now(), id: 0, isImportant: isWarningIconSelected, dueDate: null);
+        final newTask = TaskModel(title: taskTitle, description: '', createdAt: DateTime.now(), id: 0, isImportant: isWarningIconSelected, dueDate: selectedDueDate);
 
-        viewModel.addTask(newTask);
+        try {
+          await viewModel.addTask(newTask);
+        } catch (e, stackTrace) {
+          log(stackTrace.toString());
+        }
       } else {
         final updatedTask = widget.task!.copyWith(title: taskTitle, isImportant: isWarningIconSelected);
 
-        viewModel.updateTask(updatedTask);
+        log('🟡 UPDATE TASK: ${updatedTask.toMap()}');
+
+        try {
+          await viewModel.updateTask(updatedTask);
+
+          log('✅ TASK UPDATED');
+        } catch (e, stackTrace) {
+          log('❌ ERROR UPDATING TASK: $e');
+          log(stackTrace.toString());
+        }
       }
 
       Navigator.pop(context);
@@ -85,12 +104,12 @@ class AddTaskBottomSheetState extends State<AddTaskBottomSheet> {
       child: ClipRRect(
         borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
         child: Material(
-          color: Theme.of(context).brightness == Brightness.dark ? AppColors.blackGrey : AppColors.white,
+          color: Theme.of(context).brightness == Brightness.dark ? AppColors.greySlate : AppColors.white,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                padding: const EdgeInsets.only(left: 16, right: 16, top: 14),
                 child: TextSelectionTheme(
                   data: TextSelectionThemeData(cursorColor: AppColors.blue, selectionColor: AppColors.blue.withAlpha((0.3 * 255).toInt()), selectionHandleColor: AppColors.blue),
                   child: Container(
@@ -99,6 +118,7 @@ class AddTaskBottomSheetState extends State<AddTaskBottomSheet> {
                     child: TextField(
                       controller: _textController,
                       focusNode: _focusNode,
+                      autofocus: true,
                       style: TextStyle(fontSize: AppSizes.fontSizeLg, fontWeight: FontWeight.w300, color: Theme.of(context).brightness == Brightness.dark ? AppColors.white : AppColors.black),
                       decoration: InputDecoration(
                         border: InputBorder.none,
@@ -123,13 +143,20 @@ class AddTaskBottomSheetState extends State<AddTaskBottomSheet> {
                         _buildBottomSheetItem(
                           context,
                           Icon(LucideIcons.alarm_clock, size: 28, color: Theme.of(context).brightness == Brightness.dark ? AppColors.white : AppColors.black),
-                            () {
-                              _requestFocus();
+                          () async {
+                            _requestFocus();
+
+                            final pickedDate = await showCustomCalendarDialog(context);
+
+                            if (pickedDate != null) {
                               setState(() {
-                                showCustomCalendarDialog(context);
+                                selectedDueDate = pickedDate;
                               });
-                            widget.onTime();
-                            },
+                              final formatted = DateFormat('d MMMM HH:mm', 'ru').format(pickedDate);
+                              widget.onTime(formatted);
+                              log('📅 selectedDueDate: $selectedDueDate');
+                            }
+                          },
                         ),
                         const SizedBox(width: 23),
                         _buildBottomSheetItem(

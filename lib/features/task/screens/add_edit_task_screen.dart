@@ -1,25 +1,29 @@
-import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:notes/features/task/models/task_model.dart';
 import 'package:notes/features/edit/widgets/forms/task_form.dart';
 import 'package:provider/provider.dart';
 import 'package:notes/utils/constants/app_colors.dart';
+import 'package:share_plus/share_plus.dart';
 import '../../edit/widgets/nav_bar/custom_bottom_nav_bar.dart';
 import '../models/task_view_model.dart';
 
 class AddEditTaskScreen extends StatefulWidget {
   final String taskType;
+  final TaskModel? task;
   final String? taskTitle;
   final String? taskDescription;
-  final DateTime? time;
   final int? taskId;
+  final ValueChanged<TaskModel>? onSave;
+  final DateTime? time;
 
   const AddEditTaskScreen({
     super.key,
     this.taskType = 'Add',
+    this.task,
     this.taskTitle,
     this.taskDescription,
     this.taskId,
+    this.onSave,
     required this.time,
   });
 
@@ -30,14 +34,22 @@ class AddEditTaskScreen extends StatefulWidget {
 class AddEditTaskScreenState extends State<AddEditTaskScreen> {
   final TextEditingController taskTitleController = TextEditingController();
   final TextEditingController taskDescriptionController = TextEditingController();
+  final TextEditingController noteController = TextEditingController();
   final FocusNode taskTitleFocusNode = FocusNode();
   final FocusNode taskDescriptionFocusNode = FocusNode();
   final ValueNotifier<int> characterCountNotifier = ValueNotifier<int>(0);
   bool isWarningIconSelected = false;
+  bool isSwitched = false;
+  bool isCompleted = false;
+  TaskModel? currentTask;
 
   @override
   void initState() {
     super.initState();
+    currentTask = widget.task;
+    isSwitched = widget.task?.isImportant ?? false;
+    isCompleted = widget.task?.isCompleted ?? false;
+
     if (widget.taskType == 'Edit') {
       taskTitleController.text = widget.taskTitle ?? '';
       taskDescriptionController.text = widget.taskDescription ?? '';
@@ -63,6 +75,11 @@ class AddEditTaskScreenState extends State<AddEditTaskScreen> {
     setState(() {});
   }
 
+  void _unfocusAll() {
+    taskTitleFocusNode.unfocus();
+    taskDescriptionFocusNode.unfocus();
+  }
+
   @override
   Widget build(BuildContext context) {
     final viewModel = Provider.of<TaskViewModel>(context, listen: false);
@@ -78,7 +95,10 @@ class AddEditTaskScreenState extends State<AddEditTaskScreen> {
               children: [
                 IconButton(
                   icon: const Icon(Icons.arrow_back),
-                  onPressed: () {
+                  onPressed: () async {
+                    final updatedTask = currentTask!.copyWith(title: taskTitleController.text, description: taskDescriptionController.text, isImportant: isSwitched, isCompleted: isCompleted);
+
+                    await viewModel.updateTask(updatedTask);
                     Navigator.pop(context);
                   },
                 ),
@@ -93,17 +113,22 @@ class AddEditTaskScreenState extends State<AddEditTaskScreen> {
                           final taskDescription = taskDescriptionController.text;
                           final currentDate = DateTime.now();
 
+                          _unfocusAll();
+                          setState(() {});
+
                           if (taskTitle.isNotEmpty && taskDescription.isNotEmpty) {
                             if (widget.taskType == 'Edit') {
                               if (widget.taskId == null) {
                                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Error: Task ID is null')));
                                 return;
                               }
-                              final updatedTask = TaskModel(id: widget.taskId!, title: taskTitle, description: taskDescription, createdAt: currentDate, isImportant: isWarningIconSelected, dueDate: widget.time);
+                              final updatedTask = TaskModel(id: widget.taskId!, title: taskTitle, description: taskDescription, createdAt: currentDate, isImportant: isSwitched, dueDate: currentTask?.dueDate);
+
                               viewModel.updateTask(updatedTask);
                               ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Задача обновлена')));
                             } else {
-                              final newTask = TaskModel(title: taskTitle, description: taskDescription, createdAt: currentDate, id: 0, dueDate: widget.time);
+                              final newTask = TaskModel(title: taskTitle, description: taskDescription, createdAt: currentDate, id: 0, dueDate: currentTask?.dueDate, isImportant: isSwitched);
+
                               viewModel.addTask(newTask);
                               ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Задача добавлена')));
                             }
@@ -117,13 +142,29 @@ class AddEditTaskScreenState extends State<AddEditTaskScreen> {
             ),
             Expanded(
               child: TaskForm(
+                task: widget.task,
+                isImportant: widget.task?.isImportant,
                 taskTitleController: taskTitleController,
                 taskTitleFocusNode: taskTitleFocusNode,
                 taskDescriptionController: taskDescriptionController,
                 taskDescriptionFocusNode: taskDescriptionFocusNode,
+                noteController: noteController,
                 characterCountNotifier: characterCountNotifier,
                 taskType: widget.taskType,
                 taskColor: widget.taskType == 'Edit' ? AppColors.blueAccent : AppColors.red,
+                onImportantChanged: (value) {
+                  isSwitched = value;
+                },
+                onSave: (updatedTask) {
+                  viewModel.updateTask(updatedTask);
+                },
+                onTaskChanged: (task) {
+                  currentTask = task;
+                },
+                onCompletedChanged: (value) {
+                  isCompleted = value;
+                },
+                isCompleted: isCompleted,
               ),
             ),
           ],
@@ -131,11 +172,13 @@ class AddEditTaskScreenState extends State<AddEditTaskScreen> {
       ),
       bottomNavigationBar: CustomBottomNavBar(
         onShare: () {
-          log('Share clicked');
+          final task = currentTask;
+          if (task == null) return;
+          final textToShare = '''📝 ${task.title} ${task.description}''';
+
+          SharePlus.instance.share(ShareParams(text: textToShare));
         },
-        onDelete: () {
-          log('Delete clicked');
-        },
+        onDelete: () {},
         showFavorites: false,
         showMore: false,
         selectedNotes: const [],

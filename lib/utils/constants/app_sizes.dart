@@ -1,7 +1,6 @@
 import '../../features/note/controllers/fonts_controller.dart';
 
 class AppSizes {
-
   // Padding and margin sizes
   static const double xs = 4.0;
   static const double sm = 8.0;
@@ -12,7 +11,6 @@ class AppSizes {
   static const double mg = 32.0;
 
   // Icon sizes
-
   static const double iconXs = 12.0;
   static const double iconSm = 14.0;
   static const double iconMd = 16.0;
@@ -34,7 +32,7 @@ class AppSizes {
   static double fontSizeGl = 28.0;
   static double fontSizeUn = 34.0;
 
-  //
+  // Toggles global interface font sizes
   static void updateFontSizes(FontMode fontMode) {
     switch (fontMode) {
       case FontMode.small:

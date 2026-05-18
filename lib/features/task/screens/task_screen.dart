@@ -1,32 +1,37 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:notes/utils/constants/app_sizes.dart';
-import 'package:notes/features/utils/widgets/no_glow_scroll_behavior.dart';
+import 'package:notes/features/utils/widgets/scrolls/no_glow_scroll_behavior.dart';
 import 'package:provider/provider.dart';
+import '../../../core/enums/folder_dialog_type.dart';
 import '../../../core/types/callbacks.dart';
 import '../../../routes/custom_page_route.dart';
 import '../../../utils/constants/app_colors.dart';
+import '../../../utils/constants/app_vectors.dart';
+import '../../../utils/popups/dialogs.dart';
+import '../../note/widgets/app_bars/note_app_bar.dart';
 import '../../note/widgets/popups/custom_folder_dialog.dart';
+import '../utils/task_utils.dart';
 import '../models/task_model.dart';
+import '../widgets/groups/task_group_header.dart';
+import '../widgets/items/category_items.dart';
+import '../widgets/popups/select_notebook_bottom_sheet_dialog.dart';
 import '../widgets/popups/tasks_popup_menu.dart';
 import 'add_edit_task_screen.dart';
 import '../../edit/widgets/popups/delete_dialog.dart';
 import '../../note/screens/note_screen.dart';
-import '../../note/widgets/app_bar/note_app_bar.dart';
 import '../../note/widgets/nav_bar/bottom_nav_bar.dart';
 import '../../note/widgets/nav_bar/select_bottom_nav_bar.dart';
 import '../models/task_view_model.dart';
-import '../widgets/buttons/task_fab.dart';
 import '../widgets/lists/items/task_list_item.dart';
-import '../widgets/nav_bar/add_task_bottom_sheet_dialog.dart';
+import '../widgets/popups/add_task_bottom_sheet_dialog.dart';
 
 class TaskScreen extends StatefulWidget {
   final TaskSelectionChangedCallback? onSelectionChanged;
 
-  const TaskScreen({
-    super.key,
-    this.onSelectionChanged,
-  });
+  const TaskScreen({super.key, this.onSelectionChanged});
 
   @override
   State<TaskScreen> createState() => _TaskScreenState();
@@ -34,7 +39,7 @@ class TaskScreen extends StatefulWidget {
 
 class _TaskScreenState extends State<TaskScreen> with SingleTickerProviderStateMixin {
   late final AnimationController animationController;
-  late List<TaskModel> tasks;
+  late Animation<double> rotationAnimation;
   List<TaskModel> selectedTasks = [];
   List<TaskModel> allTasks = [];
   Set<String> expandedGroups = {};
@@ -44,30 +49,31 @@ class _TaskScreenState extends State<TaskScreen> with SingleTickerProviderStateM
   int selectedTaskCount = 0;
   bool isExpanded = false;
   bool showCompleted = true;
-  bool showCheckboxes = false;
-  bool hasSelectedTasks = false;
+  bool selectionMode = false;
+  bool groupsInitialized = false;
   bool areAllTasksSelected = false;
   bool isWarningIconSelected = false;
-  bool showSelectBottomNavBar = false;
-
-  String getElementSuffix(int count) {
-    if (count % 10 >= 2 && count % 10 <= 4 && (count % 100 < 10 || count % 100 >= 20)) {
-      return 'а';
-    } else {
-      return 'ов';
-    }
-  }
+  bool userHasInteractedWithGroups = false;
 
   @override
   void initState() {
     super.initState();
     animationController = AnimationController(vsync: this, duration: const Duration(milliseconds: 300));
+    rotationAnimation = Tween<double>(begin: 0.0, end: 1).animate(CurvedAnimation(parent: animationController, curve: Curves.fastOutSlowIn, reverseCurve: Curves.fastOutSlowIn));
   }
 
   @override
   void dispose() {
     animationController.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final viewModel = Provider.of<TaskViewModel>(context);
+    final grouped = TaskUtils.groupTasks(viewModel.allTasks, showCompleted);
+    initExpandedGroups(grouped);
   }
 
   void toggleExpand() async {
@@ -77,13 +83,7 @@ class _TaskScreenState extends State<TaskScreen> with SingleTickerProviderStateM
         animationController.forward();
       });
 
-      final result = await showDialog<Map<String, dynamic>>(
-        context: context,
-        barrierColor: AppColors.transparent,
-        builder: (BuildContext context) {
-          return const CustomFolderDialog();
-        },
-      );
+      final result = await showDialog<Map<String, dynamic>>(context: context, barrierColor: AppColors.transparent, builder: (_) => const CustomFolderDialog(type: FolderDialogType.tasks));
 
       if (result != null) {
         setState(() {
@@ -109,58 +109,65 @@ class _TaskScreenState extends State<TaskScreen> with SingleTickerProviderStateM
       } else {
         selectedTasks.add(task);
       }
-
-      selectedTaskCount = selectedTasks.length;
-      hasSelectedTasks = selectedTasks.isNotEmpty;
-
-      widget.onSelectionChanged?.call(selectedTasks.isNotEmpty, selectedTasks);
     });
+  }
+
+  void toggleGroup(String groupTitle) {
+    setState(() {
+      userHasInteractedWithGroups = true;
+      groupsInitialized = true;
+
+      if (expandedGroups.contains(groupTitle)) {
+        expandedGroups.remove(groupTitle);
+      } else {
+        expandedGroups.add(groupTitle);
+      }
+    });
+  }
+
+  void initExpandedGroups(Map<String, List<TaskModel>> groupedTasks) {
+    for (final key in groupedTasks.keys) {
+      expandedGroups.add(key);
+    }
   }
 
   void handleLongPress(TaskModel task) {
     setState(() {
-      showSelectBottomNavBar = true;
-      showCheckboxes = true;
+      selectionMode = true;
 
       if (!selectedTasks.contains(task)) {
         selectedTasks.add(task);
       }
-
-      selectedTaskCount = selectedTasks.length;
-      hasSelectedTasks = selectedTasks.isNotEmpty;
-      widget.onSelectionChanged?.call(true, selectedTasks);
     });
   }
 
   void clearSelection() {
     setState(() {
+      selectionMode = false;
       selectedTasks.clear();
-      showCheckboxes = false;
-      showSelectBottomNavBar = false;
       widget.onSelectionChanged?.call(false, []);
     });
   }
 
   void handleTaskClick(TaskModel task) {
-    if (showCheckboxes) {
+    if (selectionMode) {
       toggleSelection(task);
     } else {
-      Navigator.push(context, createPageRoute(AddEditTaskScreen(taskType: 'Edit', taskTitle: task.title, taskDescription: task.description, taskId: task.id, time: task.createdAt)));
+      Navigator.push(context, createPageRoute(AddEditTaskScreen(taskType: 'Edit', task: task, taskTitle: task.title, taskDescription: task.description, taskId: task.id, time: task.createdAt)));
     }
   }
 
-  void selectAllTasks() {
+  void selectAllTasks(List<TaskModel> allTasks) {
     setState(() {
-      if (areAllTasksSelected) {
+      final allSelected = selectedTasks.length == allTasks.length;
+
+      if (allSelected) {
         selectedTasks.clear();
-        selectedTaskCount = 0;
-        hasSelectedTasks = false;
       } else {
-        selectedTasks = List.from(tasks);
-        selectedTaskCount = selectedTasks.length;
-        hasSelectedTasks = selectedTasks.isNotEmpty;
+        selectedTasks = List.from(allTasks);
       }
-      areAllTasksSelected = !areAllTasksSelected;
+
+      areAllTasksSelected = selectedTasks.length == allTasks.length;
     });
   }
 
@@ -181,9 +188,11 @@ class _TaskScreenState extends State<TaskScreen> with SingleTickerProviderStateM
   void showAddTaskBottomSheet() {
     showModalBottomSheet(
       context: context,
+      showDragHandle: false,
+      backgroundColor: Theme.of(context).brightness == Brightness.dark ? AppColors.greySlate : AppColors.white,
       builder: (BuildContext context) {
         return AddTaskBottomSheet(
-          onTime: () {},
+          onTime: (value) {},
           onWarning: (value) {
             setState(() {
               isWarningIconSelected = value;
@@ -198,9 +207,27 @@ class _TaskScreenState extends State<TaskScreen> with SingleTickerProviderStateM
   void clearTaskSelection() {
     clearSelection();
     setState(() {
-      hasSelectedTasks = false;
       selectedTasks = [];
       selectedTaskCount = 0;
+    });
+  }
+
+  void moveTasks(BuildContext context, List<TaskModel> tasks) async {
+    final viewModel = Provider.of<TaskViewModel>(context, listen: false);
+    final sameCategory = tasks.every((t) => t.category == tasks.first.category,);
+    final selected = sameCategory ? CategoryItems.categories.firstWhere((c) => c.title == tasks.first.category, orElse: () => CategoryItems.categories.last) : null;
+    final category = await selectNotebookBottomSheetDialog(context: context, categories: CategoryItems.categories, selected: selected);
+
+    if (category == null) return;
+
+    final updated = tasks.map((task) {
+      return task.copyWith(category: category.title, categoryColor: category.value);
+    }).toList();
+
+    await viewModel.updateTasks(updated);
+
+    setState(() {
+      selectedTasks = updated;
     });
   }
 
@@ -208,241 +235,191 @@ class _TaskScreenState extends State<TaskScreen> with SingleTickerProviderStateM
     if (selectedTasks.isNotEmpty) {
       showDeleteDialog(
         context,
-            () async {
+        () async {
+          final deletedCount = selectedTasks.length;
+
           for (var task in selectedTasks) {
             await taskViewModel?.deleteTask(task);
           }
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text("${selectedTasks.length} задач удалено", style: const TextStyle(color: AppColors.white)),
-              duration: const Duration(seconds: 2),
-              backgroundColor: AppColors.darkGrey.withAlpha((0.6 * 255).toInt()),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            ),
-          );
+
+          clearSelection();
+
+          CustomIconSnackBar.showAnimatedSnackBar(context, '$deletedCount задач удалено', icon: const Icon(Icons.check_circle, color: AppColors.success), backgroundColor: AppColors.darkerGrey.withAlpha((0.3 * 255).toInt()));
         },
-        selectedCount: selectedNotes.length,
-        allCount: allNotes.length,
+        selectedCount: selectedTasks.length,
+        allCount: taskViewModel?.allTasks.length ?? 0,
         type: 'task',
       );
     }
   }
 
-  Map<String, List<TaskModel>> groupTasks(List<TaskModel> tasks, bool showCompleted) {
-    final Map<String, List<TaskModel>> grouped = {};
-    final now = DateTime.now();
-
-    for (var task in tasks) {
-      if (!showCompleted && task.isCompleted) {
-        continue;
-      }
-
-      String key;
-
-      if (task.isCompleted) {
-        key = 'ВЫПОЛНЕНО';
-      } else if (task.createdAt == null) {
-        key = 'НЕТ ДАТЫ';
-      } else if (task.createdAt!.isBefore(now)) {
-        key = 'ИСТЁК СРОК';
-      } else if (isToday(task.createdAt!)) {
-        key = 'СЕГОДНЯ';
-      } else {
-        key = 'ДРУГОЕ';
-      }
-
-      grouped.putIfAbsent(key, () => []).add(task);
-    }
-
-    return grouped;
-  }
-
-  bool isToday(DateTime date) {
-    final now = DateTime.now();
-
-    return date.year == now.year && date.month == now.month && date.day == now.day;
-  }
-
   @override
   Widget build(BuildContext context) {
-    Widget popupMenu = const SizedBox();
+    return Padding(
+      padding: const EdgeInsets.only(top: 4),
+      child: Consumer<TaskViewModel>(
+        builder: (context, viewModel, child) {
+          final tasks = viewModel.allTasks;
+          final groupedTasks = TaskUtils.groupTasks(tasks, showCompleted);
 
-    return Consumer<TaskViewModel>(
-      builder: (context, viewModel, child) {
-        tasks = viewModel.allTasks;
-
-        final taskViewModel = Provider.of<TaskViewModel>(context, listen: false);
-        final groupedTasks = groupTasks(tasks, showCompleted);
-
-        popupMenu = TasksPopupMenu(
-          showCompleted: showCompleted,
-          onShowCompletedChanged: (value) {
-            setState(() {
-              showCompleted = value;
-            });
-          },
-        );
-        Widget bottomNavBar = showSelectBottomNavBar ? SelectBottomNavBar(
-          onMove: () {},
-          onDelete: () {
-            deleteSelectedTasks(context, selectedTasks, taskViewModel);
-          },
-          showShare: false,
-          onSelectAll: selectAllTasks,
-          selectedTasks: selectedTasks,
-          taskViewModel: viewModel,
-          areAllSelected: selectedNotes.length == allTasks.length,
-        )
-            : BottomNavBar(selectedIndex: selectedIndex, onItemTapped: onItemTapped,
-        );
-
-        return ScrollbarTheme(
-          data: ScrollbarThemeData(
-            thumbColor: WidgetStateProperty.resolveWith<Color>(
-              (Set<WidgetState> states) {
-                if (states.contains(WidgetState.dragged)) {
+          return ScrollbarTheme(
+            data: ScrollbarThemeData(
+              thumbColor: WidgetStateProperty.resolveWith<Color>(
+                (Set<WidgetState> states) {
+                  if (states.contains(WidgetState.dragged)) {
+                    return Theme.of(context).brightness == Brightness.dark ? AppColors.darkerGrey : AppColors.darkGrey;
+                  }
                   return Theme.of(context).brightness == Brightness.dark ? AppColors.darkerGrey : AppColors.darkGrey;
-                }
-                return Theme.of(context).brightness == Brightness.dark ? AppColors.darkerGrey : AppColors.darkGrey;
-              },
+                },
+              ),
             ),
-          ),
-          child: ScrollConfiguration(
-            behavior: NoGlowScrollBehavior(),
-            child: Scrollbar(
-              thickness: 4,
-              thumbVisibility: false,
-              radius: const Radius.circular(6),
-              child: Scaffold(
-                appBar: NoteAppBar(hasSelectedTasks: hasSelectedTasks, clearTaskSelection: clearTaskSelection, popupMenu: popupMenu, showAppBar: selectedIndex == 1),
-                body: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    GestureDetector(
-                      onTap: toggleExpand,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            Text(
-                              !hasSelectedTasks
-                                ? 'Все задачи'
-                                : selectedTaskCount == 0
-                                  ? 'Не выбрано'
-                                  : selectedTaskCount == 1
-                                    ? 'Выбран $selectedTaskCount элемент'
-                                    : 'Выбрано $selectedTaskCount элемент${getElementSuffix(selectedTaskCount)}',
-                              style: const TextStyle(fontSize: 32),
-                            ),
-                            const SizedBox(width: 4),
-                            if (!hasSelectedTasks)
-                            AnimatedBuilder(
-                              animation: animationController,
-                              builder: (context, child) {
-                                return Transform.rotate(angle: animationController.value * 3.14, child: const Icon(Icons.arrow_drop_down_rounded, size: 35));
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Text('${tasks.length} задачи', style: TextStyle(color: AppColors.darkGrey, fontSize: AppSizes.fontSizeSm)),
-                    ),
-                    const SizedBox(height: 16),
-                    Expanded(
-                      child: ScrollConfiguration(
-                        behavior: NoGlowScrollBehavior(),
-                        child: Scrollbar(
-                          thickness: 4,
-                          radius: const Radius.circular(6),
-                          thumbVisibility: false,
-                          child: ListView(
-                            children: groupedTasks.entries.map((entry) {
-                              final groupTitle = entry.key;
-                              final groupItems = entry.value.where((task) {
-                                if (showCompleted) return true;
-                                return !task.isCompleted;
-                              }).toList();
-
-                              final canCollapse = groupItems.length >= 3;
-                              final isExpanded = !canCollapse || expandedGroups.contains(groupTitle);
-
-                              return Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Material(
-                                    color: AppColors.transparent,
-                                    child: InkWell(
-                                      onTap: canCollapse
-                                        ? () {
-                                            setState(() {
-                                              if (expandedGroups.contains(groupTitle)) {
-                                                expandedGroups.remove(groupTitle);
-                                              } else {
-                                                expandedGroups.add(groupTitle);
-                                              }
-                                            });
-                                          }
-                                        : null,
-                                      splashFactory: NoSplash.splashFactory,
-                                      splashColor: AppColors.transparent,
-                                      highlightColor: AppColors.transparent,
-                                      hoverColor: AppColors.transparent,
-                                      child: Padding(
-                                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                        child: Row(
-                                          children: [
-                                            Text(groupTitle, style: TextStyle(fontSize: AppSizes.fontSizeLg, color: context.isDarkMode ? AppColors.white : AppColors.black, fontWeight: FontWeight.w400)),
-                                            const Spacer(),
-                                            if (canCollapse)
-                                              AnimatedRotation(
-                                                turns: expandedGroups.contains(groupTitle) ? 0.5 : 0.0,
-                                                duration: const Duration(milliseconds: 400),
-                                                curve: Curves.easeInOutCubicEmphasized,
-                                                child: const Icon(Icons.keyboard_arrow_down_rounded, size: 25, color: AppColors.steelGrey),
-                                              ),
-                                          ],
-                                        ),
-                                      ),
+            child: ScrollConfiguration(
+              behavior: NoGlowScrollBehavior(),
+              child: Scrollbar(
+                thickness: 4,
+                thumbVisibility: false,
+                radius: const Radius.circular(6),
+                child: Scaffold(
+                  appBar: NoteAppBar(hasSelectedTasks: selectionMode, clearTaskSelection: clearTaskSelection, popupMenu: _buildPopupMenu(), showAppBar: selectedIndex == 1),
+                  body: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      GestureDetector(
+                        onTap: selectionMode ? null : toggleExpand,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              Text(TaskUtils.getTitleText(selectionMode: selectionMode, selectedCount: selectedTasks.length), style: const TextStyle(fontSize: 32)),
+                              const SizedBox(width: 8),
+                              if (!selectionMode)
+                                SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: Center(
+                                    child: AnimatedBuilder(
+                                      animation: rotationAnimation,
+                                      builder: (context, child) {
+                                        return Transform.rotate(angle: rotationAnimation.value * math.pi, alignment: const Alignment(0, -0.8), child: child);
+                                      },
+                                      child: SvgPicture.asset(AppVectors.arrowDropDown, width: 14, height: 14, colorFilter: ColorFilter.mode(context.isDarkMode ? AppColors.white : AppColors.black, BlendMode.srcIn)),
                                     ),
                                   ),
-                                  if (isExpanded) ...[
-                                    ...groupItems.map((task) {
-                                      return TaskListItem(
-                                        task: task,
-                                        time: task.createdAt,
-                                        onDelete: () {},
-                                        onSelectionChanged: (isSelected) {
-                                          toggleSelection(task);
-                                        },
-                                        isSelected: selectedTasks.contains(task),
-                                        showCheckboxes: showCheckboxes,
-                                        onLongPress: () => handleLongPress(task),
-                                        onClick: () => handleTaskClick(task),
-                                        onTaskSelected: (task) {},
-                                      );
-                                    }),
-                                  ],
-                                ],
-                              );
-                            }).toList(),
+                                ),
+                            ],
                           ),
                         ),
                       ),
-                    ),
-                  ],
+                      if (selectedIndex == 1)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 18),
+                          child: selectionMode ? const SizedBox(height: 20) : Consumer<TaskViewModel>(
+                            builder: (context, vm, _) {
+                              final count = vm.taskCount;
+
+                              if (count == 0) {
+                                return const SizedBox.shrink();
+                              }
+
+                              return Text(TaskUtils.getTasksText(count), style: TextStyle(fontSize: AppSizes.fontSizeSm, color: AppColors.darkGrey));
+                            },
+                            child: Text(TaskUtils.getTasksText(tasks.length), style: TextStyle(color: AppColors.darkGrey, fontSize: AppSizes.fontSizeSm)),
+                          ),
+                        ),
+                      const SizedBox(height: 16),
+                      Expanded(
+                        child: tasks.isEmpty
+                          ? Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  SvgPicture.asset(AppVectors.noTasks, width: 120, height: 120),
+                                  const SizedBox(height: 8),
+                                  Text('Нет задач', textAlign: TextAlign.center, style: TextStyle(fontSize: 15, color: context.isDarkMode ? AppColors.darkGrey : AppColors.softGrey)),
+                                ],
+                              ),
+                            )
+                          : ScrollConfiguration(
+                              behavior: NoGlowScrollBehavior(),
+                              child: Scrollbar(
+                                thickness: 4,
+                                radius: const Radius.circular(6),
+                                thumbVisibility: false,
+                                child: ListView(
+                                  children: groupedTasks.entries.map((entry) {
+                                    final groupTitle = entry.key;
+                                    final groupItems = entry.value.where((task) {
+                                      if (showCompleted) return true;
+                                      return !task.isCompleted;
+                                    }).toList();
+
+                                    final canCollapse = groupItems.length >= 3;
+                                    final isExpanded = !canCollapse || expandedGroups.contains(groupTitle);
+
+                                    return Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        TaskGroupHeader(title: groupTitle, isExpanded: isExpanded, canCollapse: canCollapse, onTap: () => toggleGroup(groupTitle)),
+                                        if (isExpanded) ...[
+                                          ...groupItems.map((task) {
+                                            return Padding(
+                                              padding: const EdgeInsets.only(bottom: 12),
+                                              child: TaskListItem(
+                                                task: task,
+                                                onDelete: () {},
+                                                onSelectionChanged: (isSelected) {
+                                                  toggleSelection(task);
+                                                },
+                                                isSelected: selectedTasks.contains(task),
+                                                showCheckboxes: selectionMode,
+                                                onLongPress: () => handleLongPress(task),
+                                                onClick: () => handleTaskClick(task),
+                                                onTaskSelected: (task) {},
+                                              ),
+                                            );
+                                          }),
+                                        ],
+                                      ],
+                                    );
+                                  }).toList(),
+                                ),
+                              ),
+                            ),
+                      ),
+                    ],
+                  ),
+                  bottomNavigationBar: _buildBottomNavBar(context, viewModel, tasks),
                 ),
-                floatingActionButton: TaskFAB(onPressed: () {
-                  showAddTaskBottomSheet();
-                }),
-                bottomNavigationBar: bottomNavBar,
               ),
             ),
-          ),
-        );
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildBottomNavBar(BuildContext context, TaskViewModel viewModel, List<TaskModel> tasks) {
+    return selectionMode
+      ? SelectBottomNavBar(
+          onMove: () => moveTasks(context, selectedTasks),
+          onDelete: () => deleteSelectedTasks(context, selectedTasks, viewModel),
+          showShare: false,
+          onSelectAll: () => selectAllTasks(tasks),
+          selectedTasks: selectedTasks,
+          taskViewModel: viewModel,
+          areAllSelected: selectedTasks.length == allTasks.length,
+        )
+      : BottomNavBar(selectedIndex: selectedIndex, onItemTapped: onItemTapped);
+  }
+
+  Widget _buildPopupMenu() {
+    return TasksPopupMenu(
+      showCompleted: showCompleted,
+      onShowCompletedChanged: (value) {
+        setState(() {
+          showCompleted = value;
+        });
       },
     );
   }

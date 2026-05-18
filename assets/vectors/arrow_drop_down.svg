@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   version="1.1"
+   id="svg1"
+   width="800"
+   height="800"
+   viewBox="0 0 800 800"
+   sodipodi:docname="arrow_drop_down.svg"
+   inkscape:version="1.4.3 (0d15f75, 2025-12-25)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="0.25"
+     inkscape:cx="332"
+     inkscape:cy="818"
+     inkscape:window-width="1920"
+     inkscape:window-height="1009"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg1" />
+  <path
+     style="fill:#000000;stroke-width:2.00545"
+     d="M 379.40295,416.99563 C 372.4631,413.56047 343.61435,380.99591 227.94757,246.0323 149.36212,154.33635 83.107798,76.541153 80.715725,73.154103 c -6.999933,-9.91153 -9.574819,-23.41745 -6.815337,-35.74811 3.193553,-14.27027 10.400101,-24.13124 22.856328,-31.2750291 0,0 7.405244,-3.37264 10.061934,-4.0845 3.3094,-0.88675 9.51009,-2.1145701 12.72723,-2.1145701 9.77482,0 281.19392,0.18469 281.19392,0.18469 0,0 193.51452,-0.018 288.13569,-0.018 2.25129,0 3.89252,0.52262 6.62895,1.2929701 3.65082,1.02776 8.75676,4.14601 8.75676,4.14601 24.27897,13.2142891 32.48303,45.7590191 17.04548,67.6178091 -2.39208,3.38705 -68.66699,81.206237 -147.27759,172.931527 -117.62444,137.24787 -144.4613,167.51534 -151.58719,170.96492 -6.14143,2.97301 -14.31444,5.83377 -22.39073,5.72226 -7.54581,-0.10429 -15.00718,-2.98495 -20.64822,-5.77722 z"
+     id="path1"
+     sodipodi:nodetypes="csssssscssssssscc" />
+</svg>

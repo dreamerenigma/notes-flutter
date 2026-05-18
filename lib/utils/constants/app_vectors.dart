@@ -30,6 +30,14 @@ class AppVectors {
   static const String close = "assets/vectors/close.svg";
   static const String repeat = "assets/vectors/repeat.svg";
   static const String list = "assets/vectors/list.svg";
+  static const String notifications = "assets/vectors/notifications.svg";
+  static const String noTasks = "assets/vectors/no_tasks.svg";
+  static const String lock = "assets/vectors/lock.svg";
+  static const String change = "assets/vectors/change.svg";
+  static const String confidential = "assets/vectors/confidential.svg";
+  static const String watermark = "assets/vectors/watermark.svg";
+  static const String arrowDropDown = "assets/vectors/arrow_drop_down.svg";
+  static const String moveFolder = "assets/vectors/move_folder.svg";
 
   /// -- Flags country
   static const String abw = '${pathFlags}abw$format';

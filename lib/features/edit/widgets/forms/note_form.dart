@@ -4,7 +4,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
-import 'package:notes/features/utils/widgets/no_glow_scroll_behavior.dart';
+import 'package:notes/features/utils/widgets/scrolls/no_glow_scroll_behavior.dart';
 import '../../../../utils/constants/app_colors.dart';
 import '../../../../utils/constants/app_sizes.dart';
 import '../../../note/widgets/popups/custom_category_dialog.dart';

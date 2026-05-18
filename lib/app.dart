@@ -5,6 +5,7 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:notes/bindings/general_bindings.dart';
 import 'package:notes/features/note/bloc/note_cubit.dart';
 import 'package:notes/routes/app_routes.dart';
+import 'package:notes/utils/devices/device_utility.dart';
 import 'package:provider/provider.dart';
 import 'package:notes/generated/l10n/l10n.dart';
 import 'package:notes/utils/constants/app_colors.dart';
@@ -20,14 +21,27 @@ import 'features/task/models/task_view_model.dart';
 import 'features/note/screens/note_screen.dart';
 
 Future<void> initApp() async {
-  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(statusBarColor: AppColors.transparent, statusBarIconBrightness: Brightness.light));
-
+  /// -- Widget Binding
   WidgetsFlutterBinding.ensureInitialized();
+
+  /// -- Initialize Date Formating
   initializeDateFormatting('ru_RU', null);
 
+  /// -- GetX Local Storage
   await GetStorage.init();
 
+  /// -- Initialize bindings here to ensure they're ready
   GeneralBindings().dependencies();
+
+  /// -- System Ui mode
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: SystemUiOverlay.values);
+
+  /// -- Set system UI status bar color globally
+  DeviceUtils.setStatusBarColor(AppColors.transparent);
+  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(statusBarColor: AppColors.transparent, statusBarIconBrightness: Brightness.light));
+
+  /// -- Set setting orientation to portrait only
+  DeviceUtils.setPreferredOrientations([DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
 }
 
 class App extends StatelessWidget {

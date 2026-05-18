@@ -35,17 +35,22 @@ class NoteAppBar extends StatelessWidget implements PreferredSizeWidget {
     return AppBar(
       backgroundColor: AppColors.transparent,
       leading: showCloseIcon
-          ? IconButton(
-        icon: const Icon(Icons.close, size: 30),
-        onPressed: () {
-          clearNoteSelection?.call();
-          clearTaskSelection?.call();
-        },
-      )
-          : null,
+        ? IconButton(
+            icon: const Icon(Icons.close, size: 30),
+            onPressed: () {
+              clearNoteSelection?.call();
+              clearTaskSelection?.call();
+            },
+          )
+        : null,
       actions: [
-        if (!showCloseIcon)
-          popupMenu ?? const SizedBox(),
+        AnimatedSwitcher(
+          duration: const Duration(milliseconds: 200),
+          transitionBuilder: (child, animation) {
+            return FadeTransition(opacity: animation, child: ScaleTransition(scale: animation, child: child));
+          },
+          child: (!showCloseIcon && popupMenu != null) ? popupMenu! : const SizedBox.shrink(),
+        ),
       ],
     );
   }

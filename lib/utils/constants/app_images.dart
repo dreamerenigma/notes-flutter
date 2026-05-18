@@ -26,4 +26,7 @@ class AppImages {
   static const String noteBgLightV3 = "assets/images/backgrounds/note_bg_light_v3.png";
   static const String noteBgLightV4 = "assets/images/backgrounds/note_bg_light_v4.png";
   static const String noteBgLightV5 = "assets/images/backgrounds/note_bg_light_v5.png";
+
+  /// -- Other
+  static const String noNotes = "assets/images/no_notes.png";
 }

@@ -1,11 +1,16 @@
 import 'dart:developer';
 import 'package:flutter/foundation.dart';
+import 'package:get_storage/get_storage.dart';
+import 'package:intl/intl.dart';
 import 'package:notes/features/note/models/note_model.dart';
 import '../../../database/database_helper.dart';
 
 class NoteViewModel extends ChangeNotifier {
+  final GetStorage storage = GetStorage();
+  final Map<String, bool> _expandedGroups = {};
   Set<int> _selectedNotes = {};
   Set<int> get selectedNotes => _selectedNotes;
+  Map<String, bool> get expandedGroups => _expandedGroups;
   List<NoteModel> _allNotes = [];
   List<NoteModel> get allNotes => _allNotes;
   int get noteCount => _allNotes.length;
@@ -17,6 +22,7 @@ class NoteViewModel extends ChangeNotifier {
 
   Future<void> _loadNotes() async {
     _allNotes = await fetchAllNotes();
+    _initExpandedGroups();
     notifyListeners();
   }
 
@@ -40,6 +46,35 @@ class NoteViewModel extends ChangeNotifier {
     await DatabaseHelper().deleteNote(note.id);
     log('Note deleted: ${note.id}');
     await _loadNotes();
+  }
+
+  Map<String, List<NoteModel>> groupedNotes() {
+    final grouped = <String, List<NoteModel>>{};
+
+    for (final note in _allNotes) {
+      final key = DateFormat('dd MMM yyyy').format(note.createdAt);
+      grouped.putIfAbsent(key, () => []).add(note);
+    }
+
+    return grouped;
+  }
+
+  void _initExpandedGroups() {
+    final grouped = groupedNotes();
+
+    for (final key in grouped.keys) {
+      _expandedGroups.putIfAbsent(key, () => true);
+    }
+  }
+
+  void toggleGroup(String key) {
+    _expandedGroups[key] = !(_expandedGroups[key] ?? true);
+    notifyListeners();
+  }
+
+  void setSortType(int value) {
+    storage.write('selectedSort', value);
+    notifyListeners();
   }
 
   Future<List<NoteModel>> fetchAllNotes() async {
@@ -72,5 +107,21 @@ class NoteViewModel extends ChangeNotifier {
   Future<void> clearSelection() async {
     _selectedNotes.clear();
     notifyListeners();
+  }
+
+  List<NoteModel> get sortedNotes {
+    final sortType = storage.read('selectedSort') ?? 1;
+    final list = List<NoteModel>.from(_allNotes);
+
+    switch (sortType) {
+      case 1:
+        list.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+        break;
+      case 2:
+        list.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+        break;
+    }
+
+    return list;
   }
 }

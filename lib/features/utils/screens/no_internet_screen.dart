@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:notes/utils/constants/app_sizes.dart';
 import 'dart:async';
 import '../../../generated/l10n/l10n.dart';
 import '../../../utils/constants/app_colors.dart';
@@ -40,42 +41,29 @@ class NoInternetScreenState extends State<NoInternetScreen> {
       backgroundColor: isDarkMode ? AppColors.youngNight : AppColors.light,
       body: Center(
         child: _isLoading
-            ? CircularProgressIndicator(
-          valueColor: AlwaysStoppedAnimation<Color>(textColor),
-        )
-            : Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Image.asset(
-              widget.image,
-              width: HelperFunctions.screenWidth() * 0.8,
-              height: HelperFunctions.screenHeight() * 0.4,
-              fit: BoxFit.contain,
-            ),
-            const SizedBox(height: 10),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Text(
-                S.of(context).noInternetConnection,
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 24, color: textColor),
-              ),
-            ),
-            const SizedBox(height: 10),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Text(
-                S.of(context).checkInternetSettings,
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 16, color: textColor.withAlpha((0.7 * 255).toInt())),
-              ),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _handleRetry,
-              child: Padding(padding: const EdgeInsets.symmetric(horizontal: 20), child: Text(S.of(context).loadMore),
-              ),
-            ),
+          ? CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(textColor),
+            )
+          : Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Image.asset(widget.image, width: HelperFunctions.screenWidth() * 0.8, height: HelperFunctions.screenHeight() * 0.4, fit: BoxFit.contain),
+                const SizedBox(height: 10),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Text(S.of(context).noInternetConnection, textAlign: TextAlign.center, style: TextStyle(fontSize: 24, color: textColor)),
+                ),
+                const SizedBox(height: 10),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Text(S.of(context).checkInternetSettings, textAlign: TextAlign.center, style: TextStyle(fontSize: AppSizes.fontSizeMd, color: textColor.withAlpha((0.7 * 255).toInt()))),
+                ),
+                const SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: _handleRetry,
+                  child: Padding(padding: const EdgeInsets.symmetric(horizontal: 20), child: Text(S.of(context).loadMore),
+                  ),
+                ),
           ],
         ),
       ),

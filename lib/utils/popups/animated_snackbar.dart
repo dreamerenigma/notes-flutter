@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_sizes.dart';
 
@@ -52,7 +53,6 @@ class AnimatedSnackBarState extends State<AnimatedSnackBar> with TickerProviderS
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final bgColor = widget.backgroundColor ?? AppColors.red;
 
     return SlideTransition(
@@ -65,12 +65,7 @@ class AnimatedSnackBarState extends State<AnimatedSnackBar> with TickerProviderS
             borderRadius: BorderRadius.circular(12),
             color: bgColor,
             boxShadow: [
-              BoxShadow(
-                color: AppColors.black.withAlpha((0.3 * 255).toInt()),
-                offset: Offset(0, 4),
-                blurRadius: 15,
-                spreadRadius: 0,
-              ),
+              BoxShadow(color: AppColors.black.withAlpha((0.3 * 255).toInt()), offset: Offset(0, 4), blurRadius: 15, spreadRadius: 0),
             ],
           ),
           child: BackdropFilter(
@@ -94,7 +89,7 @@ class AnimatedSnackBarState extends State<AnimatedSnackBar> with TickerProviderS
                   child: Text(
                     widget.message,
                     style: TextStyle(
-                      color: theme.brightness == Brightness.dark ? AppColors.white.withAlpha((0.85 * 255).toInt()) : AppColors.black.withAlpha((0.85 * 255).toInt()),
+                      color: context.isDarkMode ? AppColors.white.withAlpha((0.85 * 255).toInt()) : AppColors.black.withAlpha((0.85 * 255).toInt()),
                       fontSize: AppSizes.fontSizeMd,
                       fontWeight: FontWeight.w400,
                       fontFamily: 'Roboto',

@@ -1,0 +1,1 @@
+enum FolderDialogType { notes, tasks }

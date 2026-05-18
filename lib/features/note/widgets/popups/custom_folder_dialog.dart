@@ -1,19 +1,34 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:notes/utils/constants/app_vectors.dart';
+import '../../../../core/enums/folder_dialog_type.dart';
 import '../../../../utils/constants/app_colors.dart';
 import '../../../../utils/constants/app_sizes.dart';
-import '../../../utils/widgets/no_glow_scroll_behavior.dart';
+import '../../../task/models/task_view_model.dart';
+import '../../../utils/widgets/scrolls/no_glow_scroll_behavior.dart';
 import '../../../../utils/popups/app_popup_menu.dart';
 import '../../../../utils/popups/items/popup_menu_items.dart';
 import '../../../task/widgets/popups/new_note_bottom_sheet_dialog.dart';
 import '../../models/note_model.dart';
 import '../../models/note_view_model.dart';
 
+class CategoryIconData {
+  final String icon;
+  final double size;
+
+  const CategoryIconData({
+    required this.icon,
+    this.size = 24,
+  });
+}
+
 class CustomFolderDialog extends StatefulWidget {
-  const CustomFolderDialog({super.key});
+  final FolderDialogType type;
+
+  const CustomFolderDialog({super.key, required this.type});
 
   @override
   CustomFolderDialogState createState() => CustomFolderDialogState();
@@ -25,30 +40,87 @@ class CustomFolderDialogState extends State<CustomFolderDialog> {
   bool isMyNotesExpanded = false;
   String? selectedCategory;
 
-  final Map<String, String> categoryIcons = {
-    'Все заметки': AppVectors.note,
-    'Без категории': AppVectors.bookmark,
-    'Избранное': AppVectors.favorite,
-    'Недавно удаленное': AppVectors.delete,
-  };
+  Map<String, CategoryIconData> get categoryIcons {
+    switch (widget.type) {
+      case FolderDialogType.notes:
+        return {
+          'Все заметки': const CategoryIconData(icon: AppVectors.note),
+          'Без категории': const CategoryIconData(icon: AppVectors.bookmark, size: 20),
+          'Избранное': const CategoryIconData(icon: AppVectors.favorite),
+          'Недавно удаленное': const CategoryIconData(icon: AppVectors.delete),
+        };
+
+      case FolderDialogType.tasks:
+        return {
+          'Все задачи': const CategoryIconData(icon: AppVectors.note),
+          'Без категории': const CategoryIconData(icon: AppVectors.bookmark, size: 20),
+          'Недавно удаленное': const CategoryIconData(icon: AppVectors.delete),
+        };
+    }
+  }
+
+  int _getCount(String category) {
+    if (widget.type == FolderDialogType.notes) {
+      final notes = context.watch<NoteViewModel>().allNotes;
+
+      switch (category) {
+        case 'Все заметки':
+          return notes.length;
+        case 'Избранное':
+          return notes.where((n) => n.isFavorite).length;
+        case 'Без категории':
+          return notes.where((n) => n.category == null || n.category!.isEmpty).length;
+        case 'Недавно удаленное':
+          return notes.where((n) => n.isDeleted).length;
+      }
+    } else {
+      final tasks = context.watch<TaskViewModel>().allTasks;
+
+      switch (category) {
+        case 'Все задачи':
+          return tasks.length;
+        case 'Без категории':
+          return tasks.where((t) => t.category == null || t.category!.isEmpty).length;
+        case 'Недавно удаленное':
+          return tasks.where((t) => t.isDeleted).length;
+      }
+    }
+
+    return 0;
+  }
+
+  String _getMyItemsTitle() {
+    switch (widget.type) {
+      case FolderDialogType.notes:
+        return 'Мои заметки';
+      case FolderDialogType.tasks:
+        return 'Мои задачи';
+    }
+  }
 
   @override
   void initState() {
     super.initState();
     selectedCategory = box.read('selectedCategory');
-    isMyNotesExpanded = true;
+    isMyNotesExpanded = box.read('isMyNotesExpanded') ?? true;
   }
 
   void _onCategorySelected(String category, Color color) {
-    if (category == 'Мои заметки') {
+    if (category ==  _getMyItemsTitle()) {
+      final newValue = !isMyNotesExpanded;
+
       setState(() {
-        isMyNotesExpanded = !isMyNotesExpanded;
+        isMyNotesExpanded = newValue;
       });
+
+      box.write('isMyNotesExpanded', newValue);
+
       return;
     }
     setState(() {
       selectedCategory = category;
     });
+
     box.write('selectedCategory', category);
     Navigator.pop(context, {'text': category, 'color': color});
   }
@@ -64,7 +136,6 @@ class CustomFolderDialogState extends State<CustomFolderDialog> {
   @override
   Widget build(BuildContext context) {
     final viewModel = context.watch<NoteViewModel>();
-    final allNotes = viewModel.allNotes;
     final notes = viewModel.allNotes;
     final travelCount = getCountByCategory(notes, 'Путешествия');
     final personalCount = getCountByCategory(notes, 'Личное');
@@ -89,13 +160,17 @@ class CustomFolderDialogState extends State<CustomFolderDialog> {
                     _buildDialogContainer(
                       context,
                       children: [
-                        _buildDialogItemNoCategory('Все заметки', AppColors.darkGrey, iconPath: AppVectors.note, count: viewModel.allNotes.length),
-                        _buildDivider(context),
-                        _buildDialogItemNoCategory('Без категории', AppColors.darkGrey, iconPath: AppVectors.bookmark, count: getNoCategoryCount(allNotes)),
-                        _buildDivider(context),
-                        _buildDialogItemNoCategory('Избранное', AppColors.darkGrey, iconPath: AppVectors.favorite, count: getFavoriteCount(allNotes)),
-                        _buildDivider(context),
-                        _buildDialogItemNoCategory('Недавно удаленное', AppColors.darkGrey, iconPath: AppVectors.delete, count: getDeletedCount(allNotes)),
+                        ...categoryIcons.entries.map((entry) {
+                          final data = entry.value;
+
+                          return Column(
+                            children: [
+                              _buildDialogItemNoCategory(entry.key, AppColors.darkGrey, iconPath: data.icon, iconSize: data.size, count: _getCount(entry.key)),
+                              if (entry.key != categoryIcons.keys.last)
+                                _buildDivider(context),
+                            ],
+                          );
+                        }),
                       ],
                     ),
                     const SizedBox(height: 8),
@@ -123,17 +198,9 @@ class CustomFolderDialogState extends State<CustomFolderDialog> {
                                     position: positionRect,
                                     maxWidth: 180,
                                     items: [
-                                      PopupMenuItems.item(
-                                        value: 1,
-                                        text: 'Новая папка',
-                                        onTap: () {},
-                                      ),
+                                      PopupMenuItems.item(value: 1, text: 'Новая папка', onTap: () {}),
                                       PopupMenuItems.divider(),
-                                      PopupMenuItems.item(
-                                        value: 2,
-                                        text: 'Изменить',
-                                        onTap: () {},
-                                      ),
+                                      PopupMenuItems.item(value: 2, text: 'Изменить', onTap: () {}),
                                     ],
                                   );
 
@@ -157,7 +224,7 @@ class CustomFolderDialogState extends State<CustomFolderDialog> {
                     _buildDialogContainer(
                       context,
                       children: [
-                        _buildDialogItemNoCategory('Мои заметки', AppColors.darkGrey, iconPath: AppVectors.folder),
+                        _buildDialogItemNoCategory(_getMyItemsTitle(), AppColors.darkGrey, iconPath: AppVectors.folder),
                         if (isMyNotesExpanded) ...[
                           _buildDivider(context),
                           _buildDialogItem('Путешествия', AppColors.secondary, AppColors.secondary, count: travelCount),
@@ -238,10 +305,7 @@ class CustomFolderDialogState extends State<CustomFolderDialog> {
                   ),
                   const SizedBox(width: 20),
                   Expanded(
-                    child: Text(
-                      text,
-                      style: TextStyle(fontSize: AppSizes.fontSizeMd, color: isSelected ? containerColor : Theme.of(context).brightness == Brightness.dark ? AppColors.white : AppColors.black),
-                    ),
+                    child: Text(text, style: TextStyle(fontSize: AppSizes.fontSizeMd, color: isSelected ? containerColor : context.isDarkMode ? AppColors.white : AppColors.black)),
                   ),
                   if (count != null)
                     Padding(
@@ -257,7 +321,7 @@ class CustomFolderDialogState extends State<CustomFolderDialog> {
     );
   }
 
-  Widget _buildDialogItemNoCategory(String text, Color containerColor, {String? iconPath, int? count}) {
+  Widget _buildDialogItemNoCategory(String text, Color containerColor, {String? iconPath, double iconSize = 24, int? count}) {
     return Material(
       color: AppColors.transparent,
       child: InkWell(
@@ -273,7 +337,7 @@ class CustomFolderDialogState extends State<CustomFolderDialog> {
             child: Row(
               children: [
                 if (iconPath != null)
-                  SvgPicture.asset(iconPath, width: 24, height: 24, colorFilter: const ColorFilter.mode(AppColors.white, BlendMode.srcIn))
+                  SvgPicture.asset(iconPath, width: iconSize, height: iconSize, colorFilter: const ColorFilter.mode(AppColors.white, BlendMode.srcIn))
                 else
                   const SizedBox(width: 24),
                 const SizedBox(width: 19),
@@ -283,7 +347,7 @@ class CustomFolderDialogState extends State<CustomFolderDialog> {
                     padding: const EdgeInsets.only(right: 8),
                     child: Text('$count', style: TextStyle(fontSize: AppSizes.fontSizeSm, color: AppColors.darkGrey)),
                   ),
-                if (text == 'Мои заметки')
+                if (text == _getMyItemsTitle())
                   AnimatedRotation(
                     turns: isMyNotesExpanded ? 0.5 : 0.0,
                     duration: const Duration(milliseconds: 200),

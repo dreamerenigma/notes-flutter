@@ -2,13 +2,13 @@ import 'dart:async';
 import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:get/get_utils/src/extensions/context_extensions.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../../../utils/constants/app_colors.dart';
 import '../../../utils/constants/app_images.dart';
 import '../../../utils/constants/app_vectors.dart';
+import '../../../utils/popups/dialogs.dart';
 import '../models/note_model.dart';
 import '../models/note_view_model.dart';
 import '../../edit/widgets/forms/note_form.dart';
@@ -180,11 +180,7 @@ class AddEditNoteScreenState extends State<AddEditNoteScreen> {
 
     if (noteTitle.isEmpty || noteDescription.isEmpty) return;
 
-    log("TITLE: $noteTitle");
-    log("DESC: $noteDescription");
-
-    final creationDate =
-    widget.noteType == 'Edit' ? widget.createdAt : DateTime.now();
+    final creationDate = widget.noteType == 'Edit' ? widget.createdAt : DateTime.now();
 
     if (widget.noteType == 'Edit') {
       if (widget.noteID == null) {
@@ -192,29 +188,12 @@ class AddEditNoteScreenState extends State<AddEditNoteScreen> {
         return;
       }
 
-      final updatedNote = NoteModel(id: widget.noteID!, title: noteTitle, description: noteDescription, createdAt: creationDate, imagePath: imagePath);
+      final updatedNote = NoteModel(id: widget.noteID!, title: noteTitle, description: noteDescription, createdAt: creationDate, imagePath: imagePath, updatedAt: DateTime.now());
       Provider.of<NoteViewModel>(context, listen: false).updateNote(updatedNote);
     } else {
-      final newNote = NoteModel(id: 0, title: noteTitle, description: noteDescription, createdAt: DateTime.now(), imagePath: imagePath);
-
+      final newNote = NoteModel(id: 0, title: noteTitle, description: noteDescription, createdAt: DateTime.now(), imagePath: imagePath, updatedAt: DateTime.now());
       Provider.of<NoteViewModel>(context, listen: false).addNote(newNote);
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          behavior: SnackBarBehavior.floating,
-          margin: const EdgeInsets.all(8),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          backgroundColor: Theme.of(context).brightness == Brightness.dark ? AppColors.youngNight : AppColors.softGrey,
-          content: Row(
-            children: [
-              const Icon(Icons.check_circle, color: Colors.green),
-              const SizedBox(width: 12),
-              Expanded(child: Text('Заметка добавлена', style: TextStyle(color: context.isDarkMode ? AppColors.white : AppColors.black))),
-            ],
-          ),
-          duration: const Duration(seconds: 2),
-        ),
-      );
+      CustomIconSnackBar.showAnimatedSnackBar(context, 'Заметка добавлена', icon: const Icon(Icons.check_circle, color: AppColors.success), backgroundColor: AppColors.darkerGrey.withAlpha((0.15 * 255).toInt()));
     }
 
     originalTitle = _noteTitleController.text;
