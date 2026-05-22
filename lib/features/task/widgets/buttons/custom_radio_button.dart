@@ -40,6 +40,7 @@ class _CustomRadioButtonState extends State<CustomRadioButton> {
 
     return GestureDetector(
       onTap: () => widget.onChanged(widget.value),
+      behavior: HitTestBehavior.translucent,
       child: Container(
         margin: const EdgeInsets.symmetric(vertical: 5),
         padding: widget.padding,

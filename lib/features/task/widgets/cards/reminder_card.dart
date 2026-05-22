@@ -1,4 +1,3 @@
-import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get_utils/src/extensions/context_extensions.dart';
@@ -57,7 +56,7 @@ class _ReminderCardState extends State<ReminderCard> {
         highlightColor: AppColors.softNight,
         child: Container(
           padding: const EdgeInsets.all(4),
-          decoration: BoxDecoration(color: Theme.of(context).brightness == Brightness.dark ? AppColors.greySlate : AppColors.softGrey, borderRadius: BorderRadius.circular(16)),
+          decoration: BoxDecoration(color: context.isDarkMode ? AppColors.greySlate : AppColors.softGrey, borderRadius: BorderRadius.circular(16)),
           child: AnimatedSwitcher(
             duration: const Duration(milliseconds: 250),
             child: widget.hasReminder ? _buildReminderContent(context, _openDialog) : _buildAddReminderContent(),

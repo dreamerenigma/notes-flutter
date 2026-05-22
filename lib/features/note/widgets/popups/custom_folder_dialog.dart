@@ -5,8 +5,10 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:notes/utils/constants/app_vectors.dart';
 import '../../../../core/enums/folder_dialog_type.dart';
+import '../../../../core/states/app_state.dart';
 import '../../../../utils/constants/app_colors.dart';
 import '../../../../utils/constants/app_sizes.dart';
+import '../../../../utils/extensions/color_extension.dart';
 import '../../../task/models/task_view_model.dart';
 import '../../../utils/widgets/scrolls/no_glow_scroll_behavior.dart';
 import '../../../../utils/popups/app_popup_menu.dart';
@@ -19,10 +21,7 @@ class CategoryIconData {
   final String icon;
   final double size;
 
-  const CategoryIconData({
-    required this.icon,
-    this.size = 24,
-  });
+  const CategoryIconData({required this.icon, this.size = 24});
 }
 
 class CustomFolderDialog extends StatefulWidget {
@@ -35,10 +34,12 @@ class CustomFolderDialog extends StatefulWidget {
 }
 
 class CustomFolderDialogState extends State<CustomFolderDialog> {
-  final box = GetStorage();
   final GlobalKey _manageKey = GlobalKey();
+  final box = GetStorage();
   bool isMyNotesExpanded = false;
   String? selectedCategory;
+
+  String get _prefix => widget.type == FolderDialogType.notes ? 'notes' : 'tasks';
 
   Map<String, CategoryIconData> get categoryIcons {
     switch (widget.type) {
@@ -101,8 +102,8 @@ class CustomFolderDialogState extends State<CustomFolderDialog> {
   @override
   void initState() {
     super.initState();
-    selectedCategory = box.read('selectedCategory');
-    isMyNotesExpanded = box.read('isMyNotesExpanded') ?? true;
+    selectedCategory = box.read('${_prefix}_selectedCategory');
+    isMyNotesExpanded = box.read('${_prefix}_expanded') ?? true;
   }
 
   void _onCategorySelected(String category, Color color) {
@@ -113,7 +114,7 @@ class CustomFolderDialogState extends State<CustomFolderDialog> {
         isMyNotesExpanded = newValue;
       });
 
-      box.write('isMyNotesExpanded', newValue);
+      box.write('${_prefix}_expanded', newValue);
 
       return;
     }
@@ -121,7 +122,7 @@ class CustomFolderDialogState extends State<CustomFolderDialog> {
       selectedCategory = category;
     });
 
-    box.write('selectedCategory', category);
+    box.write('${_prefix}_selectedCategory', category);
     Navigator.pop(context, {'text': category, 'color': color});
   }
 
@@ -141,11 +142,12 @@ class CustomFolderDialogState extends State<CustomFolderDialog> {
     final personalCount = getCountByCategory(notes, 'Личное');
     final everydayCount = getCountByCategory(notes, 'Повседневное');
     final workCount = getCountByCategory(notes, 'Работа');
+    final color = context.watch<AppState>().getColor('tasks');
 
     return Dialog(
       insetPadding: const EdgeInsets.only(top: 120, left: 0, right: 0, bottom: 0),
       alignment: Alignment.topCenter,
-      backgroundColor: AppColors.black,
+      backgroundColor: (color ?? AppColors.black).getBackgroundColor(),
       child: ConstrainedBox(constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.75, maxWidth: MediaQuery.of(context).size.width),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -198,9 +200,9 @@ class CustomFolderDialogState extends State<CustomFolderDialog> {
                                     position: positionRect,
                                     maxWidth: 180,
                                     items: [
-                                      PopupMenuItems.item(value: 1, text: 'Новая папка', onTap: () {}),
+                                      PopupMenuItems.item(value: 1, text: 'Новая папка', onTap: () {}, context: context),
                                       PopupMenuItems.divider(),
-                                      PopupMenuItems.item(value: 2, text: 'Изменить', onTap: () {}),
+                                      PopupMenuItems.item(value: 2, text: 'Изменить', onTap: () {}, context: context),
                                     ],
                                   );
 
@@ -251,7 +253,7 @@ class CustomFolderDialogState extends State<CustomFolderDialog> {
 
   Widget _buildDialogContainer(BuildContext context, {required List<Widget> children}) {
     return Container(
-      decoration: BoxDecoration(color: Theme.of(context).brightness == Brightness.dark ? AppColors.greySlate : AppColors.white, borderRadius: BorderRadius.circular(16)),
+      decoration: BoxDecoration(color: context.isDarkMode ? AppColors.greySlate : AppColors.white, borderRadius: BorderRadius.circular(16)),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
         child: Column(mainAxisSize: MainAxisSize.min, children: children),
@@ -262,11 +264,7 @@ class CustomFolderDialogState extends State<CustomFolderDialog> {
   Widget _buildDivider(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(left: 50, right: 20),
-      child: Divider(
-        height: 0,
-        thickness: 1,
-        color: Theme.of(context).brightness == Brightness.dark ? AppColors.darkSlate : AppColors.buttonDisabled,
-      ),
+      child: Divider(height: 0, thickness: 1, color: context.isDarkMode ? AppColors.darkSlate : AppColors.buttonDisabled),
     );
   }
 

@@ -1,7 +1,7 @@
-import 'dart:developer';
 import 'package:bootstrap_icons/bootstrap_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:notes/features/task/widgets/popups/calendar_dialog.dart';
 import '../../../../core/enums/repeat_type.dart';
@@ -159,12 +159,9 @@ class _TaskFormState extends State<TaskForm> {
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Text(
-                                    categoryLabel,
-                                    style: TextStyle(fontSize: AppSizes.fontSizeSm, color: Theme.of(context).brightness == Brightness.dark ? AppColors.darkGrey : AppColors.black),
-                                  ),
+                                  Text(categoryLabel, style: TextStyle(fontSize: AppSizes.fontSizeSm, color: context.isDarkMode ? AppColors.darkGrey : AppColors.black)),
                                   const SizedBox(width: 4),
-                                  Icon(Icons.arrow_drop_down_outlined, size: 20, color: Theme.of(context).brightness == Brightness.dark ? AppColors.darkGrey : AppColors.black),
+                                  Icon(Icons.arrow_drop_down_outlined, size: 20, color: context.isDarkMode ? AppColors.darkGrey : AppColors.black),
                                 ],
                               ),
                             ),
@@ -177,7 +174,7 @@ class _TaskFormState extends State<TaskForm> {
                 const SizedBox(height: 25),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                  decoration: BoxDecoration(color: Theme.of(context).brightness == Brightness.dark ? AppColors.greySlate : AppColors.softGrey, borderRadius: BorderRadius.circular(16)),
+                  decoration: BoxDecoration(color: context.isDarkMode? AppColors.greySlate : AppColors.softGrey, borderRadius: BorderRadius.circular(16)),
                   child: Row(
                     children: [
                       GestureDetector(
@@ -260,7 +257,7 @@ class _TaskFormState extends State<TaskForm> {
                 const SizedBox(height: 12),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 18),
-                  decoration: BoxDecoration(color: Theme.of(context).brightness == Brightness.dark ? AppColors.greySlate : AppColors.softGrey, borderRadius: BorderRadius.circular(16)),
+                  decoration: BoxDecoration(color: context.isDarkMode ? AppColors.greySlate : AppColors.softGrey, borderRadius: BorderRadius.circular(16)),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -293,7 +290,7 @@ class _TaskFormState extends State<TaskForm> {
                 const SizedBox(height: 12),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                  decoration: BoxDecoration(color: Theme.of(context).brightness == Brightness.dark ? AppColors.greySlate : AppColors.softGrey, borderRadius: BorderRadius.circular(16)),
+                  decoration: BoxDecoration(color: context.isDarkMode? AppColors.greySlate : AppColors.softGrey, borderRadius: BorderRadius.circular(16)),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [

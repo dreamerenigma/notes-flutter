@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get_utils/src/extensions/context_extensions.dart';
 import '../../../../core/enums/repeat_type.dart';
 import '../../../../core/extensions/repeat_type_extension.dart';
 import '../../../../utils/constants/app_colors.dart';
@@ -75,9 +76,9 @@ class _RepeatDialogContentState extends State<_RepeatDialogContent> {
                         Navigator.pop(context, RepeatType.values[selectedIndex]);
                       },
                       borderRadius: BorderRadius.circular(AppSizes.inputFieldRadius),
-                      splashColor: Theme.of(context).brightness == Brightness.dark ? AppColors.greySlate : AppColors.softGrey,
-                      highlightColor: Theme.of(context).brightness == Brightness.dark ? AppColors.greySlate : AppColors.softGrey,
-                      hoverColor: Theme.of(context).brightness == Brightness.dark ? AppColors.greySlate : AppColors.softGrey,
+                      splashColor: context.isDarkMode ? AppColors.greySlate : AppColors.softGrey,
+                      highlightColor: context.isDarkMode ? AppColors.greySlate : AppColors.softGrey,
+                      hoverColor: context.isDarkMode ? AppColors.greySlate : AppColors.softGrey,
                       child: Row(
                         children: [
                           Expanded(
@@ -135,10 +136,6 @@ class _RepeatDialogContentState extends State<_RepeatDialogContent> {
 Widget _buildDivider(BuildContext context) {
   return Padding(
     padding: const EdgeInsets.only(left: 20, right: 25),
-    child: Divider(
-      height: 0,
-      thickness: 1,
-      color: Theme.of(context).brightness == Brightness.dark ? AppColors.darkSlate : AppColors.buttonDisabled,
-    ),
+    child: Divider(height: 0, thickness: 1, color: context.isDarkMode ? AppColors.darkSlate : AppColors.buttonDisabled),
   );
 }

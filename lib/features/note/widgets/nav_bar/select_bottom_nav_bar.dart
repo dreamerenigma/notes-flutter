@@ -116,7 +116,7 @@ class _SelectBottomNavBarState extends State<SelectBottomNavBar> {
 
   Widget _buildBottomAppBarItem(BuildContext context, Widget icon, String label, VoidCallback? onTap, Color activeColor, bool isEnabled, {double spacing = 0, bool alwaysActive = false}) {
     final bool canTap = alwaysActive || isEnabled;
-    final disabledColor = Theme.of(context).brightness == Brightness.dark ? AppColors.steelGrey : AppColors.grey;
+    final disabledColor = context.isDarkMode ? AppColors.steelGrey : AppColors.grey;
     final Color color = canTap ? activeColor : disabledColor;
 
     return Material(

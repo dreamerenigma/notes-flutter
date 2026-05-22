@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get_utils/src/extensions/context_extensions.dart';
 import 'package:notes/features/note/widgets/inputs/search_text_field.dart';
 import '../../../../utils/constants/app_colors.dart';
 import '../../../../utils/constants/app_sizes.dart';
@@ -42,16 +43,16 @@ class _NotesSearchFieldState extends State<NotesSearchField> {
         focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(30), borderSide: BorderSide.none),
         hintText: 'Поиск заметок',
         hintStyle: TextStyle(fontSize: AppSizes.fontSizeMd,
-            color: widget.selectionMode ? (Theme.of(context).brightness == Brightness.dark ? AppColors.greyDarkerV1 : AppColors.grey) : (Theme.of(context).brightness == Brightness.dark ? AppColors.grey : AppColors.black),
+            color: widget.selectionMode ? (context.isDarkMode ? AppColors.greyDarkerV1 : AppColors.grey) : (context.isDarkMode ? AppColors.grey : AppColors.black),
             fontWeight: FontWeight.w400),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         fillColor: widget.isFocused
-            ? (Theme.of(context).brightness == Brightness.dark ? AppColors.blackGrey : AppColors.white)
-            : (widget.selectionMode ? (Theme.of(context).brightness == Brightness.dark ? AppColors.black : AppColors.white.withAlpha((0.5 * 255).toInt())) : (Theme.of(context).brightness == Brightness.dark ? AppColors.deepNight : AppColors.softGrey)),
+            ? (context.isDarkMode ? AppColors.blackGrey : AppColors.white)
+            : (widget.selectionMode ? (context.isDarkMode ? AppColors.black : AppColors.white.withAlpha((0.5 * 255).toInt())) : (context.isDarkMode ? AppColors.deepNight : AppColors.softGrey)),
         prefixIcon: Padding(
           padding: const EdgeInsets.only(left: 8),
           child: Icon(Icons.search_rounded,
-            color: widget.selectionMode ? (Theme.of(context).brightness == Brightness.dark ? AppColors.greyDarkerV1 : AppColors.grey) : (Theme.of(context).brightness == Brightness.dark ? AppColors.grey : AppColors.black),
+            color: widget.selectionMode ? (context.isDarkMode ? AppColors.greyDarkerV1 : AppColors.grey) : (context.isDarkMode ? AppColors.grey : AppColors.black),
           ),
         ),
         suffixIcon: widget.controller.text.isNotEmpty

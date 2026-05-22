@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get_utils/src/extensions/context_extensions.dart';
 import 'package:notes/features/task/widgets/buttons/custom_radio_button.dart';
 import '../../../../utils/constants/app_colors.dart';
 import '../../../../utils/constants/app_sizes.dart';
@@ -23,7 +24,7 @@ Future<CategoryItem?> selectNotebookBottomSheetDialog({required BuildContext con
             padding: EdgeInsets.only(left: 12, right: 12, bottom: 12, top: 24),
             child: Container(
               decoration: BoxDecoration(
-                color: Theme.of(context).brightness == Brightness.dark ? AppColors.blackGrey : AppColors.white,
+                color: context.isDarkMode ? AppColors.blackGrey : AppColors.white,
                 borderRadius: BorderRadius.circular(28),
                 boxShadow: [
                   BoxShadow(color: AppColors.black.withAlpha((0.2 * 255).toInt()), blurRadius: 30, offset: const Offset(0, 10)),

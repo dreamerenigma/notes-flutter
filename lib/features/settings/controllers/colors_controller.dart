@@ -4,8 +4,8 @@ import 'package:get_storage/get_storage.dart';
 import '../../../generated/l10n/l10n.dart';
 import '../../../utils/constants/app_colors.dart';
 import '../../../utils/constants/app_sizes.dart';
-import '../widgets/popups/light_dialog.dart';
-import '../widgets/tiles/custom_radio_list_tile.dart';
+import '../../note/widgets/popups/light_dialog.dart';
+import '../../note/widgets/tiles/custom_radio_list_tile.dart';
 
 class ColorsController extends GetxController {
   static ColorsController get instance => Get.find();

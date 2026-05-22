@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get_utils/src/extensions/context_extensions.dart';
 import '../../../../utils/constants/app_colors.dart';
 
 class SearchTextField extends StatefulWidget {
@@ -62,7 +63,7 @@ class _SearchTextFieldState extends State<SearchTextField> {
         curve: Curves.easeOut,
         constraints: const BoxConstraints(maxHeight: 40),
         decoration: BoxDecoration(
-          color: isFocused ? (Theme.of(context).brightness == Brightness.dark ? AppColors.blackGrey : AppColors.white) : (Theme.of(context).brightness == Brightness.dark ? AppColors.deepNight : AppColors.softGrey),
+          color: isFocused ? (context.isDarkMode ? AppColors.blackGrey : AppColors.white) : (context.isDarkMode ? AppColors.deepNight : AppColors.softGrey),
           borderRadius: BorderRadius.circular(25),
         ),
         child: TextField(

@@ -12,7 +12,6 @@ class EditMessageBottomNavBar extends StatelessWidget {
   final VoidCallback onGallery;
   final VoidCallback onHandwritingInput;
 
-
   const EditMessageBottomNavBar({
     super.key,
     required this.onList,
@@ -33,7 +32,7 @@ class EditMessageBottomNavBar extends StatelessWidget {
             _buildBottomAppBarItem(context, Icon(Icons.check_circle_outline, size: 25), 'Список', onList),
             _buildBottomAppBarItem(
               context,
-              SvgPicture.asset(AppVectors.textStyle, width: 22, height: 22, colorFilter: ColorFilter.mode(Theme.of(context).brightness == Brightness.dark ? AppColors.white : AppColors.black, BlendMode.srcIn)),
+              SvgPicture.asset(AppVectors.textStyle, width: 22, height: 22, colorFilter: ColorFilter.mode(context.isDarkMode ? AppColors.white : AppColors.black, BlendMode.srcIn)),
               'Стиль',
               onTextStyle,
             ),
@@ -62,7 +61,7 @@ class EditMessageBottomNavBar extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   label,
-                  style: TextStyle(color: context.isDarkMode ? AppColors.white : AppColors.black, fontSize: AppSizes.fontSizeXs, fontWeight: FontWeight.w500), maxLines: 1, overflow: TextOverflow.ellipsis,  softWrap: false,
+                  style: TextStyle(color: context.isDarkMode ? AppColors.white : AppColors.black, fontSize: AppSizes.fontSizeXs, fontWeight: FontWeight.w500), maxLines: 1, overflow: TextOverflow.ellipsis, softWrap: false,
                 ),
               ],
             ),

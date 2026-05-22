@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
@@ -46,6 +47,8 @@ class _AppFABState extends State<AppFAB> {
   
   @override
   Widget build(BuildContext context) {
+    log('FAB BUILD');
+
     return IgnorePointer(
       ignoring: !widget.visible,
       child: AnimatedScale(scale: widget.visible ? 1 : 0, duration: const Duration(milliseconds: 220), curve: Curves.easeOutCubic,

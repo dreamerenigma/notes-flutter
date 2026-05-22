@@ -87,7 +87,7 @@ class CustomCalendarDialogState extends State<CustomCalendarDialog> {
             child: Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Theme.of(context).brightness == Brightness.dark ? AppColors.greySlate : AppColors.white,
+                color: context.isDarkMode ? AppColors.greySlate : AppColors.white,
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(25), bottom: Radius.circular(25)),
               ),
               child: Column(
@@ -95,7 +95,7 @@ class CustomCalendarDialogState extends State<CustomCalendarDialog> {
                 children: [
                   Text(
                     formatSelectedDate(selectedDateTime),
-                    style: TextStyle(fontSize: AppSizes.fontSizeBg, color: Theme.of(context).brightness == Brightness.dark ? AppColors.white : AppColors.black),
+                    style: TextStyle(fontSize: AppSizes.fontSizeBg, color: context.isDarkMode ? AppColors.white : AppColors.black),
                   ),
                   const SizedBox(height: 12),
                   Stack(
@@ -212,12 +212,13 @@ class CustomCalendarDialogState extends State<CustomCalendarDialog> {
                                         final safeIndex = index % 24;
                                         final hour = (safeIndex + 24) % 24;
                                         final isSelected = hour == selectedHourIndex;
-                                        final itemExtent = 44.0;
-                                        final viewportCenter = 100.0;
-                                        final itemCenter = index * itemExtent;
-                                        final distanceToCenter = (itemCenter - (hourOffset + viewportCenter)).abs();
-                                        final maxDistance = 200.0;
-                                        final opacity = (1 - (distanceToCenter / maxDistance)).clamp(0.0, 1.0);
+                                        /// ============= Effect shading text =============
+                                        // final itemExtent = 44.0;
+                                        // final viewportCenter = 100.0;
+                                        // final itemCenter = index * itemExtent;
+                                        // final distanceToCenter = (itemCenter - (hourOffset + viewportCenter)).abs();
+                                        // final maxDistance = 200.0;
+                                        // final opacity = (1 - (distanceToCenter / maxDistance)).clamp(0.0, 1.0);
 
                                         return Center(
                                           child: Material(
@@ -239,7 +240,7 @@ class CustomCalendarDialogState extends State<CustomCalendarDialog> {
                                                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                                                 child: AnimatedDefaultTextStyle(
                                                   duration: const Duration(milliseconds: 150),
-                                                  style: TextStyle(color: isSelected ? AppColors.blueAccent : Theme.of(context).brightness == Brightness.dark ? AppColors.white : AppColors.black, fontSize: isSelected ? AppSizes.fontSizeLg : 17, fontWeight: isSelected ? FontWeight.w500 : FontWeight.w400),
+                                                  style: TextStyle(color: isSelected ? AppColors.blueAccent : context.isDarkMode ? AppColors.white : AppColors.black, fontSize: isSelected ? AppSizes.fontSizeLg : 17, fontWeight: isSelected ? FontWeight.w500 : FontWeight.w400),
                                                   child: Text(hour.toString().padLeft(2, '0')),
                                                 ),
                                               ),
@@ -338,12 +339,7 @@ class CustomCalendarDialogState extends State<CustomCalendarDialog> {
                             onPressed: () {
                               Navigator.pop(context);
                             },
-                            style: TextButton.styleFrom(
-                              foregroundColor: AppColors.blueAccent,
-                              overlayColor: AppColors.blueAccent.withAlpha((0.2 * 255).toInt()),
-                              backgroundColor: AppColors.transparent,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-                            ),
+                            style: TextButton.styleFrom(foregroundColor: AppColors.blueAccent, overlayColor: AppColors.blueAccent.withAlpha((0.2 * 255).toInt()), backgroundColor: AppColors.transparent, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30))),
                             child: Text('ОТМЕНА', style: TextStyle(fontSize: AppSizes.fontSizeLg, color: AppColors.blueAccent)),
                           ),
                         ),
@@ -356,12 +352,7 @@ class CustomCalendarDialogState extends State<CustomCalendarDialog> {
                             onPressed: () {
                               Navigator.pop(context, selectedDateTime);
                             },
-                            style: TextButton.styleFrom(
-                              foregroundColor: AppColors.blueAccent,
-                              overlayColor: AppColors.blueAccent.withAlpha((0.2 * 255).toInt()),
-                              backgroundColor: AppColors.transparent,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-                            ),
+                            style: TextButton.styleFrom(foregroundColor: AppColors.blueAccent, overlayColor: AppColors.blueAccent.withAlpha((0.2 * 255).toInt()), backgroundColor: AppColors.transparent, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30))),
                             child: Text('ОК', style: TextStyle(fontSize: AppSizes.fontSizeLg, color: AppColors.blueAccent)),
                           ),
                         ),

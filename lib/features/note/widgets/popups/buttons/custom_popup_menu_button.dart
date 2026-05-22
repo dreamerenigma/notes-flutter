@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:get/get_utils/src/extensions/context_extensions.dart';
 import 'package:notes/utils/constants/app_colors.dart';
 import 'package:notes/utils/constants/app_vectors.dart';
 
@@ -17,13 +18,8 @@ class CustomPopupMenuButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return PopupMenuButton<int>(
       position: PopupMenuPosition.under,
-      color: Theme.of(context).brightness == Brightness.dark ? AppColors.greySlate : AppColors.white,
-      icon: SvgPicture.asset(
-        AppVectors.moreGrid,
-        width: 18,
-        height: 18,
-        colorFilter: const ColorFilter.mode(AppColors.white, BlendMode.srcIn),
-      ),
+      color: context.isDarkMode ? AppColors.greySlate : AppColors.white,
+      icon: SvgPicture.asset(AppVectors.moreGrid, width: 18, height: 18, colorFilter: const ColorFilter.mode(AppColors.white, BlendMode.srcIn)),
       onSelected: onSelected,
       itemBuilder: (context) => items,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),

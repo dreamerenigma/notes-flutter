@@ -6,11 +6,15 @@ import 'package:get/get_utils/src/extensions/context_extensions.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:provider/provider.dart';
 import '../../../core/enums/folder_dialog_type.dart';
+import '../../../core/enums/screen_type.dart';
+import '../../../core/states/app_state.dart';
 import '../../../routes/custom_page_route.dart';
 import '../../../utils/constants/app_colors.dart';
 import '../../../utils/constants/app_images.dart';
 import '../../../utils/constants/app_sizes.dart';
 import '../../../utils/constants/app_vectors.dart';
+import '../../../utils/extensions/color_extension.dart';
+import '../../task/utils/task_utils.dart';
 import '../../task/widgets/items/category_items.dart';
 import '../../task/widgets/popups/add_task_bottom_sheet_dialog.dart';
 import '../../task/widgets/popups/select_notebook_bottom_sheet_dialog.dart';
@@ -86,16 +90,6 @@ class NoteScreenState extends State<NoteScreen> with SingleTickerProviderStateMi
     }
   }
 
-  String get _getTitleText {
-    final count = selectedNotes.length;
-
-    if (!selectionMode) return 'Все заметки';
-    if (count == 0) return 'Не выбрано';
-    if (count == 1) return 'Выбран 1 элемент';
-
-    return 'Выбрано $count элементов';
-  }
-
   @override
   void initState() {
     super.initState();
@@ -136,9 +130,17 @@ class NoteScreenState extends State<NoteScreen> with SingleTickerProviderStateMi
 
     animationController.forward();
 
-    await showDialog<Map<String, dynamic>>(context: context, barrierColor: AppColors.transparent, builder: (_) => const CustomFolderDialog(type: FolderDialogType.notes));
+    await WidgetsBinding.instance.endOfFrame;
+    final result = await showDialog<Map<String, dynamic>>(context: context, barrierColor: AppColors.transparent, builder: (_) => const CustomFolderDialog(type: FolderDialogType.notes));
 
     if (!mounted) return;
+
+    if (result != null) {
+      final title = result['text'] as String?;
+      final color = result['color'];
+
+      context.read<AppState>().setFolder('notes', title ?? 'Все заметки', color ?? AppColors.transparent);
+    }
 
     setState(() {
       isExpanded = false;
@@ -225,14 +227,9 @@ class NoteScreenState extends State<NoteScreen> with SingleTickerProviderStateMi
     showModalBottomSheet(
       context: context,
       showDragHandle: false,
-      backgroundColor: Theme.of(context).brightness == Brightness.dark ? AppColors.greySlate : AppColors.white,
+      backgroundColor: context.isDarkMode ? AppColors.greySlate : AppColors.white,
       builder: (BuildContext context) {
-        return AddTaskBottomSheet(
-          task: null,
-          onTime: (value) {},
-          onWarning: (value) {},
-          taskType: 'Add',
-        );
+        return AddTaskBottomSheet(task: null, onTime: (value) {}, onWarning: (value) {}, taskType: 'Add');
       },
     );
   }
@@ -242,8 +239,11 @@ class NoteScreenState extends State<NoteScreen> with SingleTickerProviderStateMi
     final noteViewModel = Provider.of<NoteViewModel>(context, listen: false);
     final allNotes = context.watch<NoteViewModel>().sortedNotes;
     final hasNotes = allNotes.isNotEmpty;
+    final title = context.watch<AppState>().getTitle('notes');
+    final color = context.watch<AppState>().getColor('notes');
 
     return Scaffold(
+      backgroundColor: (color ?? AppColors.black).getBackgroundColor(),
       appBar: NoteAppBar(
         hasSelectedNotes: selectedNotes.isNotEmpty,
         isSelectionMode: selectionMode,
@@ -267,7 +267,7 @@ class NoteScreenState extends State<NoteScreen> with SingleTickerProviderStateMi
                       mainAxisAlignment: MainAxisAlignment.start,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(_getTitleText, style: const TextStyle(fontSize: 32)),
+                        Text(title ?? TaskUtils.getTitleText(selectionMode: selectionMode, selectedCount: selectedTasks.length, type: ScreenType.notes), style: const TextStyle(fontSize: 32)),
                       ],
                     ),
                     const SizedBox(width: 4),
@@ -369,7 +369,7 @@ class NoteScreenState extends State<NoteScreen> with SingleTickerProviderStateMi
       ),
       floatingActionButton: _buildFAB(),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-      bottomNavigationBar: _buildBottomNavBar(allNotes, noteViewModel),
+      bottomNavigationBar: _buildBottomNavBar(allNotes, noteViewModel, color),
     );
   }
 
@@ -381,6 +381,7 @@ class NoteScreenState extends State<NoteScreen> with SingleTickerProviderStateMi
         setState(() => isGridView = isGrid);
         box.write('isGridView', isGrid);
       },
+      isFolderDialogOpen: isFolderDialogOpen,
     );
   }
 
@@ -388,7 +389,6 @@ class NoteScreenState extends State<NoteScreen> with SingleTickerProviderStateMi
     final bottomPadding = MediaQuery.of(context).padding.bottom;
     const bottomNavHeight = 55;
     final totalBottomOffset = bottomNavHeight + bottomPadding;
-
     final isSelectionActive = selectionMode;
 
     if (isSelectionActive || isFolderDialogOpen) return null;
@@ -442,12 +442,18 @@ class NoteScreenState extends State<NoteScreen> with SingleTickerProviderStateMi
               selectedTasks = selected;
             });
           },
+          onFolderDialogChanged: (isOpen) {
+            setState(() {
+              isFolderDialogOpen = isOpen;
+            });
+          },
+          isFolderDialogOpen: isFolderDialogOpen,
         ),
       ],
     );
   }
 
-  Widget _buildBottomNavBar(List<NoteModel> allNotes, NoteViewModel vm) {
+  Widget _buildBottomNavBar(List<NoteModel> allNotes, NoteViewModel vm, Color? color) {
     if (selectedIndex != 0) {
       return const SizedBox();
     }
@@ -466,6 +472,6 @@ class NoteScreenState extends State<NoteScreen> with SingleTickerProviderStateMi
       );
     }
 
-    return BottomNavBar(selectedIndex: selectedIndex, onItemTapped: onItemTapped);
+    return BottomNavBar(selectedIndex: selectedIndex, onItemTapped: onItemTapped, color: color);
   }
 }

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:get/get_utils/src/extensions/context_extensions.dart';
 import 'package:notes/features/note/models/note_model.dart';
 import '../../../../../routes/custom_page_route.dart';
 import '../../../../../utils/constants/app_colors.dart';
@@ -120,11 +121,11 @@ class NoteItemState extends State<NoteItemGrid> {
             bottom: 6,
           ),
           decoration: BoxDecoration(
-            color: widget.isSelected ? AppColors.blueAccent.withAlpha((0.3 * 255).toInt()) : (Theme.of(context).brightness == Brightness.dark ? AppColors.greySlate : AppColors.softGrey),
+            color: widget.isSelected ? AppColors.blueAccent.withAlpha((0.3 * 255).toInt()) : (context.isDarkMode ? AppColors.greySlate : AppColors.softGrey),
             borderRadius: BorderRadius.circular(20),
             boxShadow: widget.showCheckboxes
               ? [
-                  BoxShadow(color: Theme.of(context).brightness == Brightness.dark ? AppColors.black : AppColors.white, blurRadius: 4, offset: const Offset(2, 2))
+                  BoxShadow(color: context.isDarkMode ? AppColors.black : AppColors.white, blurRadius: 4, offset: const Offset(2, 2))
                 ]
               : [],
           ),
@@ -146,7 +147,7 @@ class NoteItemState extends State<NoteItemGrid> {
                           ),
                           Row(
                             children: [
-                              Text(displayTime, style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? AppColors.darkGrey : AppColors.darkGrey)),
+                              Text(displayTime, style: TextStyle(color: context.isDarkMode ? AppColors.darkGrey : AppColors.darkGrey)),
                               const SizedBox(width: 4),
                               SizedBox(width: 1.5, height: 14, child: Container(color: AppColors.darkGrey)),
                             ],
@@ -169,14 +170,14 @@ class NoteItemState extends State<NoteItemGrid> {
                                     widget.note.description,
                                     maxLines: 3,
                                     overflow: TextOverflow.clip,
-                                    style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? AppColors.darkGrey : AppColors.darkGrey),
+                                    style: TextStyle(color: context.isDarkMode ? AppColors.darkGrey : AppColors.darkGrey),
                                   ),
                                 )
                                     : Text(
                                   widget.note.description,
                                   maxLines: 3,
                                   overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? AppColors.darkGrey : AppColors.darkGrey),
+                                  style: TextStyle(color: context.isDarkMode ? AppColors.darkGrey : AppColors.darkGrey),
                                 ),
                               ),
                             ],

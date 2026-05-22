@@ -1,4 +1,4 @@
-import '../../features/note/controllers/fonts_controller.dart';
+import '../../features/settings/controllers/fonts_controller.dart';
 
 class AppSizes {
   // Padding and margin sizes

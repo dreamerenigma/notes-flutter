@@ -59,9 +59,7 @@ class FullScreenImageScreenState extends State<FullScreenImageScreen> {
                     ),
                   );
                 }
-                return const Center(child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.blueAccent),
-                ));
+                return const Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(AppColors.blueAccent)));
               },
             ),
           ),
@@ -81,9 +79,7 @@ class FullScreenImageScreenState extends State<FullScreenImageScreen> {
                     },
                   ),
                   const SizedBox(width: 8),
-                  Expanded(
-                    child: Text('Все фото', style: TextStyle(color: AppColors.white, fontSize: AppSizes.fontSizeXl, fontWeight: FontWeight.w400)),
-                  ),
+                  Expanded(child: Text('Все фото', style: TextStyle(color: AppColors.white, fontSize: AppSizes.fontSizeXl, fontWeight: FontWeight.w400))),
                   GestureDetector(
                     onTap: () {
                       setState(() {

@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:bootstrap_icons/bootstrap_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import 'package:get/get_utils/src/extensions/context_extensions.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../../../utils/constants/app_colors.dart';
@@ -104,7 +105,7 @@ class AddTaskBottomSheetState extends State<AddTaskBottomSheet> {
       child: ClipRRect(
         borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
         child: Material(
-          color: Theme.of(context).brightness == Brightness.dark ? AppColors.greySlate : AppColors.white,
+          color: context.isDarkMode ? AppColors.greySlate : AppColors.white,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -114,12 +115,12 @@ class AddTaskBottomSheetState extends State<AddTaskBottomSheet> {
                   data: TextSelectionThemeData(cursorColor: AppColors.blue, selectionColor: AppColors.blue.withAlpha((0.3 * 255).toInt()), selectionHandleColor: AppColors.blue),
                   child: Container(
                     constraints: const BoxConstraints(maxHeight: 40),
-                    decoration: BoxDecoration(color: Theme.of(context).brightness == Brightness.dark ? AppColors.greyDarker : AppColors.softGrey, borderRadius: BorderRadius.circular(25)),
+                    decoration: BoxDecoration(color: context.isDarkMode ? AppColors.greyDarker : AppColors.softGrey, borderRadius: BorderRadius.circular(25)),
                     child: TextField(
                       controller: _textController,
                       focusNode: _focusNode,
                       autofocus: true,
-                      style: TextStyle(fontSize: AppSizes.fontSizeLg, fontWeight: FontWeight.w300, color: Theme.of(context).brightness == Brightness.dark ? AppColors.white : AppColors.black),
+                      style: TextStyle(fontSize: AppSizes.fontSizeLg, fontWeight: FontWeight.w300, color: context.isDarkMode ? AppColors.white : AppColors.black),
                       decoration: InputDecoration(
                         border: InputBorder.none,
                         enabledBorder: InputBorder.none,
@@ -142,7 +143,7 @@ class AddTaskBottomSheetState extends State<AddTaskBottomSheet> {
                       children: [
                         _buildBottomSheetItem(
                           context,
-                          Icon(LucideIcons.alarm_clock, size: 28, color: Theme.of(context).brightness == Brightness.dark ? AppColors.white : AppColors.black),
+                          Icon(LucideIcons.alarm_clock, size: 28, color: context.isDarkMode ? AppColors.white : AppColors.black),
                           () async {
                             _requestFocus();
 
@@ -166,7 +167,7 @@ class AddTaskBottomSheetState extends State<AddTaskBottomSheet> {
                             child: Icon(
                               BootstrapIcons.exclamation_lg,
                               size: 30,
-                              color: isWarningIconSelected ? AppColors.red : Theme.of(context).brightness == Brightness.dark ? AppColors.white : AppColors.black,
+                              color: isWarningIconSelected ? AppColors.red : context.isDarkMode ? AppColors.white : AppColors.black,
                             ),
                           ),
                               () {

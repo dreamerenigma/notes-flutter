@@ -12,8 +12,9 @@ import 'items/app_popup_menu_item.dart';
 
 class NotePopupMenu extends StatefulWidget {
   final ValueChanged<bool> onGridViewChanged;
+  final bool isFolderDialogOpen;
 
-  const NotePopupMenu({super.key, required this.onGridViewChanged});
+  const NotePopupMenu({super.key, required this.onGridViewChanged, required this.isFolderDialogOpen});
 
   @override
   NotePopupMenuState createState() => NotePopupMenuState();
@@ -60,6 +61,10 @@ class NotePopupMenuState extends State<NotePopupMenu> {
 
   @override
   Widget build(BuildContext context) {
+    if (widget.isFolderDialogOpen) {
+      return const SizedBox.shrink();
+    }
+
     final isGrid = gridText == 'Сетка';
     final nextText = isGrid ? 'Список' : 'Сетка';
 
@@ -72,6 +77,7 @@ class NotePopupMenuState extends State<NotePopupMenu> {
             child: PopupMenuButton<int>(
               tooltip: 'Ещё',
               position: PopupMenuPosition.under,
+              offset: const Offset(-12, 0),
               menuPadding: EdgeInsets.symmetric(vertical: 4),
               constraints: const BoxConstraints(minWidth: 0, maxWidth: 185),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
@@ -85,7 +91,7 @@ class NotePopupMenuState extends State<NotePopupMenu> {
                 shape: WidgetStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
                 overlayColor: WidgetStateProperty.all(AppColors.softNight.withAlpha((0.1 * 255).toInt())),
               ),
-              color: Theme.of(context).brightness == Brightness.dark ? AppColors.greySlate : AppColors.white,
+              color: context.isDarkMode ? AppColors.greySlate : AppColors.white,
               icon: SvgPicture.asset(AppVectors.moreGrid, width: 22, height: 22, colorFilter: ColorFilter.mode(context.isDarkMode ? AppColors.white : AppColors.black, BlendMode.srcIn)),
               itemBuilder: (context) => [
                 PopupMenuItem(

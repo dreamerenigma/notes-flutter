@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:get/get_utils/src/extensions/context_extensions.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
@@ -39,6 +40,7 @@ class AddEditNoteScreen extends StatefulWidget {
 }
 
 class AddEditNoteScreenState extends State<AddEditNoteScreen> {
+  final GlobalKey<NoteFormState> noteFormKey = GlobalKey<NoteFormState>();
   final TextEditingController _noteTitleController = TextEditingController();
   final TextEditingController _noteDescriptionController = TextEditingController();
   final FocusNode _noteTitleFocusNode = FocusNode();
@@ -54,10 +56,12 @@ class AddEditNoteScreenState extends State<AddEditNoteScreen> {
   String currentText = "";
   List<String> undoStack = [];
   List<String> redoStack = [];
+  List<String> listItems = [];
   bool isBold = false;
   bool hasUnsavedChanges = false;
   bool hasSavedChanges = false;
   bool isEditing = true;
+  bool isListMode = false;
 
   @override
   void initState() {
@@ -102,7 +106,7 @@ class AddEditNoteScreenState extends State<AddEditNoteScreen> {
     super.didChangeDependencies();
     final box = GetStorage();
 
-    backgroundImage = box.read('backgroundImage') ?? (Theme.of(context).brightness == Brightness.dark ? AppImages.noteBgDark : AppImages.noteBgLight);
+    backgroundImage = box.read('backgroundImage') ?? (context.isDarkMode ? AppImages.noteBgDark : AppImages.noteBgLight);
 
     if (widget.noteType == 'Add') {
       FocusScope.of(context).requestFocus(_noteDescriptionFocusNode);
@@ -290,6 +294,7 @@ class AddEditNoteScreenState extends State<AddEditNoteScreen> {
                 ),
                 Expanded(
                   child: NoteForm(
+                    key: noteFormKey,
                     noteTitleController: _noteTitleController,
                     noteTitleFocusNode: _noteTitleFocusNode,
                     noteDescriptionController: _noteDescriptionController,
@@ -298,6 +303,12 @@ class AddEditNoteScreenState extends State<AddEditNoteScreen> {
                     isNewNote: true,
                     imagePath: imagePath,
                     isBold: isBold,
+                    isListMode: isListMode,
+                    onListModeChanged: (value) {
+                      setState(() {
+                        isListMode = value;
+                      });
+                    },
                   ),
                 ),
               ],
@@ -312,7 +323,21 @@ class AddEditNoteScreenState extends State<AddEditNoteScreen> {
               builder: (context, isFieldFocused, child) {
                 return isFieldFocused
                   ? EditMessageBottomNavBar(
-                      onList: () {},
+                      onList: () {
+                        setState(() {
+                          final wasListMode = isListMode;
+
+                          isListMode = !isListMode;
+
+                          if (!wasListMode && isListMode) {
+                            noteFormKey.currentState?.convertTextToList();
+                          }
+
+                          if (wasListMode && !isListMode) {
+                            noteFormKey.currentState?.convertListToText();
+                          }
+                        });
+                      },
                       onTextStyle: () {
                         showTextStyleBottomSheetDialog(context, changeBackground);
                       },

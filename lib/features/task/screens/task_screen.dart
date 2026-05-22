@@ -1,15 +1,18 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide ScreenType;
+import 'package:get_storage/get_storage.dart';
 import 'package:notes/utils/constants/app_sizes.dart';
 import 'package:notes/features/utils/widgets/scrolls/no_glow_scroll_behavior.dart';
 import 'package:provider/provider.dart';
 import '../../../core/enums/folder_dialog_type.dart';
+import '../../../core/states/app_state.dart';
 import '../../../core/types/callbacks.dart';
 import '../../../routes/custom_page_route.dart';
 import '../../../utils/constants/app_colors.dart';
 import '../../../utils/constants/app_vectors.dart';
+import '../../../utils/extensions/color_extension.dart';
 import '../../../utils/popups/dialogs.dart';
 import '../../note/widgets/app_bars/note_app_bar.dart';
 import '../../note/widgets/popups/custom_folder_dialog.dart';
@@ -27,17 +30,21 @@ import '../../note/widgets/nav_bar/select_bottom_nav_bar.dart';
 import '../models/task_view_model.dart';
 import '../widgets/lists/items/task_list_item.dart';
 import '../widgets/popups/add_task_bottom_sheet_dialog.dart';
+import '../../../core/enums/screen_type.dart';
 
 class TaskScreen extends StatefulWidget {
   final TaskSelectionChangedCallback? onSelectionChanged;
+  final ValueChanged<bool>? onFolderDialogChanged;
+  final bool isFolderDialogOpen;
 
-  const TaskScreen({super.key, this.onSelectionChanged});
+  const TaskScreen({super.key, this.onSelectionChanged, this.onFolderDialogChanged, this.isFolderDialogOpen = false});
 
   @override
   State<TaskScreen> createState() => _TaskScreenState();
 }
 
 class _TaskScreenState extends State<TaskScreen> with SingleTickerProviderStateMixin {
+  final GetStorage box = GetStorage();
   late final AnimationController animationController;
   late Animation<double> rotationAnimation;
   List<TaskModel> selectedTasks = [];
@@ -54,6 +61,9 @@ class _TaskScreenState extends State<TaskScreen> with SingleTickerProviderStateM
   bool areAllTasksSelected = false;
   bool isWarningIconSelected = false;
   bool userHasInteractedWithGroups = false;
+
+  String? selectedFolderTitle;
+  Color? selectedFolderColor;
 
   @override
   void initState() {
@@ -76,28 +86,42 @@ class _TaskScreenState extends State<TaskScreen> with SingleTickerProviderStateM
     initExpandedGroups(grouped);
   }
 
-  void toggleExpand() async {
+  Future<void> toggleExpand() async {
     if (!isExpanded) {
       setState(() {
         isExpanded = true;
-        animationController.forward();
       });
+
+      animationController.forward();
+      widget.onFolderDialogChanged?.call(true);
 
       final result = await showDialog<Map<String, dynamic>>(context: context, barrierColor: AppColors.transparent, builder: (_) => const CustomFolderDialog(type: FolderDialogType.tasks));
 
+      if (!mounted) return;
+
       if (result != null) {
-        setState(() {
-        });
+        final title = result['text'] as String?;
+        final color = result['color'];
+
+        context.read<AppState>().setFolder('tasks', title ?? 'Все задачи', color ?? AppColors.transparent);
       }
+
+      if (result != null) {
+        setState(() {});
+      }
+
       setState(() {
         isExpanded = false;
-        animationController.reverse();
       });
+
+      widget.onFolderDialogChanged?.call(false);
+      animationController.reverse();
     } else {
       setState(() {
         isExpanded = false;
-        animationController.reverse();
       });
+      widget.onFolderDialogChanged?.call(false);
+      animationController.reverse();
       Navigator.of(context).pop();
     }
   }
@@ -189,7 +213,7 @@ class _TaskScreenState extends State<TaskScreen> with SingleTickerProviderStateM
     showModalBottomSheet(
       context: context,
       showDragHandle: false,
-      backgroundColor: Theme.of(context).brightness == Brightness.dark ? AppColors.greySlate : AppColors.white,
+      backgroundColor: context.isDarkMode ? AppColors.greySlate : AppColors.white,
       builder: (BuildContext context) {
         return AddTaskBottomSheet(
           onTime: (value) {},
@@ -261,15 +285,17 @@ class _TaskScreenState extends State<TaskScreen> with SingleTickerProviderStateM
         builder: (context, viewModel, child) {
           final tasks = viewModel.allTasks;
           final groupedTasks = TaskUtils.groupTasks(tasks, showCompleted);
+          final title = context.watch<AppState>().getTitle('tasks');
+          final color = context.watch<AppState>().getColor('tasks');
 
           return ScrollbarTheme(
             data: ScrollbarThemeData(
               thumbColor: WidgetStateProperty.resolveWith<Color>(
                 (Set<WidgetState> states) {
                   if (states.contains(WidgetState.dragged)) {
-                    return Theme.of(context).brightness == Brightness.dark ? AppColors.darkerGrey : AppColors.darkGrey;
+                    return context.isDarkMode ? AppColors.darkerGrey : AppColors.darkGrey;
                   }
-                  return Theme.of(context).brightness == Brightness.dark ? AppColors.darkerGrey : AppColors.darkGrey;
+                  return context.isDarkMode ? AppColors.darkerGrey : AppColors.darkGrey;
                 },
               ),
             ),
@@ -280,6 +306,7 @@ class _TaskScreenState extends State<TaskScreen> with SingleTickerProviderStateM
                 thumbVisibility: false,
                 radius: const Radius.circular(6),
                 child: Scaffold(
+                  backgroundColor: (color ?? AppColors.black).getBackgroundColor(),
                   appBar: NoteAppBar(hasSelectedTasks: selectionMode, clearTaskSelection: clearTaskSelection, popupMenu: _buildPopupMenu(), showAppBar: selectedIndex == 1),
                   body: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -291,7 +318,7 @@ class _TaskScreenState extends State<TaskScreen> with SingleTickerProviderStateM
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.start,
                             children: [
-                              Text(TaskUtils.getTitleText(selectionMode: selectionMode, selectedCount: selectedTasks.length), style: const TextStyle(fontSize: 32)),
+                              Text(title ?? TaskUtils.getTitleText(selectionMode: selectionMode, selectedCount: selectedTasks.length, type: ScreenType.tasks), style: const TextStyle(fontSize: 32)),
                               const SizedBox(width: 8),
                               if (!selectionMode)
                                 SizedBox(
@@ -389,7 +416,7 @@ class _TaskScreenState extends State<TaskScreen> with SingleTickerProviderStateM
                       ),
                     ],
                   ),
-                  bottomNavigationBar: _buildBottomNavBar(context, viewModel, tasks),
+                  bottomNavigationBar: _buildBottomNavBar(context, viewModel, tasks, color),
                 ),
               ),
             ),
@@ -399,7 +426,7 @@ class _TaskScreenState extends State<TaskScreen> with SingleTickerProviderStateM
     );
   }
 
-  Widget _buildBottomNavBar(BuildContext context, TaskViewModel viewModel, List<TaskModel> tasks) {
+  Widget _buildBottomNavBar(BuildContext context, TaskViewModel viewModel, List<TaskModel> tasks, Color? color) {
     return selectionMode
       ? SelectBottomNavBar(
           onMove: () => moveTasks(context, selectedTasks),
@@ -410,7 +437,7 @@ class _TaskScreenState extends State<TaskScreen> with SingleTickerProviderStateM
           taskViewModel: viewModel,
           areAllSelected: selectedTasks.length == allTasks.length,
         )
-      : BottomNavBar(selectedIndex: selectedIndex, onItemTapped: onItemTapped);
+      : BottomNavBar(selectedIndex: selectedIndex, onItemTapped: onItemTapped, color: color);
   }
 
   Widget _buildPopupMenu() {
@@ -421,6 +448,7 @@ class _TaskScreenState extends State<TaskScreen> with SingleTickerProviderStateM
           showCompleted = value;
         });
       },
+      isFolderDialogOpen: widget.isFolderDialogOpen,
     );
   }
 }

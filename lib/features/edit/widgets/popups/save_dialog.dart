@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get_utils/src/extensions/context_extensions.dart';
 import '../../../../utils/constants/app_colors.dart';
 import '../../../../utils/constants/app_sizes.dart';
 
@@ -18,7 +19,7 @@ Future<bool> showSaveDialog(BuildContext context) async {
               child: Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).brightness == Brightness.dark ? AppColors.greySlate : AppColors.white,
+                  color: context.isDarkMode ? AppColors.greySlate : AppColors.white,
                   borderRadius: const BorderRadius.vertical(top: Radius.circular(25), bottom: Radius.circular(25)),
                 ),
                 child: Column(

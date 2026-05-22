@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:notes/utils/constants/app_vectors.dart';
 import '../../../../utils/constants/app_colors.dart';
 import '../../../note/models/category_item.dart';
@@ -10,7 +11,7 @@ class CategoryPopupMenu {
     return showMenu<Map<String, dynamic>>(
       context: context,
       position: position,
-      color: Theme.of(context).brightness == Brightness.dark ? AppColors.greySlate : AppColors.softGrey,
+      color: context.isDarkMode ? AppColors.greySlate : AppColors.softGrey,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       menuPadding:EdgeInsets.symmetric(vertical: 4),
       items: [

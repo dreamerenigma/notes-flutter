@@ -2,6 +2,7 @@ import 'dart:typed_data';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+import 'package:get/get_utils/src/extensions/context_extensions.dart';
 import 'package:notes/routes/custom_page_route.dart';
 import 'package:notes/features/utils/widgets/scrolls/no_glow_scroll_behavior.dart';
 import 'package:photo_manager/photo_manager.dart';
@@ -186,7 +187,7 @@ class AddImagePickerScreenState extends State<AddImagePickerScreen> {
   Widget _buildBottomPanel(BuildContext context) {
     return Container(
       height: 160,
-      color: Theme.of(context).brightness == Brightness.dark ? AppColors.black : AppColors.white,
+      color: context.isDarkMode ? AppColors.black : AppColors.white,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

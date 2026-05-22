@@ -10,8 +10,9 @@ import '../../../settings/screens/settings_screen.dart';
 class TasksPopupMenu extends StatefulWidget {
   final ValueChanged<bool> onShowCompletedChanged;
   final bool showCompleted;
+  final bool isFolderDialogOpen;
 
-  const TasksPopupMenu({super.key, required this.onShowCompletedChanged, required this.showCompleted});
+  const TasksPopupMenu({super.key, required this.onShowCompletedChanged, required this.showCompleted, required this.isFolderDialogOpen});
 
   @override
   State<TasksPopupMenu> createState() => _TasksPopupMenuState();
@@ -20,6 +21,10 @@ class TasksPopupMenu extends StatefulWidget {
 class _TasksPopupMenuState extends State<TasksPopupMenu> {
   @override
   Widget build(BuildContext context) {
+    if (widget.isFolderDialogOpen) {
+      return const SizedBox.shrink();
+    }
+
     return Column(
       children: [
         TooltipTheme(
@@ -42,12 +47,12 @@ class _TasksPopupMenuState extends State<TasksPopupMenu> {
                 shape: WidgetStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
                 overlayColor: WidgetStateProperty.all(AppColors.softNight.withAlpha((0.1 * 255).toInt())),
               ),
-              color: Theme.of(context).brightness == Brightness.dark ? AppColors.greySlate : AppColors.white,
+              color: context.isDarkMode ? AppColors.greySlate : AppColors.white,
               icon: SvgPicture.asset(
                 AppVectors.moreGrid,
                 width: 22,
                 height: 22,
-                colorFilter: ColorFilter.mode(Theme.of(context).brightness == Brightness.dark ? AppColors.white : AppColors.black, BlendMode.srcIn),
+                colorFilter: ColorFilter.mode(context.isDarkMode ? AppColors.white : AppColors.black, BlendMode.srcIn),
               ),
               onSelected: (value) {
                 if (value == 1) {

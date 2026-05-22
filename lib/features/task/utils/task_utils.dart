@@ -1,3 +1,4 @@
+import '../../../core/enums/screen_type.dart';
 import '../models/task_model.dart';
 
 class TaskUtils {
@@ -70,11 +71,19 @@ class TaskUtils {
     return grouped;
   }
 
-  static String getTitleText({required bool selectionMode, required int selectedCount}) {
-    if (!selectionMode) return 'Все задачи';
-    if (selectedCount == 0) return 'Не выбрано';
-    if (selectedCount == 1) return 'Выбрана 1 задача';
+  static String getTitleText({required bool selectionMode, required int selectedCount, required ScreenType type}) {
+    final base = type == ScreenType.notes ? 'заметок' : 'задач';
 
-    return 'Выбрано ${getTasksText(selectedCount)}';
+    if (!selectionMode) {
+      return type == ScreenType.notes ? 'Все заметки' : 'Все задачи';
+    }
+
+    if (selectedCount == 0) return 'Не выбрано';
+
+    if (selectedCount == 1) {
+      return 'Выбрана 1 $base';
+    }
+
+    return 'Выбрано $selectedCount $base';
   }
 }

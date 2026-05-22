@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get_utils/src/extensions/context_extensions.dart';
 import '../../../../utils/constants/app_colors.dart';
 import '../../../../utils/constants/app_sizes.dart';
 
@@ -57,10 +58,7 @@ void showDeleteDialog(BuildContext context, VoidCallback onDelete, {required int
               right: 0,
               child: Container(
                 padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).brightness == Brightness.dark ? AppColors.greySlate : AppColors.white,
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(25), bottom: Radius.circular(25)),
-                ),
+                decoration: BoxDecoration(color: context.isDarkMode ? AppColors.greySlate : AppColors.white, borderRadius: const BorderRadius.vertical(top: Radius.circular(25), bottom: Radius.circular(25))),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -75,12 +73,7 @@ void showDeleteDialog(BuildContext context, VoidCallback onDelete, {required int
                               onPressed: () {
                                 Navigator.pop(context);
                               },
-                              style: TextButton.styleFrom(
-                                foregroundColor: AppColors.blueAccent,
-                                overlayColor: AppColors.blueAccent.withAlpha((0.2 * 255).toInt()),
-                                backgroundColor: AppColors.transparent,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-                              ),
+                              style: TextButton.styleFrom(foregroundColor: AppColors.blueAccent, overlayColor: AppColors.blueAccent.withAlpha((0.2 * 255).toInt()), backgroundColor: AppColors.transparent, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30))),
                               child: Text('ОТМЕНА', style: TextStyle(fontSize: AppSizes.fontSizeLg, color: AppColors.blueAccent)),
                             ),
                           ),
@@ -94,12 +87,7 @@ void showDeleteDialog(BuildContext context, VoidCallback onDelete, {required int
                                 onDelete();
                                 Navigator.pop(context);
                               },
-                              style: TextButton.styleFrom(
-                                foregroundColor: AppColors.red,
-                                overlayColor: AppColors.red.withAlpha((0.3 * 255).toInt()),
-                                backgroundColor: AppColors.transparent,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-                              ),
+                              style: TextButton.styleFrom(foregroundColor: AppColors.red, overlayColor: AppColors.red.withAlpha((0.3 * 255).toInt()), backgroundColor: AppColors.transparent, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30))),
                               child: Text('УДАЛИТЬ', style: TextStyle(fontSize: AppSizes.fontSizeLg, color: AppColors.red)),
                             ),
                           ),

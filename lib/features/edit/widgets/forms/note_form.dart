@@ -1,7 +1,10 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:bootstrap_icons/bootstrap_icons.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:get/get_utils/src/extensions/context_extensions.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:notes/features/utils/widgets/scrolls/no_glow_scroll_behavior.dart';
@@ -19,6 +22,8 @@ class NoteForm extends StatefulWidget {
   final bool isNewNote;
   final String? imagePath;
   final bool isBold;
+  final bool isListMode;
+  final ValueChanged<bool> onListModeChanged;
 
   const NoteForm({
     super.key,
@@ -29,18 +34,23 @@ class NoteForm extends StatefulWidget {
     required this.characterCountNotifier,
     required this.isNewNote,
     required this.isBold,
+    required this.isListMode,
+    required this.onListModeChanged,
     this.createdAt,
     this.imagePath,
   });
 
   @override
-  State<NoteForm> createState() => _NoteFormState();
+  State<NoteForm> createState() => NoteFormState();
 }
 
-class _NoteFormState extends State<NoteForm> {
+class NoteFormState extends State<NoteForm> {
+  final List<FocusNode> listFocusNodes = [];
+  final GlobalKey<NoteFormState> noteFormKey = GlobalKey<NoteFormState>();
   final urlRegex = RegExp(r'((https?://)?[\w\-]+(\.[\w\-]+)+[/#?]?.*)');
   final List<String> undoStack = [];
   final List<String> redoStack = [];
+  final List<TextEditingController> listControllers = [];
   late String displayTime;
   late Color selectedColor;
   late bool isDark;
@@ -52,11 +62,15 @@ class _NoteFormState extends State<NoteForm> {
   bool isFocused = false;
   Timer? _debounce;
 
+  FocusNode? activeFocusNode;
+
   @override
   void initState() {
     super.initState();
     displayTime = widget.isNewNote ? 'Сегодня ${DateFormat('HH:mm').format(DateTime.now())}' : widget.createdAt!;
     imagePath = widget.imagePath;
+    listControllers.add(TextEditingController());
+    listFocusNodes.add(FocusNode());
     widget.noteTitleController.addListener(_onFormChanged);
     widget.noteDescriptionController.addListener(_onFormChanged);
     selectedCategoryText = null;
@@ -71,13 +85,19 @@ class _NoteFormState extends State<NoteForm> {
   void dispose() {
     widget.noteTitleController.removeListener(_onFormChanged);
     widget.noteDescriptionController.removeListener(_onFormChanged);
+    for (final controller in listControllers) {
+      controller.dispose();
+    }
+    for (final node in listFocusNodes) {
+      node.dispose();
+    }
     super.dispose();
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    selectedColor = Theme.of(context).brightness == Brightness.dark ? AppColors.darkSlate.withAlpha((0.6 * 255).toInt()) : AppColors.softGrey.withAlpha((0.6 * 255).toInt());
+    selectedColor = context.isDarkMode ? AppColors.darkSlate.withAlpha((0.6 * 255).toInt()) : AppColors.softGrey.withAlpha((0.6 * 255).toInt());
   }
 
   void _onFormChanged() {
@@ -104,14 +124,13 @@ class _NoteFormState extends State<NoteForm> {
   }
 
   List<TextSpan> buildLinkSpans(String text) {
+    final spans = <TextSpan>[];
     final matches = urlRegex.allMatches(text);
+    int start = 0;
 
     if (matches.isEmpty) {
       return [TextSpan(text: text)];
     }
-
-    final spans = <TextSpan>[];
-    int start = 0;
 
     for (final match in matches) {
       if (match.start > start) {
@@ -125,14 +144,14 @@ class _NoteFormState extends State<NoteForm> {
           text: url,
           style: const TextStyle(color: AppColors.blueAccent, decoration: TextDecoration.underline),
           recognizer: TapGestureRecognizer()..onTap = () {
-              showModalBottomSheet(
-                context: context,
-                shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-                builder: (_) {
-                  return Container(padding: const EdgeInsets.all(20), child: Text('Открыта ссылка:\n$url'));
-                },
-              );
-            },
+            showModalBottomSheet(
+              context: context,
+              shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+              builder: (_) {
+                return Container(padding: const EdgeInsets.all(20), child: Text('Открыта ссылка:\n$url'));
+              },
+            );
+          },
         ),
       );
 
@@ -144,6 +163,25 @@ class _NoteFormState extends State<NoteForm> {
     }
 
     return spans;
+  }
+
+  void convertTextToList() {
+    final text = widget.noteDescriptionController.text;
+
+    setState(() {
+      listControllers..clear()..addAll(text.split('\n').map((e) => TextEditingController(text: e)));
+      listFocusNodes..clear()..addAll(List.generate(listControllers.length, (_) => FocusNode()));
+      widget.noteDescriptionController.clear();
+      widget.onListModeChanged(true);
+    });
+  }
+
+  void convertListToText() {
+    final text = listControllers.map((c) => c.text).join('\n');
+
+    widget.noteDescriptionController.text = text;
+    widget.onListModeChanged(false);
+    setState(() {});
   }
 
   @override
@@ -210,6 +248,8 @@ class _NoteFormState extends State<NoteForm> {
                             child: InkWell(
                               borderRadius: BorderRadius.circular(AppSizes.spaceBtwInputFields),
                               onTap: () async {
+                                final currentFocus = FocusScope.of(context).focusedChild;
+
                                 final result = await showDialog<Map<String, dynamic>>(
                                   context: context,
                                   barrierColor: AppColors.transparent,
@@ -222,6 +262,10 @@ class _NoteFormState extends State<NoteForm> {
                                   setState(() {
                                     selectedCategoryText = result['text'] as String;
                                     selectedColor = result['color'] as Color;
+                                  });
+
+                                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                                    currentFocus?.requestFocus();
                                   });
                                 }
 
@@ -247,15 +291,12 @@ class _NoteFormState extends State<NoteForm> {
                   ),
                   if (imagePath != null)
                   Padding(
-                    padding: const EdgeInsets.only(top: 16.0),
+                    padding: const EdgeInsets.only(top: 16),
                     child: Center(
                       child: Stack(
                         alignment: Alignment.center,
                         children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(14),
-                            child: Image.file(File(imagePath!), width: 250, height: 250, fit: BoxFit.cover),
-                          ),
+                          ClipRRect(borderRadius: BorderRadius.circular(14), child: Image.file(File(imagePath!), width: 250, height: 250, fit: BoxFit.cover)),
                           Positioned(
                             top: 8,
                             right: 8,
@@ -265,30 +306,26 @@ class _NoteFormState extends State<NoteForm> {
                                   imagePath = null;
                                 });
                               },
-                              child: CircleAvatar(
-                                radius: 11,
-                                backgroundColor: Colors.grey.withAlpha((0.7 * 255).toInt()),
-                                child: const Icon(Icons.close_rounded, color: AppColors.white, size: 20),
-                              ),
+                              child: CircleAvatar(radius: 11, backgroundColor: AppColors.grey.withAlpha((0.7 * 255).toInt()), child: const Icon(Icons.close_rounded, color: AppColors.white, size: 20)),
                             ),
                           ),
                         ],
                       ),
                     ),
                   ),
-                  Stack(
+                  SizedBox(height: 14),
+                  widget.isListMode ? _buildListEditor() : Stack(
                     children: [
                       Opacity(
                         opacity: isFocused ? 1 : 0,
                         child: TextSelectionTheme(
-                          data: TextSelectionThemeData(
-                            cursorColor: AppColors.blue,
-                            selectionColor: AppColors.blue.withAlpha((0.3 * 255).toInt()),
-                            selectionHandleColor: AppColors.blue,
-                          ),
+                          data: TextSelectionThemeData(cursorColor: AppColors.blue, selectionColor: AppColors.blue.withAlpha((0.3 * 255).toInt()), selectionHandleColor: AppColors.blue),
                           child: TextField(
                             controller: widget.noteDescriptionController,
                             focusNode: widget.noteDescriptionFocusNode,
+                            onTap: () {
+                              activeFocusNode = widget.noteDescriptionFocusNode;
+                            },
                             decoration: InputDecoration(
                               hintText: '',
                               hintStyle: TextStyle(fontSize: AppSizes.fontSizeMd),
@@ -340,6 +377,115 @@ class _NoteFormState extends State<NoteForm> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildListEditor() {
+    return Column(
+      children: List.generate(listControllers.length, (index) {
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(padding: const EdgeInsets.only(top: 2), child: Icon(BootstrapIcons.circle, size: 22, color: context.isDarkMode ? AppColors.white : AppColors.black)),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Focus(
+                onKeyEvent: (node, event) {
+
+                  if (event is! KeyDownEvent) {
+                    return KeyEventResult.ignored;
+                  }
+
+                  /// ===== ENTER =====
+                  if (event.logicalKey == LogicalKeyboardKey.enter) {
+
+                    final newController = TextEditingController();
+                    final newFocus = FocusNode();
+
+                    setState(() {
+                      listControllers.insert(index + 1, newController);
+                      listFocusNodes.insert(index + 1, newFocus);
+                    });
+
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      if (mounted) {
+                        newFocus.requestFocus();
+                      }
+                    });
+
+                    return KeyEventResult.handled;
+                  }
+
+                  // ===== BACKSPACE =====
+                  if (event.logicalKey == LogicalKeyboardKey.backspace) {
+                    final controller = listControllers[index];
+
+                    if (controller.text.isEmpty) {
+                      if (listControllers.length == 1) {
+                        widget.onListModeChanged(false);
+                        return KeyEventResult.handled;
+                      }
+
+                      final currentFocus = FocusScope.of(context);
+
+                      setState(() {
+                        listControllers[index].dispose();
+                        listFocusNodes[index].dispose();
+
+                        listControllers.removeAt(index);
+                        listFocusNodes.removeAt(index);
+                      });
+
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        currentFocus.requestFocus();
+                      });
+
+                      if (index > 0) {
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          listFocusNodes[index - 1].requestFocus();
+                        });
+                      }
+
+                      return KeyEventResult.handled;
+                    }
+                  }
+
+                  return KeyEventResult.ignored;
+                },
+                child: TextSelectionTheme(
+                  data: TextSelectionThemeData(
+                    cursorColor: AppColors.blue,
+                    selectionColor:
+                    AppColors.blue.withAlpha((0.3 * 255).toInt()),
+                    selectionHandleColor: AppColors.blue,
+                  ),
+                  child: TextField(
+                    key: ValueKey(listFocusNodes[index]),
+                    controller: listControllers[index],
+                    focusNode: listFocusNodes[index],
+                    cursorHeight: 24,
+                    maxLines: 30,
+                    decoration: const InputDecoration(
+                      hintText: '',
+                      border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      contentPadding: EdgeInsets.zero,
+                      isCollapsed: true,
+                    ),
+                    textCapitalization:
+                    TextCapitalization.sentences,
+                    style: TextStyle(fontSize: AppSizes.fontSizeMd, fontWeight: widget.isBold ? FontWeight.w700 : FontWeight.w400, height: 1.5, fontFamily: 'Poppins'),
+                    onTap: () {
+                      activeFocusNode = listFocusNodes[index];
+                    },
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      }),
     );
   }
 }

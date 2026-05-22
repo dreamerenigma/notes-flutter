@@ -2,6 +2,7 @@ import 'dart:developer';
 import 'package:bootstrap_icons/bootstrap_icons.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get_utils/src/extensions/context_extensions.dart';
 import 'package:heroicons/heroicons.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:solar_icons/solar_icons.dart';
@@ -60,7 +61,7 @@ void showOpenGalleryDialog(BuildContext context, void Function(XFile?) onImagePi
               child: Container(
                 padding: const EdgeInsets.only(top: 20, bottom: 20),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).brightness == Brightness.dark ? AppColors.greySlate : AppColors.white,
+                  color: context.isDarkMode ? AppColors.greySlate : AppColors.white,
                   borderRadius: const BorderRadius.vertical(top: Radius.circular(25), bottom: Radius.circular(25)),
                 ),
                 child: Column(
@@ -162,6 +163,6 @@ Widget _buildOption(BuildContext context, Widget icon, String text, VoidCallback
 Widget _buildDivider(BuildContext context) {
   return Padding(
     padding: const EdgeInsets.only(left: 65, right: 25),
-    child: Divider(height: 0, thickness: 0, color: Theme.of(context).brightness == Brightness.dark ? AppColors.darkerGrey : AppColors.buttonDisabled),
+    child: Divider(height: 0, thickness: 0, color: context.isDarkMode ? AppColors.darkerGrey : AppColors.buttonDisabled),
   );
 }

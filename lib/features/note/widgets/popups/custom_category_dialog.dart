@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get_utils/src/extensions/context_extensions.dart';
 import 'package:get_storage/get_storage.dart';
 import '../../../../utils/constants/app_colors.dart';
 import '../../../../utils/constants/app_sizes.dart';
@@ -32,7 +33,7 @@ class CustomCategoryDialogState extends State<CustomCategoryDialog> {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      backgroundColor: Theme.of(context).brightness == Brightness.dark ? AppColors.greySlate : AppColors.white,
+      backgroundColor: context.isDarkMode ? AppColors.greySlate : AppColors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: SizedBox(
         width: 200,
@@ -65,7 +66,7 @@ class CustomCategoryDialogState extends State<CustomCategoryDialog> {
       child: Divider(
         height: 0,
         thickness: 1,
-        color: Theme.of(context).brightness == Brightness.dark ? AppColors.darkSlate : AppColors.buttonDisabled,
+        color: context.isDarkMode ? AppColors.darkSlate : AppColors.buttonDisabled,
       ),
     );
   }
@@ -106,7 +107,7 @@ class CustomCategoryDialogState extends State<CustomCategoryDialog> {
                 text,
                 style: TextStyle(
                   fontSize: AppSizes.fontSizeMd,
-                  color: isSelected ? containerColor : Theme.of(context).brightness == Brightness.dark ? AppColors.white : AppColors.black,
+                  color: isSelected ? containerColor : context.isDarkMode ? AppColors.white : AppColors.black,
                 ),
               ),
             ],

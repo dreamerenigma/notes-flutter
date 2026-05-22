@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get_utils/src/extensions/context_extensions.dart';
 import '../../../../utils/constants/app_colors.dart';
 import '../../../../utils/constants/app_sizes.dart';
 
@@ -8,7 +9,7 @@ void showNewNoteBottomSheetDialog(BuildContext context) {
     isScrollControlled: true,
     shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
     showDragHandle: false,
-    backgroundColor: Theme.of(context).brightness == Brightness.dark ? AppColors.blackGrey : AppColors.white,
+    backgroundColor: context.isDarkMode ? AppColors.blackGrey : AppColors.white,
     builder: (BuildContext context) {
       final colors = AppColors.categoryColors;
       int selectedColorIndex = 0;

@@ -13,9 +13,10 @@ import 'package:notes/utils/theme/theme.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'features/note/controllers/language_controller.dart';
-import 'features/note/controllers/themes_controller.dart';
+import 'core/states/app_state.dart';
+import 'features/settings/controllers/language_controller.dart';
 import 'features/note/models/note_view_model.dart';
+import 'features/settings/controllers/themes_controller.dart';
 import 'features/task/bloc/task_cubit.dart';
 import 'features/task/models/task_view_model.dart';
 import 'features/note/screens/note_screen.dart';
@@ -49,13 +50,14 @@ class App extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final LanguageController languageController = Get.find<LanguageController>();
+    final LanguagesController languageController = Get.find<LanguagesController>();
     final ThemesController themesController = Get.find<ThemesController>();
     final noteViewModel = NoteViewModel();
     final taskViewModel = TaskViewModel();
 
     return MultiProvider(
       providers: [
+        ChangeNotifierProvider(create: (_) => AppState()..load()),
         ChangeNotifierProvider.value(value: noteViewModel),
         ChangeNotifierProvider.value(value: taskViewModel),
       ],

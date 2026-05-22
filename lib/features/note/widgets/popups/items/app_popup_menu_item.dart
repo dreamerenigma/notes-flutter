@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get_utils/src/extensions/context_extensions.dart';
 import '../../../../../utils/constants/app_colors.dart';
 import '../../../../../utils/constants/app_sizes.dart';
 
@@ -26,7 +27,7 @@ class AppPopupMenuItem extends StatelessWidget {
         child: Container(
           width: double.infinity,
           padding: const EdgeInsets.all(12),
-          child: Text(text, style: TextStyle(fontSize: AppSizes.fontSizeMd, color: Theme.of(context).brightness == Brightness.dark ? AppColors.white : AppColors.black)),
+          child: Text(text, style: TextStyle(fontSize: AppSizes.fontSizeMd, color: context.isDarkMode ? AppColors.white : AppColors.black)),
         ),
       ),
     );

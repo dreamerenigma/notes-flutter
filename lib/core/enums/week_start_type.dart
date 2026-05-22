@@ -1,0 +1,1 @@
+enum WeekStartType { monday, sunday }

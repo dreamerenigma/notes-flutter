@@ -5,7 +5,7 @@ import '../features/task/screens/task_screen.dart';
 
 class AppRoutes {
   static final pages = [
-    GetPage(name: NotesRoutes.note, page: () => const NoteScreen()),
+    GetPage(name: NotesRoutes.note, page: () => NoteScreen()),
     GetPage(name: NotesRoutes.task, page: () => TaskScreen()),
   ];
 }

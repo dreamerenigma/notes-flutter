@@ -4,7 +4,7 @@ import 'package:get_storage/get_storage.dart';
 import '../../../generated/l10n/l10n.dart';
 import '../../../utils/constants/app_colors.dart';
 import '../../../utils/constants/app_sizes.dart';
-import '../widgets/tiles/custom_radio_list_tile.dart';
+import '../../note/widgets/tiles/custom_radio_list_tile.dart';
 
 class ThemesController extends GetxController {
   static ThemesController get instance => Get.find();
@@ -20,10 +20,10 @@ class ThemesController extends GetxController {
 
   ThemeMode getThemeMode() {
     switch (selectedTheme.value) {
-      case 'dark':
-        return ThemeMode.dark;
       case 'system':
         return ThemeMode.system;
+      case 'dark':
+        return ThemeMode.dark;
       default:
         return ThemeMode.light;
     }
@@ -47,12 +47,23 @@ class ThemesController extends GetxController {
 
   String getThemeDescription() {
     switch (selectedTheme.value) {
-      case 'dark':
-        return 'Темная';
       case 'system':
         return 'Системная';
+      case 'dark':
+        return 'Темная';
       default:
         return 'Светлая';
+    }
+  }
+
+  IconData getThemeIcon() {
+    switch (selectedTheme.value) {
+      case 'system':
+        return Icons.settings_outlined;
+      case 'dark':
+        return Icons.dark_mode_outlined;
+      default:
+        return Icons.light_mode_outlined;
     }
   }
 
@@ -62,9 +73,7 @@ class ThemesController extends GetxController {
       builder: (BuildContext context) {
         return StatefulBuilder(
           builder: (context, setState) => AlertDialog(
-            backgroundColor: Theme.of(context).brightness == Brightness.dark
-              ? AppColors.blackGrey
-              : AppColors.white,
+            backgroundColor: context.isDarkMode ? AppColors.blackGrey : AppColors.white,
             title: Text(S.of(context).selectTheme),
             contentPadding: EdgeInsets.zero,
             titlePadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
@@ -82,9 +91,7 @@ class ThemesController extends GetxController {
                       selectedTheme.value = value as String;
                     });
                   },
-                  iconColor: Theme.of(context).brightness == Brightness.dark
-                    ? AppColors.white
-                    : AppColors.black,
+                  iconColor: context.isDarkMode ? AppColors.white : AppColors.black,
                 ),
                 CustomRadioListTile(
                   icon: Icons.brightness_6,
@@ -96,9 +103,7 @@ class ThemesController extends GetxController {
                       selectedTheme.value = value as String;
                     });
                   },
-                  iconColor: Theme.of(context).brightness == Brightness.dark
-                    ? AppColors.white
-                    : AppColors.black,
+                  iconColor: context.isDarkMode ? AppColors.white : AppColors.black,
                 ),
                 CustomRadioListTile(
                   icon: Icons.brightness_2,
@@ -110,9 +115,7 @@ class ThemesController extends GetxController {
                       selectedTheme.value = value as String;
                     });
                   },
-                  iconColor: Theme.of(context).brightness == Brightness.dark
-                      ? AppColors.white
-                      : AppColors.black,
+                  iconColor: context.isDarkMode ? AppColors.white : AppColors.black,
                 ),
               ],
             ),
@@ -121,13 +124,7 @@ class ThemesController extends GetxController {
                 onPressed: () {
                   Navigator.pop(context);
                 },
-                style: TextButton.styleFrom(
-                  foregroundColor: AppColors.lightBlue,
-                  backgroundColor: AppColors.lightBlue.withAlpha((0.1 * 255).toInt()),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                ),
+                style: TextButton.styleFrom(foregroundColor: AppColors.lightBlue, backgroundColor: AppColors.lightBlue.withAlpha((0.1 * 255).toInt()), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15))),
                 child: Text(S.of(context).cancel, style: TextStyle(color: AppColors.lightBlue, fontSize: AppSizes.fontSizeSm)),
               ),
               TextButton(
@@ -135,13 +132,7 @@ class ThemesController extends GetxController {
                   setTheme(selectedTheme.value);
                   Navigator.pop(context);
                 },
-                style: TextButton.styleFrom(
-                  foregroundColor: AppColors.lightBlue,
-                  backgroundColor: AppColors.lightBlue.withAlpha((0.1 * 255).toInt()),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                ),
+                style: TextButton.styleFrom(foregroundColor: AppColors.lightBlue, backgroundColor: AppColors.lightBlue.withAlpha((0.1 * 255).toInt()), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15))),
                 child: Text(S.of(context).ok, style: TextStyle(color: AppColors.lightBlue, fontSize: AppSizes.fontSizeSm)),
               ),
             ],

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:get/get_utils/src/extensions/context_extensions.dart';
 import 'package:notes/features/note/models/note_model.dart';
 import '../../../../../routes/custom_page_route.dart';
 import '../../../../../utils/constants/app_colors.dart';
@@ -110,15 +111,11 @@ class NoteItemListState extends State<NoteItemList> {
         child: Container(
           margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6).copyWith(right: widget.showCheckboxes ? 8.0 : 10),
           decoration: BoxDecoration(
-            color: widget.isSelected ? AppColors.blueAccent.withAlpha((0.3 * 255).toInt()) : (Theme.of(context).brightness == Brightness.dark ? AppColors.greySlate : AppColors.softGrey),
+            color: widget.isSelected ? AppColors.blueAccent.withAlpha((0.3 * 255).toInt()) : (context.isDarkMode ? AppColors.greySlate : AppColors.softGrey),
             borderRadius: BorderRadius.circular(20),
             boxShadow: widget.showCheckboxes
               ? [
-                  BoxShadow(
-                    color: Theme.of(context).brightness == Brightness.dark ? AppColors.black : AppColors.white,
-                    blurRadius: 4,
-                    offset: const Offset(2, 2),
-                  )
+                  BoxShadow(color: context.isDarkMode? AppColors.black : AppColors.white, blurRadius: 4, offset: const Offset(2, 2))
                 ]
               : [],
           ),
@@ -131,14 +128,14 @@ class NoteItemListState extends State<NoteItemList> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(displayTime, style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? AppColors.darkGrey : AppColors.darkGrey)),
+                      Text(displayTime, style: TextStyle(color: context.isDarkMode? AppColors.darkGrey : AppColors.darkGrey)),
                       const Text(' | ', style: TextStyle(color: AppColors.darkGrey)),
                       Expanded(
                         child: Text(
                           widget.note.description,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? AppColors.darkGrey : AppColors.darkGrey),
+                          style: TextStyle(color: context.isDarkMode ? AppColors.darkGrey : AppColors.darkGrey),
                         ),
                       ),
                     ],

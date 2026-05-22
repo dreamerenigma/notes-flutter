@@ -3,15 +3,18 @@ import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import '../../../../utils/constants/app_colors.dart';
 import '../../../../utils/constants/app_vectors.dart';
+import '../../../../utils/extensions/color_extension.dart';
 
 class BottomNavBar extends StatelessWidget {
   final int selectedIndex;
   final void Function(int) onItemTapped;
+  final Color? color;
 
   const BottomNavBar({
     super.key,
     required this.selectedIndex,
     required this.onItemTapped,
+    this.color,
   });
 
   @override
@@ -20,7 +23,7 @@ class BottomNavBar extends StatelessWidget {
       data: Theme.of(context).copyWith(splashFactory: NoSplash.splashFactory),
       child: Container(
         height: 55,
-        decoration: BoxDecoration(color: context.isDarkMode ? AppColors.black : AppColors.white),
+        decoration: BoxDecoration(color: (color ?? (context.isDarkMode ? AppColors.black : AppColors.white)).getBackgroundColor()),
         child: Row(
           children: [
             _buildItem(
@@ -59,8 +62,8 @@ class BottomNavBar extends StatelessWidget {
           onTap: () => onItemTapped(index),
           splashFactory: NoSplash.splashFactory,
           borderRadius: BorderRadius.circular(8),
-          splashColor: AppColors.youngNight,
-          highlightColor: AppColors.youngNight,
+          splashColor: context.isDarkMode ? AppColors.youngNight : AppColors.softGrey,
+          highlightColor: context.isDarkMode ? AppColors.youngNight : AppColors.softGrey,
           child: SizedBox.expand(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
