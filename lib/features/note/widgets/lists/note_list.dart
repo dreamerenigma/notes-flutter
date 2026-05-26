@@ -62,7 +62,10 @@ class _NoteListState extends State<NoteList> {
             widget.onNoteSelected(selectedNote);
           },
           onEnterSelectionMode: () {
-            enterSelectionMode(note.id);
+            final id = note.id;
+            if (id == null) return;
+
+            enterSelectionMode(id);
           },
         );
       },

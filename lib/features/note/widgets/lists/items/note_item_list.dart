@@ -74,7 +74,10 @@ class NoteItemListState extends State<NoteItemList> {
             }
           });
         } else {
-          widget.onSelectionChanged(widget.note.id);
+          final id = widget.note.id;
+          if (id == null) return;
+
+          widget.onSelectionChanged(id);
         }
       },
       onTapDown: (_) {
@@ -96,7 +99,11 @@ class NoteItemListState extends State<NoteItemList> {
         if (!widget.showCheckboxes) {
           widget.onEnterSelectionMode();
         }
-        widget.onSelectionChanged(widget.note.id);
+
+        final id = widget.note.id;
+        if (id == null) return;
+
+        widget.onSelectionChanged(id);
       },
       onLongPressStart: (_) {
         setState(() => isPressed = true);

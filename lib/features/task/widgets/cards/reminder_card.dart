@@ -36,7 +36,7 @@ class ReminderCard extends StatefulWidget {
 
 class _ReminderCardState extends State<ReminderCard> {
   Future<void> _openDialog() async {
-    final result = await showCustomCalendarDialog(context);
+    final result = await showCustomCalendarDialog(context, widget.selectedDateTime);
 
     if (result != null) {
       widget.onChanged(result);
@@ -109,7 +109,7 @@ class _ReminderCardState extends State<ReminderCard> {
             highlightColor: AppColors.softNight,
             hoverColor: AppColors.transparent,
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              padding: const EdgeInsets.only(left: 10, top: 4, bottom: 4),
               child: Row(
                 children: [
                   SvgPicture.asset(AppVectors.notifications, colorFilter: ColorFilter.mode(context.isDarkMode ? AppColors.white : AppColors.black, BlendMode.srcIn), width: 26, height: 26),
@@ -151,7 +151,7 @@ class _ReminderCardState extends State<ReminderCard> {
                     highlightColor: AppColors.softNight,
                     hoverColor: AppColors.softNight,
                     child: Padding(
-                      padding: const EdgeInsets.all(14),
+                      padding: const EdgeInsets.all(12),
                       child: SvgPicture.asset(AppVectors.close, width: 20, height: 20, colorFilter: ColorFilter.mode(context.isDarkMode ? AppColors.white : AppColors.black, BlendMode.srcIn)),
                     ),
                   ),
@@ -179,7 +179,7 @@ class _ReminderCardState extends State<ReminderCard> {
             highlightColor: AppColors.softNight,
             hoverColor: AppColors.transparent,
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 14),
+              padding: const EdgeInsets.only(left: 10, right: 6, top: 14, bottom: 14),
               child: Row(
                 children: [
                   SvgPicture.asset(AppVectors.repeat, width: 25, height: 25, colorFilter: ColorFilter.mode(context.isDarkMode ? AppColors.white : AppColors.black, BlendMode.srcIn)),
@@ -187,7 +187,7 @@ class _ReminderCardState extends State<ReminderCard> {
                   Text('Повтор', style: TextStyle(fontSize: AppSizes.fontSizeMd, color: context.isDarkMode ? AppColors.white : AppColors.black, fontWeight: FontWeight.w400)),
                   const Spacer(),
                   Text(widget.repeatType.label, style: TextStyle(fontSize: AppSizes.fontSizeSm, color: AppColors.darkGrey, fontWeight: FontWeight.w400)),
-                  const Icon(Icons.keyboard_arrow_right, color: AppColors.darkGrey),
+                  const Icon(Icons.keyboard_arrow_right_rounded, color: AppColors.darkGrey),
                 ],
               ),
             ),

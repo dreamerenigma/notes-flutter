@@ -1,11 +1,17 @@
-import 'dart:developer';
 import 'package:flutter/foundation.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:intl/intl.dart';
 import 'package:notes/features/note/models/note_model.dart';
-import '../../../database/database_helper.dart';
+import '../../../data/database/database_helper.dart';
+import '../../../data/repositories/note_repository.dart';
 
 class NoteViewModel extends ChangeNotifier {
+  final NoteRepository repository;
+
+  NoteViewModel(this.repository) {
+    _loadNotes();
+  }
+
   final GetStorage storage = GetStorage();
   final Map<String, bool> _expandedGroups = {};
   Set<int> _selectedNotes = {};
@@ -15,10 +21,6 @@ class NoteViewModel extends ChangeNotifier {
   List<NoteModel> get allNotes => _allNotes;
   int get noteCount => _allNotes.length;
   bool get hasSelectedItems => _selectedNotes.isNotEmpty;
-
-  NoteViewModel() {
-    _loadNotes();
-  }
 
   Future<void> _loadNotes() async {
     _allNotes = await fetchAllNotes();
@@ -31,20 +33,20 @@ class NoteViewModel extends ChangeNotifier {
   }
 
   Future<void> addNote(NoteModel note) async {
-    await DatabaseHelper().insertNote(note.toMap(includeId: false));
+    await repository.addNote(note);
     await _loadNotes();
   }
 
   Future<void> updateNote(NoteModel note) async {
-    await DatabaseHelper().updateNote(note);
-    log('Note updated: ${note.title}');
+    await repository.updateNote(note);
     await _loadNotes();
   }
 
   Future<void> deleteNote(NoteModel note) async {
-    log('Attempting to delete note: ${note.id}');
-    await DatabaseHelper().deleteNote(note.id);
-    log('Note deleted: ${note.id}');
+    final id = note.id;
+    if (id == null) return;
+
+    await repository.deleteNote(id);
     await _loadNotes();
   }
 
@@ -87,10 +89,13 @@ class NoteViewModel extends ChangeNotifier {
   }
 
   Future<void> toggleSelection(NoteModel note) async {
-    if (_selectedNotes.contains(note.id)) {
-      _selectedNotes.remove(note.id);
+    final id = note.id;
+    if (id == null) return;
+
+    if (_selectedNotes.contains(id)) {
+      _selectedNotes.remove(id);
     } else {
-      _selectedNotes.add(note.id);
+      _selectedNotes.add(id);
     }
     notifyListeners();
   }
@@ -99,7 +104,7 @@ class NoteViewModel extends ChangeNotifier {
     if (_selectedNotes.length == _allNotes.length) {
       _selectedNotes.clear();
     } else {
-      _selectedNotes = _allNotes.map((e) => e.id).toSet();
+      _selectedNotes = _allNotes.where((e) => e.id != null).map((e) => e.id!).toSet();
     }
     notifyListeners();
   }

@@ -104,9 +104,9 @@ Widget _buildLanguageTile(BuildContext context, RxString tempLanguage, String va
           decoration: BoxDecoration(color: isSelected ? AppColors.blue.withAlpha((0.08 * 255).toInt()) : AppColors.transparent, borderRadius: BorderRadius.circular(12)),
           child: Row(
             children: [
-              Expanded(child: Text(title)),
+              Expanded(child: Text(title, style: TextStyle(fontSize: AppSizes.fontSizeMd))),
               if (isSelected)
-                const Icon(Icons.check, color: AppColors.blueAccent),
+                const Icon(Icons.check, size: 23, color: AppColors.blueAccent),
             ],
           ),
         ),

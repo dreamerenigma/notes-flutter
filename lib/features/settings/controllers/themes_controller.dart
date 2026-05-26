@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
+import '../../../data/repositories/settings_repository.dart';
 import '../../../generated/l10n/l10n.dart';
 import '../../../utils/constants/app_colors.dart';
 import '../../../utils/constants/app_sizes.dart';
 import '../../note/widgets/tiles/custom_radio_list_tile.dart';
 
 class ThemesController extends GetxController {
+  final SettingsRepository repo;
+
+  ThemesController(this.repo);
+
   static ThemesController get instance => Get.find();
   var selectedTheme = 'system'.obs;
   final box = GetStorage();
@@ -29,10 +34,11 @@ class ThemesController extends GetxController {
     }
   }
 
-  void setTheme(String theme) {
+  Future<void> setTheme(String theme) async {
     selectedTheme.value = theme;
     box.write('selectedTheme', theme);
     applyTheme(theme);
+    await repo.updateTheme(theme);
   }
 
   void applyTheme(String theme) {

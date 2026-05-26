@@ -77,7 +77,7 @@ class _TasksPopupMenuState extends State<TasksPopupMenu> {
                     },
                   ),
                 ),
-                const PopupMenuDivider(indent: 16, endIndent: 16, height: 0, color: AppColors.softNight),
+                PopupMenuDivider(indent: 16, endIndent: 16, height: 0, color: context.isDarkMode ? AppColors.softNight : AppColors.grey),
                 PopupMenuItem(
                   value: 2,
                   padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -90,7 +90,7 @@ class _TasksPopupMenuState extends State<TasksPopupMenu> {
                     },
                   ),
                 ),
-                const PopupMenuDivider(indent: 16, endIndent: 16, height: 0, color: AppColors.softNight),
+                PopupMenuDivider(indent: 16, endIndent: 16, height: 0, color: context.isDarkMode ? AppColors.softNight : AppColors.grey),
                 PopupMenuItem(
                   value: 3,
                   padding: const EdgeInsets.symmetric(horizontal: 4),

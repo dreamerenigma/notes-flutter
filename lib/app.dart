@@ -14,6 +14,11 @@ import 'package:get_storage/get_storage.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'core/states/app_state.dart';
+import 'data/database/database_helper.dart';
+import 'data/datasource/note_local_datasource.dart';
+import 'data/datasource/task_local_datasource.dart';
+import 'data/repositories/note_repository.dart';
+import 'data/repositories/tasks_repository.dart';
 import 'features/settings/controllers/language_controller.dart';
 import 'features/note/models/note_view_model.dart';
 import 'features/settings/controllers/themes_controller.dart';
@@ -52,8 +57,16 @@ class App extends StatelessWidget {
   Widget build(BuildContext context) {
     final LanguagesController languageController = Get.find<LanguagesController>();
     final ThemesController themesController = Get.find<ThemesController>();
-    final noteViewModel = NoteViewModel();
-    final taskViewModel = TaskViewModel();
+
+    final dbHelper = Get.find<DatabaseHelper>();
+
+    final noteLocalDataSource = NoteLocalDataSource(dbHelper);
+    final noteRepository = NoteRepository(noteLocalDataSource);
+    final noteViewModel = NoteViewModel(noteRepository);
+
+    final taskLocalDataSource = TaskLocalDataSource(dbHelper);
+    final taskRepository = TaskRepository(taskLocalDataSource);
+    final taskViewModel = TaskViewModel(taskRepository);
 
     return MultiProvider(
       providers: [
@@ -63,8 +76,8 @@ class App extends StatelessWidget {
       ],
       child: MultiBlocProvider(
         providers: [
-          BlocProvider<NoteCubit>(create: (_) => NoteCubit(noteViewModel)),
-          BlocProvider<TaskCubit>(create: (_) => TaskCubit(taskViewModel)),
+          BlocProvider<NoteCubit>(create: (_) => NoteCubit(noteRepository)),
+          BlocProvider<TaskCubit>(create: (_) => TaskCubit(taskRepository)),
         ],
         child: GetMaterialApp(
           debugShowCheckedModeBanner: false,
@@ -82,6 +95,7 @@ class App extends StatelessWidget {
             Locale('en'),
             Locale('ru'),
           ],
+          initialBinding: GeneralBindings(),
           home: const NoteScreen(),
         ),
       ),

@@ -94,7 +94,7 @@ class AddEditTaskScreenState extends State<AddEditTaskScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 IconButton(
-                  icon: const Icon(Icons.arrow_back),
+                  icon: const Icon(Icons.arrow_back_rounded, size: 32),
                   onPressed: () async {
                     final updatedTask = currentTask!.copyWith(title: taskTitleController.text, description: taskDescriptionController.text, isImportant: isSwitched, isCompleted: isCompleted);
 
@@ -127,7 +127,7 @@ class AddEditTaskScreenState extends State<AddEditTaskScreen> {
                               viewModel.updateTask(updatedTask);
                               ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Задача обновлена')));
                             } else {
-                              final newTask = TaskModel(title: taskTitle, description: taskDescription, createdAt: currentDate, id: 0, dueDate: currentTask?.dueDate, isImportant: isSwitched);
+                              final newTask = TaskModel(title: taskTitle, description: taskDescription, createdAt: currentDate, id: null, dueDate: currentTask?.dueDate, isImportant: isSwitched);
 
                               viewModel.addTask(newTask);
                               ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Задача добавлена')));
@@ -140,6 +140,7 @@ class AddEditTaskScreenState extends State<AddEditTaskScreen> {
                 ),
               ],
             ),
+            SizedBox(height: 8),
             Expanded(
               child: TaskForm(
                 task: widget.task,

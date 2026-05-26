@@ -76,11 +76,12 @@ class _TaskFormState extends State<TaskForm> {
   @override
   void initState() {
     super.initState();
-    taskState = widget.task ?? TaskModel(id: 0, title: '', description: '', createdAt: DateTime.now(), dueDate: null);
+    taskState = widget.task ?? TaskModel(id: null, title: '', description: '', createdAt: DateTime.now(), dueDate: null);
     isSwitched = widget.isImportant ?? widget.task?.isImportant ?? false;
     isChecked = widget.task?.isCompleted ?? false;
     widget.noteController.text = widget.task?.note ?? '';
     selectedDateTime = widget.task?.dueDate;
+    taskState = taskState?.copyWith(category: taskState?.category ?? 'Без категории', categoryColor: taskState?.categoryColor ?? AppColors.darkGrey.toARGB32());
   }
 
   @override
@@ -144,7 +145,8 @@ class _TaskFormState extends State<TaskForm> {
                               final Offset anchor = buttonPos + const Offset(10, 45);
                               final Rect rect = anchor & const Size(0, 0);
                               final position = RelativeRect.fromRect(rect, Offset.zero & overlay.size);
-                              final result = await CategoryPopupMenu.show(context, position, taskState?.category);
+                              final selected = taskState?.category ?? 'Без категории';
+                              final result = await CategoryPopupMenu.show(context, position, selected);
 
                               if (result != null) {
                                 setState(() {
@@ -182,18 +184,22 @@ class _TaskFormState extends State<TaskForm> {
                         child: Stack(
                           alignment: Alignment.center,
                           children: [
-                            Icon(BootstrapIcons.circle, color: isChecked ? AppColors.transparent : AppColors.darkGrey, size: 23),
+                            Icon(
+                              BootstrapIcons.circle,
+                              color: isChecked ? AppColors.transparent : taskState?.categoryColor != null ? Color(taskState!.categoryColor!) : AppColors.darkGrey,
+                              size: 22,
+                            ),
                             if (isChecked)
                               Container(
-                                width: 25,
-                                height: 25,
-                                decoration: BoxDecoration(color: isChecked ? AppColors.blue : AppColors.transparent, shape: BoxShape.circle),
+                                width: 23,
+                                height: 23,
+                                decoration: BoxDecoration(color: taskState?.categoryColor != null ? Color(taskState!.categoryColor!) : AppColors.blue, shape: BoxShape.circle),
                                 child: Center(child: isChecked ? const Icon(Icons.check, color: AppColors.white, size: 20) : null),
                               ),
                           ],
                         ),
                       ),
-                      const SizedBox(width: 16),
+                      const SizedBox(width: 14),
                       Expanded(
                         child: TextSelectionTheme(
                           data: TextSelectionThemeData(cursorColor: AppColors.blue, selectionColor: AppColors.blue.withAlpha((0.3 * 255).toInt()), selectionHandleColor: AppColors.blue),
@@ -222,7 +228,7 @@ class _TaskFormState extends State<TaskForm> {
                   selectedDateTime: taskState?.dueDate,
                   repeatType: taskState?.repeatType ?? RepeatType.none,
                   onTap: () async {
-                    final result = await showCustomCalendarDialog(context);
+                    final result = await showCustomCalendarDialog(context, taskState?.dueDate,);
 
                     if (result != null) {
                       setState(() {

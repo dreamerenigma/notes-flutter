@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart' hide ScreenType;
 import 'package:get_storage/get_storage.dart';
@@ -15,7 +16,7 @@ import '../../../utils/constants/app_vectors.dart';
 import '../../../utils/extensions/color_extension.dart';
 import '../../../utils/popups/dialogs.dart';
 import '../../note/widgets/app_bars/note_app_bar.dart';
-import '../../note/widgets/popups/custom_folder_dialog.dart';
+import '../../folders/widgets/popups/custom_folder_dialog.dart';
 import '../utils/task_utils.dart';
 import '../models/task_model.dart';
 import '../widgets/groups/task_group_header.dart';
@@ -95,7 +96,8 @@ class _TaskScreenState extends State<TaskScreen> with SingleTickerProviderStateM
       animationController.forward();
       widget.onFolderDialogChanged?.call(true);
 
-      final result = await showDialog<Map<String, dynamic>>(context: context, barrierColor: AppColors.transparent, builder: (_) => const CustomFolderDialog(type: FolderDialogType.tasks));
+      final color = context.read<AppState>().getColor('tasks');
+      final result = await showDialog<Map<String, dynamic>>(context: context, barrierColor: AppColors.transparent, builder: (_) => CustomFolderDialog(type: FolderDialogType.tasks, backgroundColor: (color ?? AppColors.black).getBackgroundColor()));
 
       if (!mounted) return;
 
@@ -245,7 +247,7 @@ class _TaskScreenState extends State<TaskScreen> with SingleTickerProviderStateM
     if (category == null) return;
 
     final updated = tasks.map((task) {
-      return task.copyWith(category: category.title, categoryColor: category.value);
+      return task.copyWith(category: category.title, categoryColor: category.id);
     }).toList();
 
     await viewModel.updateTasks(updated);
@@ -287,6 +289,7 @@ class _TaskScreenState extends State<TaskScreen> with SingleTickerProviderStateM
           final groupedTasks = TaskUtils.groupTasks(tasks, showCompleted);
           final title = context.watch<AppState>().getTitle('tasks');
           final color = context.watch<AppState>().getColor('tasks');
+          final baseColor = color ?? (context.isDarkMode ? AppColors.black : AppColors.softGrey).getBackgroundColor();
 
           return ScrollbarTheme(
             data: ScrollbarThemeData(
@@ -306,7 +309,7 @@ class _TaskScreenState extends State<TaskScreen> with SingleTickerProviderStateM
                 thumbVisibility: false,
                 radius: const Radius.circular(6),
                 child: Scaffold(
-                  backgroundColor: (color ?? AppColors.black).getBackgroundColor(),
+                  backgroundColor: baseColor,
                   appBar: NoteAppBar(hasSelectedTasks: selectionMode, clearTaskSelection: clearTaskSelection, popupMenu: _buildPopupMenu(), showAppBar: selectedIndex == 1),
                   body: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -392,17 +395,52 @@ class _TaskScreenState extends State<TaskScreen> with SingleTickerProviderStateM
                                           ...groupItems.map((task) {
                                             return Padding(
                                               padding: const EdgeInsets.only(bottom: 12),
-                                              child: TaskListItem(
-                                                task: task,
-                                                onDelete: () {},
-                                                onSelectionChanged: (isSelected) {
-                                                  toggleSelection(task);
-                                                },
-                                                isSelected: selectedTasks.contains(task),
-                                                showCheckboxes: selectionMode,
-                                                onLongPress: () => handleLongPress(task),
-                                                onClick: () => handleTaskClick(task),
-                                                onTaskSelected: (task) {},
+                                              child: Slidable(
+                                                key: ValueKey(task.id),
+                                                startActionPane: ActionPane(motion: const ScrollMotion(), children: []),
+                                                endActionPane: ActionPane(
+                                                  motion: const ScrollMotion(),
+                                                  children: [
+                                                    CustomSlidableAction(
+                                                      onPressed: (_) {},
+                                                      backgroundColor: AppColors.accent,
+                                                      borderRadius: BorderRadius.circular(40),
+                                                      child: Container(
+                                                        width: 44,
+                                                        height: 44,
+                                                        decoration: BoxDecoration(color: AppColors.accent, shape: BoxShape.circle),
+                                                        child: Center(
+                                                          child: SvgPicture.asset(AppVectors.moveFolder, width: 20, height: 20, colorFilter: const ColorFilter.mode(AppColors.black, BlendMode.srcIn)),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    CustomSlidableAction(
+                                                      onPressed: (_) {},
+                                                      backgroundColor: AppColors.red,
+                                                      borderRadius: BorderRadius.circular(40),
+                                                      child: Container(
+                                                        width: 44,
+                                                        height: 44,
+                                                        decoration: BoxDecoration(color: AppColors.accent, shape: BoxShape.circle),
+                                                        child: Center(
+                                                          child: SvgPicture.asset(AppVectors.delete, width: 20, height: 20, colorFilter: const ColorFilter.mode(AppColors.black, BlendMode.srcIn)),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                                child: TaskListItem(
+                                                  task: task,
+                                                  onDelete: () {},
+                                                  onSelectionChanged: (isSelected) {
+                                                    toggleSelection(task);
+                                                  },
+                                                  isSelected: selectedTasks.contains(task),
+                                                  showCheckboxes: selectionMode,
+                                                  onLongPress: () => handleLongPress(task),
+                                                  onClick: () => handleTaskClick(task),
+                                                  onTaskSelected: (task) {},
+                                                ),
                                               ),
                                             );
                                           }),

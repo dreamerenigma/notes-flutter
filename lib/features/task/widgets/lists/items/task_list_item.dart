@@ -10,6 +10,7 @@ import '../../../../../routes/custom_page_route.dart';
 import '../../../../../utils/constants/app_colors.dart';
 import '../../../../../utils/constants/app_sizes.dart';
 import '../../../../../utils/constants/app_vectors.dart';
+import '../../../../../utils/popups/loaders.dart';
 import '../../../models/task_model.dart';
 import '../../../models/task_view_model.dart';
 import '../../../screens/add_edit_task_screen.dart';
@@ -98,7 +99,7 @@ class _TaskListItemState extends State<TaskListItem> {
             createPageRoute(AddEditTaskScreen(taskType: 'Edit', task: widget.task, taskTitle: widget.task.title, taskDescription: widget.task.description, taskId: widget.task.id, time: widget.task.dueDate)),
           ).then((result) {
             if (result == 'saved') {
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Задача обновлена')));
+              AppLoaders.successSnackbar(message: 'Задача обновлена', duration: 4);
             }
           });
         } else {
@@ -138,7 +139,7 @@ class _TaskListItemState extends State<TaskListItem> {
         duration: const Duration(milliseconds: 120),
         curve: Curves.easeOut,
         child: Container(
-          margin: const EdgeInsets.symmetric(horizontal: 12).copyWith(right: widget.showCheckboxes ? 8.0 : 12.0),
+          margin: const EdgeInsets.symmetric(horizontal: 12).copyWith(right: widget.showCheckboxes ? 8 : 12),
           padding: EdgeInsets.symmetric(vertical: 4),
           decoration: BoxDecoration(
             color: widget.isSelected ? AppColors.blueAccent.withAlpha((0.3 * 255).toInt()) : (context.isDarkMode ? AppColors.greySlate : AppColors.softGrey),
@@ -174,16 +175,19 @@ class _TaskListItemState extends State<TaskListItem> {
                               child: Stack(
                                 alignment: Alignment.center,
                                 children: [
-                                  Icon(BootstrapIcons.circle, color: widget.task.isCompleted ? AppColors.transparent : AppColors.darkGrey, size: 22),
+                                  Icon(
+                                    BootstrapIcons.circle,
+                                    color: widget.task.isCompleted ? AppColors.transparent : widget.task.categoryColor != null ? Color(widget.task.categoryColor!) : AppColors.darkGrey,
+                                    size: 22,
+                                  ),
                                   if (widget.task.isCompleted)
                                     Container(
                                       width: 25,
                                       height: 25,
-                                      decoration: const BoxDecoration(color: AppColors.blue, shape: BoxShape.circle),
+                                      decoration: BoxDecoration(color: widget.task.categoryColor != null ? Color(widget.task.categoryColor!) : AppColors.blue, shape: BoxShape.circle),
                                       child: const Icon(Icons.check, color: AppColors.white, size: 20),
                                     ),
                                 ],
-
                               ),
                             ),
                       ),
@@ -220,8 +224,10 @@ class _TaskListItemState extends State<TaskListItem> {
                             padding: EdgeInsets.only(left: widget.task.isImportant ? 6 : 0),
                             child: Row(
                               children: [
-                                SvgPicture.asset(AppVectors.repeat, width: 20, height: 20, colorFilter: ColorFilter.mode(isOverdue ? AppColors.ascentRed : AppColors.darkGrey, BlendMode.srcIn)),
-                                const SizedBox(width: 4),
+                                if (widget.task.repeatType != RepeatType.none) ...[
+                                  SvgPicture.asset(AppVectors.repeat, width: 20, height: 20, colorFilter: ColorFilter.mode(isOverdue ? AppColors.ascentRed : AppColors.darkGrey, BlendMode.srcIn)),
+                                  const SizedBox(width: 4),
+                                ],
                                 Text(dateText, style: TextStyle(fontSize: AppSizes.fontSizeSm, color: isOverdue ? AppColors.ascentRed : AppColors.darkGrey, fontWeight: FontWeight.w400)),
                                 if (widget.task.repeatType != RepeatType.none) ...[
                                   const SizedBox(width: 4),

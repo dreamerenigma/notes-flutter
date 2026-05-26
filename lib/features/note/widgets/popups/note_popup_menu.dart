@@ -110,7 +110,7 @@ class NotePopupMenuState extends State<NotePopupMenu> {
                     },
                   ),
                 ),
-                const PopupMenuDivider(indent: 16, endIndent: 16, height: 0, color: AppColors.softNight),
+                PopupMenuDivider(indent: 16, endIndent: 16, height: 0, color: context.isDarkMode ? AppColors.softNight : AppColors.grey),
                 PopupMenuItem(
                   value: 2,
                   enabled: false,
@@ -125,7 +125,7 @@ class NotePopupMenuState extends State<NotePopupMenu> {
                     },
                   ),
                 ),
-                const PopupMenuDivider(indent: 16, endIndent: 16, height: 0, color: AppColors.softNight),
+                PopupMenuDivider(indent: 16, endIndent: 16, height: 0, color: context.isDarkMode ? AppColors.softNight : AppColors.grey),
                 PopupMenuItem(
                   value: 3,
                   enabled: false,
@@ -138,7 +138,7 @@ class NotePopupMenuState extends State<NotePopupMenu> {
                     },
                   ),
                 ),
-                const PopupMenuDivider(indent: 16, endIndent: 16, height: 0, color: AppColors.softNight),
+                PopupMenuDivider(indent: 16, endIndent: 16, height: 0, color: context.isDarkMode ? AppColors.softNight : AppColors.grey),
                 PopupMenuItem(
                   value: 4,
                   enabled: false,

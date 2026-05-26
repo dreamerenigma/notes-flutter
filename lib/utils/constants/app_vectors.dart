@@ -41,6 +41,8 @@ class AppVectors {
   static const String defaultFolder = "assets/vectors/default_folder.svg";
   static const String font = "assets/vectors/font.svg";
   static const String calendar = "assets/vectors/calendar.svg";
+  static const String addFolder = "assets/vectors/add_folder.svg";
+  static const String dragAndDrop = "assets/vectors/drag_and_drop.svg";
 
   /// -- Flags country
   /// -- Flags country

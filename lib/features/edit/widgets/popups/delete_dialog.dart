@@ -4,7 +4,6 @@ import '../../../../utils/constants/app_colors.dart';
 import '../../../../utils/constants/app_sizes.dart';
 
 void showDeleteDialog(BuildContext context, VoidCallback onDelete, {required int selectedCount, required int allCount, required String type}) {
-
   String getPlural(int count, {required String one, required String few, required String many}) {
     if (count % 100 >= 11 && count % 100 <= 14) {
       return many;

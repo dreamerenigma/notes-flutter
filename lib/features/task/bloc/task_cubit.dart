@@ -1,13 +1,13 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../data/repositories/tasks_repository.dart';
 import '../models/task_model.dart';
-import '../models/task_view_model.dart';
 import 'task_event.dart';
 import 'task_state.dart';
 
 class TaskCubit extends Bloc<TaskEvent, TaskState> {
-  final TaskViewModel taskViewModel;
+  final TaskRepository repository;
 
-  TaskCubit(this.taskViewModel) : super(TaskInitial()) {
+  TaskCubit(this.repository) : super(TaskInitial()) {
     on<LoadTasks>(_onLoadTasks);
     on<AddTask>(_onAddTask);
     on<DeleteTask>(_onDeleteTask);
@@ -16,8 +16,8 @@ class TaskCubit extends Bloc<TaskEvent, TaskState> {
   Future<void> _onLoadTasks(LoadTasks event, Emitter<TaskState> emit) async {
     emit(TaskLoading());
     try {
-      final notes = await taskViewModel.fetchAllTasks();
-      emit(TaskLoaded(notes));
+      final tasks = await repository.getTasks();
+      emit(TaskLoaded(tasks));
     } catch (e) {
       emit(const TaskError('Ошибка загрузки задач'));
     }
@@ -25,8 +25,8 @@ class TaskCubit extends Bloc<TaskEvent, TaskState> {
 
   Future<void> _onAddTask(AddTask event, Emitter<TaskState> emit) async {
     try {
-      final note = TaskModel(id: 0, title: event.title, description: event.description, createdAt: DateTime.now(), dueDate: event.dueDate);
-      await taskViewModel.addTask(note);
+      final task = TaskModel(id: null, title: event.title, description: event.description, createdAt: DateTime.now(), dueDate: event.dueDate);
+      await repository.addTask(task);
       add(LoadTasks());
     } catch (e) {
       emit(const TaskError('Ошибка добавления задачи'));
@@ -35,8 +35,7 @@ class TaskCubit extends Bloc<TaskEvent, TaskState> {
 
   Future<void> _onDeleteTask(DeleteTask event, Emitter<TaskState> emit) async {
     try {
-      final taskToDelete = taskViewModel.allTasks.firstWhere((task) => task.id == event.taskId);
-      await taskViewModel.deleteTask(taskToDelete);
+      await repository.deleteTask(event.taskId);
       add(LoadTasks());
     } catch (e) {
       emit(const TaskError('Ошибка удаления задачи'));

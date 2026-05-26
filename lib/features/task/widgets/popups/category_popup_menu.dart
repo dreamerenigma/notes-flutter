@@ -7,7 +7,11 @@ import '../../../note/widgets/tiles/category_tile.dart';
 import '../tiles/category_item_tile.dart';
 
 class CategoryPopupMenu {
+  static const String defaultCategory = 'Без категории';
+
   static Future<Map<String, dynamic>?> show(BuildContext context, RelativeRect position, String? selectedCategory) {
+    final effectiveSelected = selectedCategory ?? defaultCategory;
+
     return showMenu<Map<String, dynamic>>(
       context: context,
       position: position,
@@ -26,18 +30,20 @@ class CategoryPopupMenu {
         PopupMenuItem(
           enabled: false,
           padding: EdgeInsets.symmetric(horizontal: 6),
-          child: CategoryTile(item: CategoryItem(title: 'Создать', color: AppColors.red, value: 999), isSelected: false, onTap: () {}),
+          child: CategoryTile(item: CategoryItem(title: 'Создать', color: AppColors.red, id: 999, stripeColor: AppColors.red), isSelected: false, onTap: () {}),
         ),
       ],
     );
   }
 
   static PopupMenuItem<Map<String, dynamic>> _buildPopupItem(BuildContext context, String text, Color color, String? selectedCategory, {String? svgAsset}) {
+    final effectiveSelected = selectedCategory ?? defaultCategory;
+
     return PopupMenuItem(
       enabled: false,
       value: {'text': text, 'color': color},
       padding: EdgeInsets.symmetric(horizontal: 4),
-      child: CategoryItemTile(text: text, color: color, isSelected: selectedCategory == text, svgAsset: svgAsset, onTap: () => Navigator.pop(context, {'text': text, 'color': color})),
+      child: CategoryItemTile(text: text, color: color, isSelected: effectiveSelected == text, svgAsset: svgAsset, onTap: () => Navigator.pop(context, {'text': text, 'color': color})),
     );
   }
 }

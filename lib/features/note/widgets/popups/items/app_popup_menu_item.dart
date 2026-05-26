@@ -20,9 +20,9 @@ class AppPopupMenuItem extends StatelessWidget {
       child: InkWell(
         splashFactory: NoSplash.splashFactory,
         borderRadius: BorderRadius.circular(AppSizes.inputFieldRadius),
-        splashColor: AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()),
-        highlightColor: AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()),
-        hoverColor: AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()),
+        splashColor: context.isDarkMode ? AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()) : AppColors.grey.withAlpha((0.4 * 255).toInt()),
+        highlightColor: context.isDarkMode ? AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()) : AppColors.grey.withAlpha((0.4 * 255).toInt()),
+        hoverColor: context.isDarkMode ? AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()) : AppColors.grey.withAlpha((0.4 * 255).toInt()),
         onTap: onTap,
         child: Container(
           width: double.infinity,

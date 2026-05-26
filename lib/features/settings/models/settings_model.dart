@@ -41,6 +41,19 @@ class SettingsModel {
     );
   }
 
+  factory SettingsModel.fromMap(Map<String, dynamic> map) {
+    return SettingsModel(
+      id: map['id'] as int,
+      theme: map['theme'] as String? ?? 'light',
+      language: map['language'] as String? ?? 'ru',
+      watermarkText: map['watermark_text'] as String? ?? '',
+      defaultCategory: map['default_category'] as int?,
+      defaultCategoryColor: map['default_category_color'] as int?,
+      passwordEnabled: (map['password_enabled'] ?? 0) == 1,
+      weekStart: map['week_start'] as int? ?? 1,
+    );
+  }
+
   Map<String, dynamic> toMap() {
     return {
       'id': id,
@@ -52,18 +65,5 @@ class SettingsModel {
       'week_start': weekStart,
       'watermark_text': watermarkText,
     };
-  }
-
-  factory SettingsModel.fromMap(Map<String, dynamic> map) {
-    return SettingsModel(
-      id: map['id'],
-      theme: map['theme'],
-      language: map['language'],
-      defaultCategory: map['default_category'],
-      defaultCategoryColor: map['default_category_color'],
-      passwordEnabled: map['password_enabled'] == 1,
-      weekStart: map['week_start'] ?? 1,
-      watermarkText: map['watermark_text'],
-    );
   }
 }

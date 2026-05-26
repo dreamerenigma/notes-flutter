@@ -43,24 +43,17 @@ class _NotesSearchFieldState extends State<NotesSearchField> {
         focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(30), borderSide: BorderSide.none),
         hintText: 'Поиск заметок',
         hintStyle: TextStyle(fontSize: AppSizes.fontSizeMd,
-            color: widget.selectionMode ? (context.isDarkMode ? AppColors.greyDarkerV1 : AppColors.grey) : (context.isDarkMode ? AppColors.grey : AppColors.black),
-            fontWeight: FontWeight.w400),
+          color: widget.selectionMode ? (context.isDarkMode ? AppColors.greyDarkerV1 : AppColors.grey) : (context.isDarkMode ? AppColors.grey : AppColors.black),
+          fontWeight: FontWeight.w400),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         fillColor: widget.isFocused
-            ? (context.isDarkMode ? AppColors.blackGrey : AppColors.white)
-            : (widget.selectionMode ? (context.isDarkMode ? AppColors.black : AppColors.white.withAlpha((0.5 * 255).toInt())) : (context.isDarkMode ? AppColors.deepNight : AppColors.softGrey)),
+          ? (context.isDarkMode ? AppColors.blackGrey : AppColors.white)
+          : (widget.selectionMode ? (context.isDarkMode ? AppColors.black : AppColors.white.withAlpha((0.5 * 255).toInt())) : (context.isDarkMode ? AppColors.deepNight : AppColors.softGrey)),
         prefixIcon: Padding(
           padding: const EdgeInsets.only(left: 8),
-          child: Icon(Icons.search_rounded,
-            color: widget.selectionMode ? (context.isDarkMode ? AppColors.greyDarkerV1 : AppColors.grey) : (context.isDarkMode ? AppColors.grey : AppColors.black),
-          ),
+          child: Icon(Icons.search_rounded, color: widget.selectionMode ? (context.isDarkMode ? AppColors.greyDarkerV1 : AppColors.grey) : (context.isDarkMode ? AppColors.grey : AppColors.black)),
         ),
-        suffixIcon: widget.controller.text.isNotEmpty
-            ? IconButton(
-          icon: const Icon(Icons.close, size: 18),
-          onPressed: widget.onClear,
-        )
-            : null,
+        suffixIcon: widget.controller.text.isNotEmpty ? IconButton(icon: const Icon(Icons.close, size: 18), onPressed: widget.onClear) : null,
       ),
     );
   }

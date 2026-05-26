@@ -5,17 +5,18 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:notes/utils/constants/app_vectors.dart';
 import '../../../../core/enums/folder_dialog_type.dart';
-import '../../../../core/states/app_state.dart';
+import '../../../../routes/custom_page_route.dart';
 import '../../../../utils/constants/app_colors.dart';
 import '../../../../utils/constants/app_sizes.dart';
-import '../../../../utils/extensions/color_extension.dart';
 import '../../../task/models/task_view_model.dart';
 import '../../../utils/widgets/scrolls/no_glow_scroll_behavior.dart';
 import '../../../../utils/popups/app_popup_menu.dart';
 import '../../../../utils/popups/items/popup_menu_items.dart';
 import '../../../task/widgets/popups/new_note_bottom_sheet_dialog.dart';
-import '../../models/note_model.dart';
-import '../../models/note_view_model.dart';
+import '../../../note/models/note_model.dart';
+import '../../../note/models/note_view_model.dart';
+import '../../screens/change_folder_screen.dart';
+import 'folder_bottom_sheet_dialog.dart';
 
 class CategoryIconData {
   final String icon;
@@ -26,8 +27,9 @@ class CategoryIconData {
 
 class CustomFolderDialog extends StatefulWidget {
   final FolderDialogType type;
+  final Color backgroundColor;
 
-  const CustomFolderDialog({super.key, required this.type});
+  const CustomFolderDialog({super.key, required this.type, required this.backgroundColor});
 
   @override
   CustomFolderDialogState createState() => CustomFolderDialogState();
@@ -142,12 +144,11 @@ class CustomFolderDialogState extends State<CustomFolderDialog> {
     final personalCount = getCountByCategory(notes, 'Личное');
     final everydayCount = getCountByCategory(notes, 'Повседневное');
     final workCount = getCountByCategory(notes, 'Работа');
-    final color = context.watch<AppState>().getColor('tasks');
 
     return Dialog(
       insetPadding: const EdgeInsets.only(top: 120, left: 0, right: 0, bottom: 0),
       alignment: Alignment.topCenter,
-      backgroundColor: (color ?? AppColors.black).getBackgroundColor(),
+      backgroundColor: widget.backgroundColor,
       child: ConstrainedBox(constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.75, maxWidth: MediaQuery.of(context).size.width),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -167,7 +168,7 @@ class CustomFolderDialogState extends State<CustomFolderDialog> {
 
                           return Column(
                             children: [
-                              _buildDialogItemNoCategory(entry.key, AppColors.darkGrey, iconPath: data.icon, iconSize: data.size, count: _getCount(entry.key)),
+                              _buildDialogItemNoCategory(entry.key, context.isDarkMode ? AppColors.black : AppColors.white, iconPath: data.icon, iconSize: data.size, count: _getCount(entry.key)),
                               if (entry.key != categoryIcons.keys.last)
                                 _buildDivider(context),
                             ],
@@ -200,9 +201,13 @@ class CustomFolderDialogState extends State<CustomFolderDialog> {
                                     position: positionRect,
                                     maxWidth: 180,
                                     items: [
-                                      PopupMenuItems.item(value: 1, text: 'Новая папка', onTap: () {}, context: context),
+                                      PopupMenuItems.item(value: 1, text: 'Новая папка', onTap: () {
+                                        showFolderBottomSheetDialog(context, title: 'Новая папка', hintText: 'Имя');
+                                      }, context: context),
                                       PopupMenuItems.divider(),
-                                      PopupMenuItems.item(value: 2, text: 'Изменить', onTap: () {}, context: context),
+                                      PopupMenuItems.item(value: 2, text: 'Изменить', onTap: () {
+                                        Navigator.of(context).push(createPageRoute(ChangeFolderScreen()));
+                                      }, context: context),
                                     ],
                                   );
 
@@ -271,47 +276,44 @@ class CustomFolderDialogState extends State<CustomFolderDialog> {
   Widget _buildDialogItem(String text, Color containerColor, Color stripeColor, {int? count}) {
     final isSelected = selectedCategory == text;
 
-    return Padding(
-      padding: const EdgeInsets.only(left: 35),
-      child: Material(
-        color: AppColors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(AppSizes.inputFieldRadius),
-          onTap: () => _onCategorySelected(text, containerColor),
-          splashColor: AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()),
-          highlightColor: AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()),
-          hoverColor: AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()),
-          child: Container(
-            width: double.infinity,
-            decoration: BoxDecoration(color: isSelected ? containerColor.withAlpha((0.2 * 255).toInt()) : AppColors.transparent, borderRadius: BorderRadius.circular(AppSizes.inputFieldRadius)),
-            child: Padding(
-              padding: const EdgeInsets.only(left: 16, right: 10, top: 16, bottom: 16),
-              child: Row(
-                children: [
-                  Container(
-                    width: 18,
-                    height: 24,
-                    decoration: BoxDecoration(color: containerColor.withAlpha((0.15 * 255).toInt()), borderRadius: BorderRadius.circular(6)),
-                    child: Align(
-                      alignment: Alignment.centerLeft,
-                      child: Container(
-                        width: 4,
-                        height: 24,
-                        decoration: BoxDecoration(color: stripeColor, borderRadius: const BorderRadius.only(topLeft: Radius.circular(8), bottomLeft: Radius.circular(6))),
-                      ),
+    return Material(
+      color: AppColors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(AppSizes.inputFieldRadius),
+        splashColor: AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()),
+        highlightColor: AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()),
+        hoverColor: AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()),
+        onTap: () => _onCategorySelected(text, containerColor),
+        child: Container(
+          width: double.infinity,
+          decoration: BoxDecoration(color: isSelected ? containerColor.withAlpha((0.2 * 255).toInt()) : AppColors.transparent, borderRadius: BorderRadius.circular(AppSizes.inputFieldRadius)),
+          child: Padding(
+            padding: const EdgeInsets.only(left: 50, right: 10, top: 16, bottom: 16),
+            child: Row(
+              children: [
+                Container(
+                  width: 18,
+                  height: 24,
+                  decoration: BoxDecoration(color: containerColor.withAlpha((0.15 * 255).toInt()), borderRadius: BorderRadius.circular(6)),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Container(
+                      width: 4,
+                      height: 24,
+                      decoration: BoxDecoration(color: stripeColor, borderRadius: const BorderRadius.only(topLeft: Radius.circular(8), bottomLeft: Radius.circular(6))),
                     ),
                   ),
-                  const SizedBox(width: 20),
-                  Expanded(
-                    child: Text(text, style: TextStyle(fontSize: AppSizes.fontSizeMd, color: isSelected ? containerColor : context.isDarkMode ? AppColors.white : AppColors.black)),
+                ),
+                const SizedBox(width: 20),
+                Expanded(
+                  child: Text(text, style: TextStyle(fontSize: AppSizes.fontSizeMd, color: isSelected ? containerColor : context.isDarkMode ? AppColors.white : AppColors.black)),
+                ),
+                if (count != null)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: Text('$count', style: TextStyle(fontSize: AppSizes.fontSizeSm, color: AppColors.darkGrey)),
                   ),
-                  if (count != null)
-                    Padding(
-                      padding: const EdgeInsets.only(right: 8),
-                      child: Text('$count', style: TextStyle(fontSize: AppSizes.fontSizeSm, color: AppColors.darkGrey)),
-                    ),
-                ],
-              ),
+              ],
             ),
           ),
         ),
@@ -320,6 +322,8 @@ class CustomFolderDialogState extends State<CustomFolderDialog> {
   }
 
   Widget _buildDialogItemNoCategory(String text, Color containerColor, {String? iconPath, double iconSize = 24, int? count}) {
+    final isSelected = selectedCategory == text;
+
     return Material(
       color: AppColors.transparent,
       child: InkWell(
@@ -329,17 +333,20 @@ class CustomFolderDialogState extends State<CustomFolderDialog> {
         highlightColor: AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()),
         hoverColor: AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()),
         child: Container(
-          decoration: BoxDecoration(color: AppColors.transparent, borderRadius: BorderRadius.circular(AppSizes.inputFieldRadius)),
+          decoration: BoxDecoration(
+            color: isSelected ? AppColors.blueAccent.withAlpha((0.2 * 255).toInt()) : AppColors.transparent,
+            borderRadius: BorderRadius.circular(AppSizes.inputFieldRadius),
+          ),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
             child: Row(
               children: [
                 if (iconPath != null)
-                  SvgPicture.asset(iconPath, width: iconSize, height: iconSize, colorFilter: const ColorFilter.mode(AppColors.white, BlendMode.srcIn))
+                  SvgPicture.asset(iconPath, width: iconSize, height: iconSize, colorFilter: ColorFilter.mode(isSelected ? AppColors.blueAccent : context.isDarkMode ? AppColors.white : AppColors.black, BlendMode.srcIn))
                 else
                   const SizedBox(width: 24),
                 const SizedBox(width: 19),
-                Expanded(child: Text(text, style: TextStyle(fontSize: AppSizes.fontSizeMd))),
+                Expanded(child: Text(text, style: TextStyle(color: isSelected ? AppColors.blueAccent : context.isDarkMode ? AppColors.white : AppColors.black, fontSize: AppSizes.fontSizeMd))),
                 if (count != null)
                   Padding(
                     padding: const EdgeInsets.only(right: 8),
@@ -360,21 +367,24 @@ class CustomFolderDialogState extends State<CustomFolderDialog> {
   }
 
   Widget _buildDialogCreateCategory(String text) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(AppSizes.inputFieldRadius),
-      splashColor: AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()),
-      highlightColor: AppColors.blueAccent.withAlpha((0.4 * 255).toInt()),
-      hoverColor: AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()),
-      onTap: () {
-        showNewNoteBottomSheetDialog(context);
-      },
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 35, vertical: 16),
-        child: Row(
-          children: [
-            const SizedBox(width: 58),
-            Text(text, style: TextStyle(fontSize: AppSizes.fontSizeMd, color: AppColors.blueAccent)),
-          ],
+    return Material(
+      color: AppColors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(AppSizes.inputFieldRadius),
+        splashColor: AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()),
+        highlightColor: AppColors.blueAccent.withAlpha((0.4 * 255).toInt()),
+        hoverColor: AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()),
+        onTap: () {
+          showNewNoteBottomSheetDialog(context);
+        },
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 35, vertical: 16),
+          child: Row(
+            children: [
+              const SizedBox(width: 58),
+              Text(text, style: TextStyle(fontSize: AppSizes.fontSizeMd, color: AppColors.blueAccent)),
+            ],
+          ),
         ),
       ),
     );

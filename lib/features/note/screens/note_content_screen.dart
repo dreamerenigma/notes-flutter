@@ -104,7 +104,10 @@ class NoteContentScreenState extends State<NoteContentScreen> {
 
   void _handleNoteClick(NoteModel note) {
     if (showCheckboxes) {
-      toggleSelection(note.id);
+      final id = note.id;
+      if (id == null) return;
+
+      toggleSelection(id);
     } else {
       Navigator.push(context, createPageRoute(AddEditNoteScreen(noteType: 'Edit', noteTitle: note.title, noteDescription: note.description, noteID: note.id, createdAt: note.createdAt)));
     }
@@ -122,7 +125,8 @@ class NoteContentScreenState extends State<NoteContentScreen> {
   }
 
   void selectAll(List<NoteModel> notes) {
-    _updateSelection(notes.map((e) => e.id).toSet());
+    _updateSelection(notes.map((e) => e.id).whereType<int>().toSet(),
+    );
   }
 
   void deselectAllNotes() {
@@ -179,11 +183,18 @@ class NoteContentScreenState extends State<NoteContentScreen> {
                     note: note,
                     onDelete: () {},
                     onSelectionChanged: (isSelected) {
-                      toggleSelection(note.id);
+                      final id = note.id;
+                      if (id == null) return;
+
+                      toggleSelection(id);
                     },
                     isSelected: widget.selectedNotes.contains(note.id),
                     showCheckboxes: showCheckboxes,
-                    onLongPress: () => handleLongPress(note.id),
+                    onLongPress: () {
+                      final id = note.id;
+                      if (id == null) return;
+                      handleLongPress(id);
+                    },
                     onClick: () => _handleNoteClick(note),
                     onNoteSelected: (note) {},
                     isLeftColumn: index % 2 == 0,
@@ -214,7 +225,10 @@ class NoteContentScreenState extends State<NoteContentScreen> {
                     onClick: () => _handleNoteClick(note),
                     isSelected: widget.selectedNotes.contains(note.id),
                     onSelectionChanged: (isSelected) {
-                      toggleSelection(note.id);
+                      final id = note.id;
+                      if (id == null) return;
+
+                      toggleSelection(id);
                     },
                     showCheckboxes: showCheckboxes,
                     createdAt: note.createdAt,

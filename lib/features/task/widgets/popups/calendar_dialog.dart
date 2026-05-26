@@ -6,17 +6,19 @@ import '../../../../utils/constants/app_colors.dart';
 import '../../../../utils/constants/app_sizes.dart';
 import '../../../../utils/extensions/date_time_extension.dart';
 
-Future<DateTime?> showCustomCalendarDialog(BuildContext context) {
+Future<DateTime?> showCustomCalendarDialog(BuildContext context, DateTime? initialDate) async {
   return showDialog<DateTime>(
     context: context,
     builder: (BuildContext context) {
-      return CustomCalendarDialog();
+      return CustomCalendarDialog(initialDate: initialDate);
     },
   );
 }
 
 class CustomCalendarDialog extends StatefulWidget {
-  const CustomCalendarDialog({super.key});
+  final DateTime? initialDate;
+
+  const CustomCalendarDialog({super.key, this.initialDate});
 
   @override
   CustomCalendarDialogState createState() => CustomCalendarDialogState();
@@ -42,17 +44,22 @@ class CustomCalendarDialogState extends State<CustomCalendarDialog> {
   @override
   void initState() {
     super.initState();
-    selectedDateTime = DateTime.now();
+    selectedDateTime = widget.initialDate ?? DateTime.now();
+
     baseDate = DateTime.now().startOfDay;
     days = List.generate(3650, (i) => baseDate.add(Duration(days: i)));
 
+    final initialDayIndex = days.indexWhere((date) => date.year == selectedDateTime.year && date.month == selectedDateTime.month && date.day == selectedDateTime.day);
+
+    selectedDayIndex = initialDayIndex;
+    selectedHourIndex = selectedDateTime.hour;
+    selectedMinuteIndex = selectedDateTime.minute;
+
     minuteController = FixedExtentScrollController(initialItem: selectedDateTime.minute);
     hourController = FixedExtentScrollController(initialItem: selectedDateTime.hour);
-    dayController = FixedExtentScrollController(initialItem: 0);
+    dayController = FixedExtentScrollController(initialItem: initialDayIndex);
 
     today = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
-
-    selectedHourIndex = DateTime.now().hour;
   }
 
   String formatSelectedDate(DateTime dateTime) {

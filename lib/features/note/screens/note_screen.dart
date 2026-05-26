@@ -28,16 +28,12 @@ import '../widgets/app_bars/note_app_bar.dart';
 import '../widgets/inputs/notes_search_field.dart';
 import '../widgets/nav_bar/bottom_nav_bar.dart';
 import '../widgets/nav_bar/select_bottom_nav_bar.dart';
-import '../widgets/popups/custom_folder_dialog.dart';
+import '../../folders/widgets/popups/custom_folder_dialog.dart';
 import '../widgets/popups/custom_snack_bar_dialog.dart';
 import '../widgets/popups/note_popup_menu.dart';
 import 'add_edit_note_screen.dart';
 import 'note_content_screen.dart';
 import '../../task/screens/task_screen.dart';
-
-abstract class SelectableItem {
-  int get id;
-}
 
 class NoteScreen extends StatefulWidget {
   const NoteScreen({super.key});
@@ -131,7 +127,9 @@ class NoteScreenState extends State<NoteScreen> with SingleTickerProviderStateMi
     animationController.forward();
 
     await WidgetsBinding.instance.endOfFrame;
-    final result = await showDialog<Map<String, dynamic>>(context: context, barrierColor: AppColors.transparent, builder: (_) => const CustomFolderDialog(type: FolderDialogType.notes));
+    final color = context.read<AppState>().getColor('notes');
+
+    final result = await showDialog<Map<String, dynamic>>(context: context, barrierColor: AppColors.transparent, builder: (_) => CustomFolderDialog(type: FolderDialogType.notes, backgroundColor: (color ?? AppColors.black).getBackgroundColor()));
 
     if (!mounted) return;
 
@@ -191,7 +189,7 @@ class NoteScreenState extends State<NoteScreen> with SingleTickerProviderStateMi
         areAllNotesSelected = false;
       } else {
         showCheckboxes = true;
-        selectedNotes = allNotes.map((e) => e.id).toSet();
+        selectedNotes = allNotes.map((e) => e.id).whereType<int>().toSet();
         areAllNotesSelected = true;
       }
 
@@ -241,9 +239,10 @@ class NoteScreenState extends State<NoteScreen> with SingleTickerProviderStateMi
     final hasNotes = allNotes.isNotEmpty;
     final title = context.watch<AppState>().getTitle('notes');
     final color = context.watch<AppState>().getColor('notes');
+    final baseColor = color ?? (context.isDarkMode ? AppColors.black : AppColors.softGrey).getBackgroundColor();
 
     return Scaffold(
-      backgroundColor: (color ?? AppColors.black).getBackgroundColor(),
+      backgroundColor: baseColor,
       appBar: NoteAppBar(
         hasSelectedNotes: selectedNotes.isNotEmpty,
         isSelectionMode: selectionMode,
@@ -431,7 +430,7 @@ class NoteScreenState extends State<NoteScreen> with SingleTickerProviderStateMi
           selectedNotes: selectedNotes,
           onSelectionChanged: (hasSelected, selected) {
             setState(() {
-              selectedNotes = selected.map((e) => e.id).toSet();
+              selectedNotes = selected.map((e) => e.id).whereType<int>().toSet();
               selectedNoteCount = selected.length;
             });
           },

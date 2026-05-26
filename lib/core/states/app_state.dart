@@ -4,8 +4,15 @@ import 'package:get_storage/get_storage.dart';
 class AppState extends ChangeNotifier {
   final Map<String, String?> _titles = {};
   final Map<String, Color?> _colors = {};
-
   final box = GetStorage();
+
+  String? getTitle(String key) => _titles[key];
+  Color? getColor(String key) => _colors[key];
+  Color? readColor(String key) {
+    final c = box.read(key);
+    if (c == null) return null;
+    return Color(c);
+  }
 
   void setFolder(String key, String title, Color color) {
     _titles[key] = title;
@@ -17,22 +24,13 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  String? getTitle(String key) => _titles[key];
-  Color? getColor(String key) => _colors[key];
-
   void load() {
     _titles['notes'] = box.read('notes_title');
-    _colors['notes'] = _readColor('notes_color');
+    _colors['notes'] = readColor('notes_color');
 
     _titles['tasks'] = box.read('tasks_title');
-    _colors['tasks'] = _readColor('tasks_color');
+    _colors['tasks'] = readColor('tasks_color');
 
     notifyListeners();
-  }
-
-  Color? _readColor(String key) {
-    final c = box.read(key);
-    if (c == null) return null;
-    return Color(c);
   }
 }

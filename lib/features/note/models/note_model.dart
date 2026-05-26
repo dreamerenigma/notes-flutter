@@ -1,10 +1,10 @@
+import '../../../core/interfaces/selectable_item.dart';
 import '../../../utils/constants/app_colors.dart';
-import '../screens/note_screen.dart';
 import 'package:flutter/material.dart';
 
 class NoteModel implements SelectableItem {
   @override
-  final int id;
+  final int? id;
   final int? categoryColor;
   final String title;
   final String description;
@@ -60,7 +60,7 @@ class NoteModel implements SelectableItem {
 
   factory NoteModel.fromMap(Map<String, dynamic> map) {
     return NoteModel(
-      id: map['id'] as int? ?? 0,
+      id: map['id'] as int?,
       title: map['title'] as String? ?? '',
       description: map['description'] as String? ?? '',
       createdAt: DateTime.parse(map['created_at']),
@@ -73,7 +73,7 @@ class NoteModel implements SelectableItem {
     );
   }
 
-  Map<String, dynamic> toMap({bool includeId = true}) {
+  Map<String, dynamic> toMap({bool includeId = false}) {
     final map = {
       'title': title,
       'description': description,

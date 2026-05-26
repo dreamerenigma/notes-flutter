@@ -9,7 +9,7 @@ import '../tiles/category_item_tile.dart';
 
 Future<CategoryItem?> selectNotebookBottomSheetDialog({required BuildContext context, required List<CategoryItem> categories, required CategoryItem? selected}) {
   String current = selected?.title ?? 'Без категории';
-  int selectedValue = categories.firstWhere((e) => e.title == current, orElse: () => categories.last).value;
+  int selectedValue = categories.firstWhere((e) => e.title == current, orElse: () => categories.last).id;
 
   return showModalBottomSheet<CategoryItem>(
     context: context,
@@ -51,7 +51,7 @@ Future<CategoryItem?> selectNotebookBottomSheetDialog({required BuildContext con
                           void selectCategory() {
                             setState(() {
                               current = item.title;
-                              selectedValue = item.value;
+                              selectedValue = item.id;
                             });
 
                             Navigator.pop(context, item);
@@ -66,7 +66,7 @@ Future<CategoryItem?> selectNotebookBottomSheetDialog({required BuildContext con
                                 isSelected: current == item.title,
                                 onTap: selectCategory,
                                 trailing: CustomRadioButton(
-                                  value: item.value,
+                                  value: item.id,
                                   groupValue: selectedValue,
                                   onChanged: (_) {
                                     selectCategory();
@@ -83,7 +83,7 @@ Future<CategoryItem?> selectNotebookBottomSheetDialog({required BuildContext con
                         PopupMenuItem(
                           enabled: false,
                           padding: EdgeInsets.zero,
-                          child: CategoryTile(item: CategoryItem(title: 'Создать', color: AppColors.red, value: 999), isSelected: false, onTap: () {}),
+                          child: CategoryTile(item: CategoryItem(title: 'Создать', color: AppColors.red, id: 999, stripeColor: AppColors.red), isSelected: false, onTap: () {}),
                         ),
                       ],
                     ),

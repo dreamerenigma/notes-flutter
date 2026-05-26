@@ -72,7 +72,7 @@ class AddTaskBottomSheetState extends State<AddTaskBottomSheet> {
       final taskTitle = _textController.text.trim();
 
       if (widget.task == null) {
-        final newTask = TaskModel(title: taskTitle, description: '', createdAt: DateTime.now(), id: 0, isImportant: isWarningIconSelected, dueDate: selectedDueDate);
+        final newTask = TaskModel(title: taskTitle, description: '', createdAt: DateTime.now(), id: null, isImportant: isWarningIconSelected, dueDate: selectedDueDate);
 
         try {
           await viewModel.addTask(newTask);
@@ -147,15 +147,15 @@ class AddTaskBottomSheetState extends State<AddTaskBottomSheet> {
                           () async {
                             _requestFocus();
 
-                            final pickedDate = await showCustomCalendarDialog(context);
+                            final pickedDate = await showCustomCalendarDialog(context, widget.task?.dueDate);
 
                             if (pickedDate != null) {
                               setState(() {
                                 selectedDueDate = pickedDate;
                               });
                               final formatted = DateFormat('d MMMM HH:mm', 'ru').format(pickedDate);
+
                               widget.onTime(formatted);
-                              log('📅 selectedDueDate: $selectedDueDate');
                             }
                           },
                         ),
@@ -164,11 +164,7 @@ class AddTaskBottomSheetState extends State<AddTaskBottomSheet> {
                           context,
                           Padding(
                             padding: const EdgeInsets.only(top: 4),
-                            child: Icon(
-                              BootstrapIcons.exclamation_lg,
-                              size: 30,
-                              color: isWarningIconSelected ? AppColors.red : context.isDarkMode ? AppColors.white : AppColors.black,
-                            ),
+                            child: Icon(BootstrapIcons.exclamation_lg, size: 30, color: isWarningIconSelected ? AppColors.red : context.isDarkMode ? AppColors.white : AppColors.black),
                           ),
                               () {
                             _requestFocus();

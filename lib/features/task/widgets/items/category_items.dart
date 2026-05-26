@@ -4,9 +4,9 @@ import '../../../note/models/category_item.dart';
 
 class CategoryItems {
   static final List<CategoryItem> categories = [
-    CategoryItem(title: 'Работа', color: AppColors.red, value: AppColors.red.toARGB32()),
-    CategoryItem(title: 'Личное', color: AppColors.blueAccent, value: AppColors.blueAccent.toARGB32()),
-    CategoryItem(title: 'Шоппинг', color: AppColors.secondary, value: AppColors.secondary.toARGB32()),
-    CategoryItem(title: 'Без категории', color: AppColors.darkGrey, value: AppColors.darkGrey.toARGB32(), svgAsset: AppVectors.bookmark),
+    CategoryItem(title: 'Работа', color: AppColors.red, id: 1, stripeColor: AppColors.red),
+    CategoryItem(title: 'Личное', color: AppColors.blueAccent, id: 2, stripeColor: AppColors.blueAccent),
+    CategoryItem(title: 'Шоппинг', color: AppColors.secondary, id: 3, stripeColor: AppColors.secondary),
+    CategoryItem(title: 'Без категории', color: AppColors.darkGrey, id: 4, svgAsset: AppVectors.bookmark, stripeColor: AppColors.darkGrey),
   ];
 }

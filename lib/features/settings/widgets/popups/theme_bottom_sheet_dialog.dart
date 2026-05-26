@@ -6,6 +6,8 @@ import '../../../../utils/constants/app_colors.dart';
 import '../../../../utils/constants/app_sizes.dart';
 
 void showThemeBottomSheetDialog(BuildContext context, ThemesController themesController) {
+  String tempTheme = themesController.selectedTheme.value;
+
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
@@ -22,7 +24,7 @@ void showThemeBottomSheetDialog(BuildContext context, ThemesController themesCon
                 color: context.isDarkMode ? AppColors.blackGrey : AppColors.white,
                 borderRadius: BorderRadius.circular(28),
                 boxShadow: [
-                  BoxShadow(color: Colors.black.withAlpha((0.2 * 255).toInt()), blurRadius: 30, offset: const Offset(0, 10)),
+                  BoxShadow(color: AppColors.black.withAlpha((0.2 * 255).toInt()), blurRadius: 30, offset: const Offset(0, 10)),
                 ],
               ),
               child: Column(
@@ -30,42 +32,61 @@ void showThemeBottomSheetDialog(BuildContext context, ThemesController themesCon
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Padding(
-                    padding: const EdgeInsets.only(left: 24, right: 24, top: 18),
+                    padding: const EdgeInsets.only(left: 24, right: 24, top: 18, bottom: 12),
                     child: Text('Выберите тему', style: TextStyle(fontSize: AppSizes.fontSizeBg, fontWeight: FontWeight.w400)),
                   ),
-                  const SizedBox(height: 12),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 6),
-                    child: Column(
-                      children: [
-                        Column(
+                  Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        child: Column(
                           children: [
-                            _buildTile(context, themesController, 'system', 'Системная', Icons.settings_outlined),
-                            _buildTile(context, themesController, 'light', 'Светлая', Icons.light_mode_outlined),
-                            _buildTile(context, themesController, 'dark', 'Темная', Icons.dark_mode_outlined),
+                            _buildTile(context, tempTheme, (value) => setState(() => tempTheme = value), 'system', 'Системная', Icons.settings_outlined),
+                            _buildTile(context, tempTheme, (value) => setState(() => tempTheme = value), 'light', 'Светлая', Icons.light_mode_outlined),
+                            _buildTile(context, tempTheme, (value) => setState(() => tempTheme = value), 'dark', 'Темная', Icons.dark_mode_outlined),
                           ],
                         ),
-                        const SizedBox(height: 12),
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 6),
-                          child: SizedBox(
-                            width: double.infinity,
-                            child: TextButton(
-                              onPressed: () {
-                                themesController.setTheme(themesController.selectedTheme.value);
-                                Navigator.pop(context);
-                              },
-                              style: TextButton.styleFrom(
-                                overlayColor: AppColors.lightBlue,
-                                foregroundColor: AppColors.lightBlue, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.all(8),
+                              child: SizedBox(
+                                width: double.infinity,
+                                child: TextButton(
+                                  onPressed: () {
+                                    Navigator.pop(context);
+                                  },
+                                  style: TextButton.styleFrom(
+                                    overlayColor: AppColors.lightBlue,
+                                    foregroundColor: AppColors.lightBlue, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                                  ),
+                                  child: Text('ОТМЕНА', style: TextStyle(fontSize: AppSizes.fontSizeLg, color: AppColors.blueAccent)),
+                                ),
                               ),
-                              child: Text('ОТМЕНА', style: TextStyle(fontSize: AppSizes.fontSizeLg, color: AppColors.blueAccent)),
                             ),
                           ),
-                        ),
-                      ],
-                    ),
+                          Container(width: 1, height: 25, color: AppColors.darkGrey),
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.all(8),
+                              child: TextButton(
+                                onPressed: () {
+                                  themesController.setTheme(tempTheme);
+                                  Navigator.pop(context);
+                                },
+                                style: TextButton.styleFrom(foregroundColor: AppColors.lightBlue, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30))),
+                                child: Text('СОХРАНИТЬ', style: TextStyle(fontSize: AppSizes.fontSizeLg, color: AppColors.blueAccent)),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
+                  const SizedBox(height: 12),
                 ],
               ),
             ),
@@ -76,8 +97,8 @@ void showThemeBottomSheetDialog(BuildContext context, ThemesController themesCon
   );
 }
 
-Widget _buildTile(BuildContext context, ThemesController controller, String value, String title, IconData icon) {
-  final isSelected = controller.selectedTheme.value == value;
+Widget _buildTile(BuildContext context, String selectedValue, void Function(String value) onSelect, String value, String title, IconData icon) {
+  final isSelected = selectedValue == value;
 
   return Material(
     color: AppColors.transparent,
@@ -87,10 +108,7 @@ Widget _buildTile(BuildContext context, ThemesController controller, String valu
       splashColor: AppColors.softNight.withAlpha((0.3 * 255).toInt()),
       highlightColor: AppColors.softNight.withAlpha((0.3 * 255).toInt()),
       hoverColor: AppColors.softNight.withAlpha((0.3 * 255).toInt()),
-      onTap: () {
-        controller.setTheme(value);
-        Navigator.pop(context);
-      },
+      onTap: () => onSelect(value),
       child: Container(
         padding: const EdgeInsets.only(left: 16, top: 6, bottom: 6),
         decoration: BoxDecoration(borderRadius: BorderRadius.circular(12), color: isSelected ? AppColors.blue.withAlpha((0.08 * 255).toInt()) : AppColors.transparent),
@@ -99,7 +117,7 @@ Widget _buildTile(BuildContext context, ThemesController controller, String valu
             Icon(icon),
             const SizedBox(width: 12),
             Expanded(child: Text(title, style: TextStyle(fontSize: AppSizes.fontSizeMd, fontWeight: FontWeight.w400))),
-            CustomRadioButton(value: isSelected ? 1 : 0, groupValue: 1, onChanged: (_) => controller.setTheme(value)),
+            CustomRadioButton(value: isSelected ? 1 : 0, groupValue: 1, onChanged: (_) => onSelect(value)),
           ],
         ),
       ),

@@ -74,7 +74,7 @@ class NoteItemState extends State<NoteItemGrid> {
             createPageRoute(AddEditNoteScreen(noteType: 'Edit', noteTitle: widget.note.title, noteDescription: widget.note.description, noteID: widget.note.id, createdAt: widget.note.createdAt)),
           ).then((result) {
             if (result == 'saved') {
-              AppLoaders.successSnackbar(message: 'Заметка обновлена', duration: 4, );
+              AppLoaders.successSnackbar(message: 'Заметка обновлена', duration: 4);
             }
           });
         } else {

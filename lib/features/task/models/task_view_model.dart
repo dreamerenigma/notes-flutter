@@ -1,54 +1,43 @@
 import 'package:flutter/foundation.dart';
 import 'package:notes/features/task/models/task_model.dart';
-import '../../../database/database_helper.dart';
+import '../../../data/repositories/tasks_repository.dart';
 
 class TaskViewModel extends ChangeNotifier {
-  List<TaskModel> allTasks = [];
-  List<TaskModel> get allTask=> allTasks;
-  int get taskCount => allTasks.length;
+  final TaskRepository repository;
 
-  TaskViewModel() {
+  TaskViewModel(this.repository) {
     loadTasks();
   }
 
+  List<TaskModel> allTasks = [];
+
+  int get taskCount => allTasks.length;
+
   Future<void> loadTasks() async {
-    allTasks = await fetchAllTasks();
+    allTasks = await repository.getTasks();
     notifyListeners();
   }
 
   Future<void> addTask(TaskModel task) async {
-    await DatabaseHelper().insertTask(task.toMap(includeId: false));
+    await repository.addTask(task);
     await loadTasks();
   }
 
   Future<void> updateTask(TaskModel task) async {
-    await DatabaseHelper().updateTask(task);
-    await loadTasks();
-  }
-
-  Future<void> updateTasks(List<TaskModel> tasks) async {
-    final db = await DatabaseHelper().database;
-    final batch = db.batch();
-
-    for (final task in tasks) {
-      batch.update('tasks', task.toMap(), where: 'id = ?', whereArgs: [task.id]);
-    }
-
-    await batch.commit(noResult: true);
+    await repository.updateTask(task);
     await loadTasks();
   }
 
   Future<void> deleteTask(TaskModel task) async {
-    await DatabaseHelper().deleteTask(task.id);
+    final id = task.id;
+    if (id == null) return;
+
+    await repository.deleteTask(id);
     await loadTasks();
   }
 
-  Future<List<TaskModel>> fetchAllTasks() async {
-    final db = await DatabaseHelper().database;
-    final List<Map<String, dynamic>> maps = await db.query('tasks');
-
-    return List.generate(maps.length, (i) {
-      return TaskModel.fromMap(maps[i]);
-    });
+  Future<void> updateTasks(List<TaskModel> tasks) async {
+    await repository.updateTasksBatch(tasks);
+    await loadTasks();
   }
 }

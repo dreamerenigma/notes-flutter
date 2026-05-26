@@ -1,11 +1,12 @@
+import 'dart:developer';
 import '../../../core/enums/repeat_type.dart';
+import '../../../core/interfaces/selectable_item.dart';
 import '../../../utils/constants/app_colors.dart';
-import '../../note/screens/note_screen.dart';
 import 'package:flutter/material.dart';
 
 class TaskModel implements SelectableItem {
   @override
-  final int id;
+  final int? id;
   final int? categoryColor;
   late final String title;
   final String description;
@@ -19,7 +20,7 @@ class TaskModel implements SelectableItem {
   final bool isDeleted;
 
   TaskModel({
-    required this.id,
+    this.id,
     required this.title,
     required this.description,
     required this.createdAt,
@@ -63,7 +64,7 @@ class TaskModel implements SelectableItem {
 
   factory TaskModel.fromMap(Map<String, dynamic> map) {
     return TaskModel(
-      id: map['id'] as int? ?? 0,
+      id: map['id'] as int?,
       title: map['title'] as String? ?? '',
       description: map['description'] as String? ?? '',
       createdAt: DateTime.tryParse(map['created_at'] ?? '') ?? DateTime.now(),

@@ -3,22 +3,31 @@ import 'package:android_intent_plus/android_intent.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:get/get_core/src/get_main.dart';
+import 'package:get/get_instance/src/extension_instance.dart';
 import 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart';
 import 'package:get/get_utils/src/extensions/context_extensions.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:ionicons/ionicons.dart';
 import 'package:notes/features/settings/controllers/language_controller.dart';
 import 'package:notes/features/settings/controllers/themes_controller.dart';
+import 'package:notes/features/settings/screens/privacy_policy_screen.dart';
 import 'package:notes/features/utils/widgets/scrolls/no_glow_scroll_behavior.dart';
 import 'package:notes/utils/platforms/platform_utils.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import '../../../database/database_helper.dart';
+import 'package:share_plus/share_plus.dart';
+import '../../../core/enums/week_start_type.dart';
+import '../../../core/extensions/settings_category_extension.dart';
+import '../../../core/extensions/week_start_extension.dart';
+import '../../../data/repositories/settings_repository.dart';
+import '../../../routes/custom_page_route.dart';
 import '../../../utils/constants/app_colors.dart';
 import '../../../utils/constants/app_sizes.dart';
 import '../../../utils/constants/app_vectors.dart';
+import '../../../utils/helpers/popup_position_helper.dart';
 import '../../../utils/popups/app_popup_menu.dart';
+import '../../../utils/popups/dialogs.dart';
 import '../../../utils/popups/items/popup_menu_items.dart';
-import '../../note/models/category_item.dart';
 import '../../task/widgets/items/category_items.dart';
 import '../../task/widgets/popups/select_notebook_bottom_sheet_dialog.dart';
 import '../../utils/widgets/buttons/custom_switch.dart';
@@ -28,6 +37,7 @@ import '../widgets/app_bars/custom_app_bar.dart';
 import '../widgets/popups/add_watermark_dialog.dart';
 import '../widgets/popups/language_bottom_sheet_dialog.dart';
 import '../widgets/popups/theme_bottom_sheet_dialog.dart';
+import 'font_size_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -42,22 +52,18 @@ class SettingsScreenState extends State<SettingsScreen> {
   final themesController = ThemesController.instance;
   final languagesController = LanguagesController.instance;
   final settingsController = SettingsController.instance;
+  late final SettingsRepository repo;
   bool isPasswordEnabled = false;
   String watermarkText = 'Из Заметок Honor';
   String appVersion = '';
-  int selectedValue = 1;
 
   SettingsModel? settings;
-  CategoryItem? get defaultCategoryItem {
-    if (settings?.defaultCategory == null) return null;
-
-    return CategoryItems.categories.firstWhere((e) => e.value == settings!.defaultCategory, orElse: () => CategoryItems.categories.first);
-  }
 
   @override
   void initState() {
     super.initState();
     watermarkText = storage.read('watermarkText') ?? 'Из Заметок Honor';
+    repo = Get.find<SettingsRepository>();
     loadAppVersion();
     loadSettings();
   }
@@ -77,8 +83,14 @@ class SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
+  void togglePassword(bool value) {
+    setState(() {
+      isPasswordEnabled = value;
+    });
+  }
+
   Future<void> loadSettings() async {
-    settings = await DatabaseHelper.instance.getSettings();
+    settings = await repo.getSettings();
     setState(() {});
   }
 
@@ -115,24 +127,24 @@ class SettingsScreenState extends State<SettingsScreen> {
     });
   }
 
-  Future<int?> _showWeekStartMenu(BuildContext context, RelativeRect position,) async {
+  Future<int?> _showWeekStartMenu(BuildContext context, RelativeRect position) async {
     return AppPopupMenu.show<int>(
       context: context,
       position: position,
       maxWidth: 210,
       items: [
         PopupMenuItems.radioItem(
-          value: 1,
+          value: WeekStartType.monday.value,
           text: 'понедельник',
-          groupValue: selectedValue,
+          groupValue: settingsController.weekStart.value,
           onChanged: (int? value) {},
           context: context,
         ),
         PopupMenuItems.divider(),
         PopupMenuItems.radioItem(
-          value: 2,
+          value: WeekStartType.sunday.value,
           text: 'воскресенье',
-          groupValue: selectedValue,
+          groupValue: settingsController.weekStart.value,
           onChanged: (int? value) {},
           context: context,
         ),
@@ -140,17 +152,23 @@ class SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  RelativeRect _getPosition(GlobalKey key, BuildContext context) {
-    final RenderBox box = key.currentContext!.findRenderObject() as RenderBox;
-    final RenderBox overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
-    final Offset position = box.localToGlobal(Offset.zero);
+  Future<void> selectWeekStart() async {
+    final rect = PopupPositionHelper.fromKey(_manageKey, context, dx: 5, dy: 4);
+    final result = await _showWeekStartMenu(context, rect);
 
-    return RelativeRect.fromRect(Rect.fromLTWH(position.dx + 5, position.dy + box.size.height, box.size.width, 0), Offset.zero & overlay.size);
+    if (result == null) return;
+
+    setState(() => settingsController.weekStart.value = result);
+
+    await settingsController.updateWeekStart(result);
   }
 
   @override
   Widget build(BuildContext context) {
+    final baseColor = context.isDarkMode ? AppColors.black : AppColors.white;
+
     return Scaffold(
+      backgroundColor: baseColor,
       appBar: const CustomAppBar(title: 'Настройки'),
       body: _buildSettings(themesController, languagesController),
     );
@@ -175,41 +193,26 @@ class SettingsScreenState extends State<SettingsScreen> {
                 );
               }),
               _buildDivider(context),
-              _buildSettingsRow(
-                leading: SvgPicture.asset(AppVectors.defaultFolder, width: 23, height: 23, colorFilter: const ColorFilter.mode(AppColors.darkGrey, BlendMode.srcIn)),
-                title: 'Папка по умолчанию',
-                onTap: () async {
-                  log('OPEN SHEET');
+              Obx(() {
+                final settings = settingsController.settings.value;
 
-                  final result = await selectNotebookBottomSheetDialog(context: context, categories: CategoryItems.categories, selected: defaultCategoryItem);
+                return _buildSettingsRow(
+                  leading: SvgPicture.asset(AppVectors.defaultFolder, width: 23, height: 23, colorFilter: const ColorFilter.mode(AppColors.darkGrey, BlendMode.srcIn)),
+                  title: 'Папка по умолчанию',
+                  onTap: () async {
+                    final result = await selectNotebookBottomSheetDialog(context: context, categories: CategoryItems.categories, selected: settings?.defaultCategoryItem);
+                    if (result == null || settings == null) return;
 
-                  log('AFTER SHEET: ${result?.title}, ${result?.value}');
-
-                  if (result == null || settings == null) return;
-
-                  final updated = settings!.copyWith(defaultCategory: result.value, defaultCategoryColor: result.color.toARGB32());
-
-                  log('RESULT: ${result.title}');
-                  log('COLOR: ${result.color}');
-                  log('UPDATED: ${updated.defaultCategoryColor}');
-
-                  await DatabaseHelper.instance.updateSettings(updated);
-
-                  setState(() {
-                    settings = updated;
-                  });
-
-                  log('BEFORE: ${settings!.defaultCategoryColor}');
-                  log('RESULT COLOR: ${result.color.toARGB32()}');
-                  log('UPDATED COLOR: ${updated.defaultCategoryColor}');
-                },
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    buildColorIndicator(settings?.defaultCategoryColor != null ? Color(settings!.defaultCategoryColor!) : AppColors.blueAccent)
-                  ],
-                ),
-              ),
+                    await settingsController.updateDefaultCategory(result.id, result.color.toARGB32());
+                  },
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      buildColorIndicator(settings?.defaultCategoryColor != null ? Color(settings!.defaultCategoryColor!) : AppColors.blueAccent)
+                    ],
+                  ),
+                );
+              }),
               _buildDivider(context),
               Obx(() {
                 return _buildSettingsRow(
@@ -219,7 +222,7 @@ class SettingsScreenState extends State<SettingsScreen> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(languagesController.getLanguageTitle(), style: TextStyle(fontSize: AppSizes.fontSizeSm, color: AppColors.darkGrey)),
-                      const Icon(Icons.keyboard_arrow_right, size: 24, color: AppColors.darkGrey),
+                      const Icon(Icons.keyboard_arrow_right_rounded, size: 24, color: AppColors.darkGrey),
                     ],
                   ),
                   onTap: () {
@@ -227,7 +230,7 @@ class SettingsScreenState extends State<SettingsScreen> {
                       context,
                       (lang) async {
                         languagesController.setLanguage(lang);
-                        await DatabaseHelper.instance.updateLanguage(lang);
+                        await repo.updateLanguage(lang);
                       },
                       languagesController,
                     );
@@ -238,20 +241,15 @@ class SettingsScreenState extends State<SettingsScreen> {
               _buildSettingsRow(
                 leading: SvgPicture.asset(AppVectors.font, width: 23, height: 23, colorFilter: const ColorFilter.mode(AppColors.darkGrey, BlendMode.srcIn)),
                 title: 'Размер шрифта',
-                onTap: () {},
+                onTap: () {
+                  Navigator.push(context, createPageRoute(FontSizeScreen()));
+                },
               ),
               _buildDivider(context),
               _buildSettingsRow(
                 leading: SvgPicture.asset(AppVectors.calendar, width: 23, height: 23, colorFilter: const ColorFilter.mode(AppColors.darkGrey, BlendMode.srcIn)),
                 title: 'Начало недели',
-                onTap: () async {
-                  final rect = _getPosition(_manageKey, context);
-                  final result = await _showWeekStartMenu(context, rect);
-                  if (result == null) return;
-                  setState(() => selectedValue = result);
-
-                  await settingsController.updateWeekStart(result);
-                },
+                onTap: selectWeekStart,
                 trailing: Builder(
                   builder: (context) {
                     return InkWell(
@@ -261,20 +259,15 @@ class SettingsScreenState extends State<SettingsScreen> {
                       splashColor: AppColors.transparent,
                       highlightColor: AppColors.transparent,
                       hoverColor: AppColors.transparent,
-                      onTap: () async {
-                        final rect = _getPosition(_manageKey, context);
-                        final result = await _showWeekStartMenu(context, rect);
-                        if (result == null) return;
-                        setState(() => selectedValue = result);
-
-                        await settingsController.updateWeekStart(result);
-                      },
+                      onTap: selectWeekStart,
                       child: Padding(
                         padding: const EdgeInsets.symmetric(vertical: 4),
                         child: Row(
                           children: [
-                            Text(selectedValue == 1 ? 'понедельник' : 'воскресенье', style: TextStyle(fontSize: AppSizes.fontSizeSm, color: AppColors.darkGrey)),
-                            const Icon(Icons.keyboard_arrow_right, size: 24, color: AppColors.darkGrey),
+                            Obx(() {
+                              return Text(settingsController.weekStart.value == 1 ? 'понедельник' : 'воскресенье', style: TextStyle(fontSize: AppSizes.fontSizeSm, color: AppColors.darkGrey));
+                            }),
+                            const Icon(Icons.keyboard_arrow_right_rounded, size: 24, color: AppColors.darkGrey),
                           ],
                         ),
                       ),
@@ -290,7 +283,7 @@ class SettingsScreenState extends State<SettingsScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(watermarkText, style: TextStyle(fontSize: AppSizes.fontSizeSm, color: AppColors.darkGrey)),
-                    const Icon(Icons.keyboard_arrow_right, size: 24, color: AppColors.darkGrey),
+                    const Icon(Icons.keyboard_arrow_right_rounded, size: 24, color: AppColors.darkGrey),
                   ],
                 ),
                 onTap: () {
@@ -301,7 +294,7 @@ class SettingsScreenState extends State<SettingsScreen> {
               _buildSettingsRow(
                 leading: Icon(Icons.notifications_none_rounded, size: 23, color: AppColors.darkGrey),
                 title: 'Уведомления',
-                trailing: const Icon(Icons.keyboard_arrow_right, size: 24, color: AppColors.darkGrey),
+                trailing: const Icon(Icons.keyboard_arrow_right_rounded, size: 24, color: AppColors.darkGrey),
                 onTap: () async {
                   try {
                     final sdk = await getAndroidSdk();
@@ -337,13 +330,23 @@ class SettingsScreenState extends State<SettingsScreen> {
                   },
                   switchWidth: 34,
                 ),
-                onTap: () {},
+                onTap: () {
+                  togglePassword(!isPasswordEnabled);
+                },
               ),
               _buildDivider(context),
               _buildSettingsRow(
                 leading: SvgPicture.asset(AppVectors.change, width: 23, height: 23, colorFilter: const ColorFilter.mode(AppColors.darkGrey, BlendMode.srcIn)),
                 title: 'Изменить пароль',
-                onTap: () {},
+                onTap: () {
+                  final box = GetStorage();
+                  final hasPassword = box.hasData('user_password');
+
+                  if (!hasPassword) {
+                    CustomIconSnackBar.showAnimatedSnackBar(context, 'Пожалуйста сначала установите пароль', icon: const Icon(Icons.warning_rounded, color: AppColors.warning), backgroundColor: AppColors.darkerGrey.withAlpha((0.15 * 255).toInt()));
+                    return;
+                  }
+                },
               ),
             ],
           ),
@@ -353,19 +356,25 @@ class SettingsScreenState extends State<SettingsScreen> {
               _buildSettingsRow(
                 leading: Icon(Icons.share_outlined, size: 23, color: AppColors.darkGrey),
                 title: 'Поделиться',
-                onTap: () {},
+                onTap: () {
+                  SharePlus.instance.share(
+                    ShareParams(
+                      text: '''Привет!👋 Я использую Notes, чтобы вести заметки и составлять планы на день. Этим приложением для заметок очень легко пользоваться, и в нем есть напоминания.✨ Скачать его можно отсюда: https://play.google.com/store/apps/details?id=com.inputstudios.notes''',
+                    ),
+                  );
+                },
               ),
               _buildDivider(context),
               _buildSettingsRow(
                 leading: SvgPicture.asset(AppVectors.confidential, width: 23, height: 23, colorFilter: const ColorFilter.mode(AppColors.darkGrey, BlendMode.srcIn)),
                 title: 'Политика конфиденциальности',
-                onTap: () {},
+                onTap: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (_) => const PrivacyPolicyScreen()));
+                },
               ),
             ],
           ),
-          _buildVersionApp(
-
-          ),
+          _buildVersionApp(),
         ],
       ),
     );
