@@ -71,19 +71,38 @@ class TaskUtils {
     return grouped;
   }
 
-  static String getTitleText({required bool selectionMode, required int selectedCount, required ScreenType type}) {
-    final base = type == ScreenType.notes ? 'заметок' : 'задач';
+  static String getNoteCountText(int count) {
+    if (count % 10 == 1 && count % 100 != 11) {
+      return 'заметка';
+    } else if (count % 10 >= 2 && count % 10 <= 4 && (count % 100 < 10 || count % 100 >= 20)) {
+      return 'заметки';
+    } else {
+      return 'заметок';
+    }
+  }
 
+  static String getTitleText({required bool selectionMode, required int selectedCount, required ScreenType type}) {
     if (!selectionMode) {
       return type == ScreenType.notes ? 'Все заметки' : 'Все задачи';
     }
 
     if (selectedCount == 0) return 'Не выбрано';
 
-    if (selectedCount == 1) {
-      return 'Выбрана 1 $base';
+    if (type == ScreenType.notes) {
+      final word = getNoteCountText(selectedCount);
+
+      if (selectedCount == 1) {
+        return 'Выбрана 1 $word';
+      }
+
+      return 'Выбрано $selectedCount $word';
     }
 
-    return 'Выбрано $selectedCount $base';
+
+    if (type == ScreenType.tasks) {
+      return selectedCount == 1 ? 'Выбрана 1 задача' : 'Выбрано $selectedCount ${getTasksText(selectedCount).replaceFirst('$selectedCount ', '')}';
+    }
+
+    return 'Выбрано $selectedCount задач';
   }
 }

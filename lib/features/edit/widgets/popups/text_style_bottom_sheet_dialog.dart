@@ -7,6 +7,7 @@ import 'package:get_storage/get_storage.dart';
 import '../../../../utils/constants/app_colors.dart';
 import '../../../../utils/constants/app_images.dart';
 import '../../../../utils/constants/app_sizes.dart';
+import '../buttons/toolbar_icon_button.dart';
 import '../sliders/custom_slider.dart';
 
 Future<bool?> showTextStyleBottomSheetDialog(BuildContext context, Function(String) onBackgroundSelected) {
@@ -38,7 +39,6 @@ class SliderBottomSheetContentState extends State<SliderBottomSheetContent> {
   int selectedColorIndex = 0;
   int selectedBgImageIndex = 0;
   final GetStorage storage = GetStorage();
-  List<Color> colors = [Colors.red, Colors.blue, Colors.green, Colors.yellow, Colors.orange, Colors.purple, Colors.teal];
 
   @override
   void initState() {
@@ -78,25 +78,24 @@ class SliderBottomSheetContentState extends State<SliderBottomSheetContent> {
                 ],
               ),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                padding: const EdgeInsets.only(left: 10, right: 20, top: 12, bottom: 12),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    GestureDetector(
+                    ToolbarIconButton(
+                      icon: Icons.format_bold_outlined,
+                      active: isBold,
                       onTap: () {
-                        setState(() {
-                          isBold = !isBold;
-                        });
+                        setState(() => isBold = !isBold);
                         storage.write('isBold', isBold);
                       },
-                      child: Icon(Icons.format_bold_outlined, size: 34, color: isBold ? AppColors.blueAccent : AppColors.black),
+                      size: 30,
                     ),
-                    const Icon(TablerIcons.italic, size: 30),
-                    const Icon(Icons.format_underline, size: 32),
-                    Icon(BootstrapIcons.text_left, color: context.isDarkMode ? AppColors.darkerGrey : AppColors.buttonDisabled),
-                    Icon(BootstrapIcons.text_center, color: context.isDarkMode ? AppColors.darkerGrey : AppColors.buttonDisabled),
-                    Icon(BootstrapIcons.text_right, color: context.isDarkMode ? AppColors.darkerGrey : AppColors.buttonDisabled,
-                    ),
+                    ToolbarIconButton(icon: TablerIcons.italic, size: 28, onTap: () {}),
+                    ToolbarIconButton(icon: Icons.format_underline, size: 26, onTap: () {}),
+                    ToolbarIconButton(icon: BootstrapIcons.text_left, size: 26, color: context.isDarkMode ? AppColors.darkerGrey : AppColors.buttonDisabled, onTap: () {}),
+                    ToolbarIconButton(icon: BootstrapIcons.text_center, size: 26, color: context.isDarkMode ? AppColors.darkerGrey : AppColors.buttonDisabled, onTap: () {}),
+                    ToolbarIconButton(icon: BootstrapIcons.text_right, size: 26, color: context.isDarkMode ? AppColors.darkerGrey : AppColors.buttonDisabled, onTap: () {}),
                   ],
                 ),
               ),
@@ -150,7 +149,7 @@ class SliderBottomSheetContentState extends State<SliderBottomSheetContent> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    for (int index = 0; index < colors.length; index++)
+                    for (int index = 0; index < AppColors.categoryColors.length; index++)
                       Expanded(
                         child: GestureDetector(
                           onTap: () {
@@ -162,7 +161,7 @@ class SliderBottomSheetContentState extends State<SliderBottomSheetContent> {
                           child: Stack(
                             alignment: Alignment.center,
                             children: [
-                              Container(margin: const EdgeInsets.symmetric(horizontal: 15), width: 40, height: 40, decoration: BoxDecoration(color: colors[index], shape: BoxShape.circle)),
+                              Container(margin: const EdgeInsets.symmetric(horizontal: 15), width: 40, height: 40, decoration: BoxDecoration(color: AppColors.categoryColors[index], shape: BoxShape.circle)),
                               if (selectedColorIndex == index)
                                 Container(height: 11, width: 11, decoration: const BoxDecoration(color: Colors.black, shape: BoxShape.circle)),
                             ],

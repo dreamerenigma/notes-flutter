@@ -4,9 +4,8 @@ import 'package:get/get_utils/src/extensions/context_extensions.dart';
 import '../../../../utils/constants/app_colors.dart';
 import '../../../../utils/constants/app_sizes.dart';
 import '../../../../utils/constants/app_vectors.dart';
-import '../../models/folder_model.dart';
 
-Future<FolderModel?> showFolderBottomSheetDialog(BuildContext context, {required String title, required String hintText, String? initialText, Widget? actionIcon, VoidCallback? onActionTap}) {
+Future<String?> showFolderBottomSheetDialog(BuildContext context, {required String title, required String hintText, String? initialText, Widget? actionIcon, VoidCallback? onActionTap, Future<void> Function(String title)? onCreate}) {
   final TextEditingController controller = TextEditingController(text: initialText ?? '');
   final FocusNode focusNode = FocusNode();
 
@@ -127,9 +126,14 @@ Future<FolderModel?> showFolderBottomSheetDialog(BuildContext context, {required
                           padding: const EdgeInsets.all(8),
                           child: TextButton(
                             onPressed: isValid
-                              ? () {
-                                  final result = FolderModel(title: controller.text, icon: '');
-                                  Navigator.pop(context, result);
+                              ? () async {
+                                  final text = controller.text.trim();
+
+                                  await onCreate?.call(text);
+
+                                  if (context.mounted) {
+                                    Navigator.pop(context, text);
+                                  }
                                 }
                               : null,
                             style: TextButton.styleFrom(

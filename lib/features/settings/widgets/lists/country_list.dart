@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../../../localization/app_localizations.dart';
 import '../../../../utils/constants/app_vectors.dart';
-import '../../models/country.dart';
+import '../../models/country_model.dart';
 
 final List<Country> countries = [
   Country('+61', 'AU', 'Австралия', 'Australia', AppVectors.aus),

@@ -321,7 +321,10 @@ class _TaskScreenState extends State<TaskScreen> with SingleTickerProviderStateM
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.start,
                             children: [
-                              Text(title ?? TaskUtils.getTitleText(selectionMode: selectionMode, selectedCount: selectedTasks.length, type: ScreenType.tasks), style: const TextStyle(fontSize: 32)),
+                              Text(
+                                selectedTasks.isNotEmpty ? TaskUtils.getTitleText(selectionMode: true, selectedCount: selectedTasks.length, type: ScreenType.tasks) : (title ?? 'Все задачи'),
+                                style: const TextStyle(fontSize: 32),
+                              ),
                               const SizedBox(width: 8),
                               if (!selectionMode)
                                 SizedBox(
@@ -387,6 +390,8 @@ class _TaskScreenState extends State<TaskScreen> with SingleTickerProviderStateM
                                     final canCollapse = groupItems.length >= 3;
                                     final isExpanded = !canCollapse || expandedGroups.contains(groupTitle);
 
+                                    final taskViewModel = Provider.of<TaskViewModel>(context, listen: false);
+
                                     return Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
@@ -397,33 +402,36 @@ class _TaskScreenState extends State<TaskScreen> with SingleTickerProviderStateM
                                               padding: const EdgeInsets.only(bottom: 12),
                                               child: Slidable(
                                                 key: ValueKey(task.id),
-                                                startActionPane: ActionPane(motion: const ScrollMotion(), children: []),
                                                 endActionPane: ActionPane(
                                                   motion: const ScrollMotion(),
+                                                  extentRatio: 0.28,
                                                   children: [
                                                     CustomSlidableAction(
                                                       onPressed: (_) {},
-                                                      backgroundColor: AppColors.accent,
+                                                      padding: EdgeInsets.zero,
+                                                      backgroundColor: AppColors.transparent,
                                                       borderRadius: BorderRadius.circular(40),
                                                       child: Container(
-                                                        width: 44,
-                                                        height: 44,
-                                                        decoration: BoxDecoration(color: AppColors.accent, shape: BoxShape.circle),
-                                                        child: Center(
-                                                          child: SvgPicture.asset(AppVectors.moveFolder, width: 20, height: 20, colorFilter: const ColorFilter.mode(AppColors.black, BlendMode.srcIn)),
-                                                        ),
+                                                        width: 45,
+                                                        height: 45,
+                                                        decoration: BoxDecoration(color: AppColors.lightBlue, shape: BoxShape.circle),
+                                                        child: Center(child: SvgPicture.asset(AppVectors.moveFolderOutline, width: 23, height: 23, colorFilter: const ColorFilter.mode(AppColors.white, BlendMode.srcIn))),
                                                       ),
                                                     ),
                                                     CustomSlidableAction(
                                                       onPressed: (_) {},
-                                                      backgroundColor: AppColors.red,
+                                                      padding: EdgeInsets.zero,
+                                                      backgroundColor: AppColors.transparent,
                                                       borderRadius: BorderRadius.circular(40),
-                                                      child: Container(
-                                                        width: 44,
-                                                        height: 44,
-                                                        decoration: BoxDecoration(color: AppColors.accent, shape: BoxShape.circle),
-                                                        child: Center(
-                                                          child: SvgPicture.asset(AppVectors.delete, width: 20, height: 20, colorFilter: const ColorFilter.mode(AppColors.black, BlendMode.srcIn)),
+                                                      child: GestureDetector(
+                                                        onTap: () async {
+                                                          showDeleteDialog(context, () { taskViewModel.deleteTask(task); }, selectedCount: 1, allCount: allNotes.length, type: 'task');
+                                                        },
+                                                        child: Container(
+                                                          width: 45,
+                                                          height: 45,
+                                                          decoration: BoxDecoration(color: AppColors.red, shape: BoxShape.circle),
+                                                          child: Center(child: SvgPicture.asset(AppVectors.deleteOutline, width: 23, height: 23, colorFilter: const ColorFilter.mode(AppColors.white, BlendMode.srcIn))),
                                                         ),
                                                       ),
                                                     ),

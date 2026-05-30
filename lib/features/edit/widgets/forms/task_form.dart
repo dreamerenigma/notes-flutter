@@ -106,6 +106,7 @@ class _TaskFormState extends State<TaskForm> {
 
   @override
   Widget build(BuildContext context) {
+    final color = taskState?.categoryColor;
     Color iconColor = isSwitched ? AppColors.red : AppColors.darkGrey;
 
     return ScrollbarTheme(
@@ -118,9 +119,9 @@ class _TaskFormState extends State<TaskForm> {
         }),
       ),
       child: Scrollbar(
-        thickness: 4,
         thumbVisibility: false,
-        radius: const Radius.circular(8),
+        radius: const Radius.circular(20),
+        thickness: 4,
         child: SingleChildScrollView(
           child: Padding(
             padding: const EdgeInsets.all(12),
@@ -186,7 +187,7 @@ class _TaskFormState extends State<TaskForm> {
                           children: [
                             Icon(
                               BootstrapIcons.circle,
-                              color: isChecked ? AppColors.transparent : taskState?.categoryColor != null ? Color(taskState!.categoryColor!) : AppColors.darkGrey,
+                              color: isChecked ? AppColors.transparent : (color != null && color != 0) ? Color(color) : AppColors.darkGrey,
                               size: 22,
                             ),
                             if (isChecked)

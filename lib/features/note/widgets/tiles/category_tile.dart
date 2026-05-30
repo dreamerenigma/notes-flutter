@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import '../../../../utils/constants/app_colors.dart';
 import '../../../../utils/constants/app_sizes.dart';
-import '../../../task/widgets/popups/new_note_bottom_sheet_dialog.dart';
-import '../../models/category_item.dart';
+import '../popups/new_note_bottom_sheet_dialog.dart';
+import '../../models/category_model.dart';
 
 class CategoryTile extends StatelessWidget {
-  final CategoryItem item;
+  final CategoryModel item;
   final bool isSelected;
   final VoidCallback onTap;
 

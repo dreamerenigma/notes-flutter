@@ -3,7 +3,7 @@ description: "Notes"
 
 publish_to: 'none'
 
-version: 1.0.5+348
+version: 1.0.6+158
 
 environment:
   sdk: ^3.10.8
@@ -60,7 +60,6 @@ dependencies:
   # State Management
   get: ^4.7.3
   get_storage: ^2.1.1
-
   #-------------------- ./ PACKAGES END --------------------#
 
 dev_dependencies:
@@ -91,7 +90,6 @@ flutter:
     - assets/images/
     - assets/images/logos/
     - assets/images/backgrounds/
-    - assets/icons/flags/
     - assets/sounds/
     - assets/vectors/
 

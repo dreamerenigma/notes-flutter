@@ -1,4 +1,3 @@
-import 'dart:developer';
 import '../../../core/enums/repeat_type.dart';
 import '../../../core/interfaces/selectable_item.dart';
 import '../../../utils/constants/app_colors.dart';

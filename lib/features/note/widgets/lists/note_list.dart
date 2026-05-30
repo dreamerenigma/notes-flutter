@@ -1,4 +1,3 @@
-import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'items/note_item_list.dart';
 import 'package:notes/features/note/models/note_model.dart';
@@ -34,21 +33,12 @@ class _NoteListState extends State<NoteList> {
     });
   }
 
-  void enterSelectionMode(int id) {
-    widget.onSelectionChanged(true);
-    toggleSelection(id);
-  }
-
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
       itemCount: widget.notes.length,
       itemBuilder: (context, index) {
         final note = widget.notes[index];
-
-
-        log("SELECTED: ${widget.selectedNoteIds}");
-        log("SHOW CHECKBOXES: ${widget.showCheckboxes}");
 
         return NoteItemList(
           note: note,
@@ -61,12 +51,7 @@ class _NoteListState extends State<NoteList> {
           onNoteSelected: (selectedNote) {
             widget.onNoteSelected(selectedNote);
           },
-          onEnterSelectionMode: () {
-            final id = note.id;
-            if (id == null) return;
-
-            enterSelectionMode(id);
-          },
+          onLongPress: () {},
         );
       },
     );

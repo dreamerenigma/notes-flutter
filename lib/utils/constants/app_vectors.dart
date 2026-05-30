@@ -24,6 +24,7 @@ class AppVectors {
   static const String note = "assets/vectors/note.svg";
   static const String bookmark = "assets/vectors/bookmark.svg";
   static const String delete = "assets/vectors/delete.svg";
+  static const String deleteOutline = "assets/vectors/delete_outline.svg";
   static const String folder = "assets/vectors/folder.svg";
   static const String favorite = "assets/vectors/favorite.svg";
   static const String add = "assets/vectors/add.svg";
@@ -38,13 +39,13 @@ class AppVectors {
   static const String watermark = "assets/vectors/watermark.svg";
   static const String arrowDropDown = "assets/vectors/arrow_drop_down.svg";
   static const String moveFolder = "assets/vectors/move_folder.svg";
+  static const String moveFolderOutline = "assets/vectors/move_folder_outline.svg";
   static const String defaultFolder = "assets/vectors/default_folder.svg";
   static const String font = "assets/vectors/font.svg";
   static const String calendar = "assets/vectors/calendar.svg";
   static const String addFolder = "assets/vectors/add_folder.svg";
   static const String dragAndDrop = "assets/vectors/drag_and_drop.svg";
 
-  /// -- Flags country
   /// -- Flags country
   static const String abw = '${pathFlags}abw$format';
   static const String afg = '${pathFlags}afg$format';

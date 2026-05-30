@@ -1,12 +1,12 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:get/get_utils/src/extensions/context_extensions.dart';
 import '../../../../utils/constants/app_colors.dart';
 import '../../../../utils/constants/app_sizes.dart';
-import '../../../note/models/category_item.dart';
+import '../../../../utils/constants/app_vectors.dart';
+import '../../../note/models/category_model.dart';
 
-Future<CategoryItem?> showNewNoteBottomSheetDialog(BuildContext context) {
+Future<CategoryModel?> showEditNoteBottomSheetDialog(BuildContext context, {String? initialText}) {
   return showModalBottomSheet(
     context: context,
     isScrollControlled: true,
@@ -14,18 +14,20 @@ Future<CategoryItem?> showNewNoteBottomSheetDialog(BuildContext context) {
     showDragHandle: false,
     shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
     backgroundColor: AppColors.transparent,
-    builder: (_) => const NewNoteBottomSheet(),
+    builder: (_) => EditNoteBottomSheet(initialText: initialText),
   );
 }
 
-class NewNoteBottomSheet extends StatefulWidget {
-  const NewNoteBottomSheet({super.key});
+class EditNoteBottomSheet extends StatefulWidget {
+  final String? initialText;
+
+  const EditNoteBottomSheet({super.key, this.initialText});
 
   @override
-  State<NewNoteBottomSheet> createState() => _NewNoteBottomSheetState();
+  State<EditNoteBottomSheet> createState() => _EditNoteBottomSheetState();
 }
 
-class _NewNoteBottomSheetState extends State<NewNoteBottomSheet> {
+class _EditNoteBottomSheetState extends State<EditNoteBottomSheet> {
   late final FocusNode focusNode;
   late final TextEditingController controller;
   final colors = AppColors.categoryColors;
@@ -36,7 +38,7 @@ class _NewNoteBottomSheetState extends State<NewNoteBottomSheet> {
   void initState() {
     super.initState();
     focusNode = FocusNode();
-    controller = TextEditingController();
+    controller = TextEditingController(text: widget.initialText ?? '');
 
     controller.addListener(() {
       final valid = controller.text.trim().isNotEmpty;
@@ -80,7 +82,22 @@ class _NewNoteBottomSheetState extends State<NewNoteBottomSheet> {
           children: [
             Padding(
               padding: const EdgeInsets.only(left: 24, right: 24, top: 18),
-              child: Text('Новый блокнот', style: TextStyle(fontSize: AppSizes.fontSizeXl, fontWeight: FontWeight.w400)),
+              child: Row(
+                children: [
+                  Expanded(child: Text('Изменить блокнот', style: TextStyle(fontSize: AppSizes.fontSizeXl, fontWeight: FontWeight.w400))),
+                  Material(
+                    color: AppColors.transparent,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(10),
+                      onTap: () {},
+                      child: Padding(
+                        padding: const EdgeInsets.all(6),
+                        child: SvgPicture.asset(AppVectors.delete, width: 25, height: 25, colorFilter: ColorFilter.mode(context.isDarkMode ? AppColors.white : AppColors.black, BlendMode.srcIn)),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
             const SizedBox(height: 8),
             Padding(
@@ -189,16 +206,14 @@ class _NewNoteBottomSheetState extends State<NewNoteBottomSheet> {
                   Expanded(
                     child: TextButton(
                       onPressed: isValid
-                        ? () {
-                            final item = CategoryItem(id: DateTime.now().millisecondsSinceEpoch, title: controller.text, color: colors[selectedColorIndex], stripeColor: colors[selectedColorIndex]);
+                          ? () {
+                        final item = CategoryModel(id: DateTime.now().millisecondsSinceEpoch, title: controller.text, color: colors[selectedColorIndex], stripeColor: colors[selectedColorIndex]);
 
-                            log("📦 CREATED INSIDE BOTTOMSHEET: ${item.title}");
-
-                            if (context.mounted) {
-                              Navigator.of(context).pop(item);
-                            }
-                          }
-                        : null,
+                        if (context.mounted) {
+                          Navigator.of(context).pop(item);
+                        }
+                      }
+                          : null,
                       style: TextButton.styleFrom(
                         foregroundColor: AppColors.blueAccent,
                         overlayColor: AppColors.blueAccent.withAlpha((0.2 * 255).toInt()),

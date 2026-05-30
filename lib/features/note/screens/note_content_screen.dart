@@ -1,4 +1,3 @@
-import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:notes/utils/constants/app_colors.dart';
@@ -34,11 +33,9 @@ class NoteContentScreenState extends State<NoteContentScreen> {
   late List<NoteModel> filteredNotes;
   final TextEditingController searchController = TextEditingController();
   final ScrollController scrollController = ScrollController();
-  bool selectionMode = false;
-  bool showCheckboxes = false;
   bool areAllNotesSelected = false;
+  bool get showCheckboxes => widget.selectedNotes.isNotEmpty;
   List<NoteModel> notes = [];
-  List<NoteModel> allNotes = [];
 
   @override
   void initState() {
@@ -48,7 +45,6 @@ class NoteContentScreenState extends State<NoteContentScreen> {
       final query = searchController.text;
       setState(() {
         searchQuery = query;
-        log("Search query updated: $searchQuery");
       });
     });
   }
@@ -66,9 +62,10 @@ class NoteContentScreenState extends State<NoteContentScreen> {
   }
 
   void _updateSelection(Set<int> newSelection) {
-    log("🔥 UPDATE SELECTION: $newSelection");
-    widget.onSelectionChanged(newSelection.isNotEmpty, allNotes.where((n) => newSelection.contains(n.id)).toList());
-    log("STATE AFTER SETSTATE: $widget.selectedNotes");
+    final viewModel = Provider.of<NoteViewModel>(context, listen: false);
+    final selected = viewModel.allNotes.where((n) => newSelection.contains(n.id)).toList();
+
+    widget.onSelectionChanged(newSelection.isNotEmpty, selected);
   }
 
   void toggleSelection(int id) {
@@ -80,22 +77,12 @@ class NoteContentScreenState extends State<NoteContentScreen> {
       newSet.add(id);
     }
 
-    widget.onSelectionChanged(newSet.isNotEmpty, allNotes.where((n) => newSet.contains(n.id)).toList());
-  }
-
-  void handleLongPress(int noteId) {
-    setState(() {
-      showCheckboxes = true;
-      widget.selectedNotes.add(noteId);
-      widget.onSelectionChanged(true, allNotes.where((note) => widget.selectedNotes.contains(note.id)).toList());
-    });
+    _updateSelection(newSet);
   }
 
   void clearSelection() {
     setState(() {
       widget.selectedNotes.clear();
-      showCheckboxes = false;
-      selectionMode = false;
       areAllNotesSelected = false;
     });
 
@@ -116,9 +103,9 @@ class NoteContentScreenState extends State<NoteContentScreen> {
   void updateNoteSelection(List<NoteModel> notes) {
     setState(() {
       for (var note in notes) {
-        final index = allNotes.indexWhere((n) => n.id == note.id);
+        final index = notes.indexWhere((n) => n.id == note.id);
         if (index != -1) {
-          allNotes[index] = note;
+          notes[index] = note;
         }
       }
     });
@@ -131,26 +118,24 @@ class NoteContentScreenState extends State<NoteContentScreen> {
 
   void deselectAllNotes() {
     setState(() {
-      allNotes = allNotes.map((note) => note.copyWith(isSelected: false)).toList();
-
-      widget.onSelectionChanged(false, []);
+      widget.selectedNotes.clear();
+      areAllNotesSelected = false;
     });
+
+    widget.onSelectionChanged(false, []);
   }
 
-  void enterSelectionMode() {
-    setState(() {
-      selectionMode = true;
-      showCheckboxes = true;
-    });
+  void handleLongPress(int id) {
+    toggleSelection(id);
   }
 
   @override
   Widget build(BuildContext context) {
     final viewModel = Provider.of<NoteViewModel>(context);
-    final allNotes = viewModel.allNotes;
+    final notes = viewModel.allNotes;
     final isGrid = widget.isGridView;
 
-    final filteredNotes = allNotes.where((note) {
+    final filteredNotes = notes.where((note) {
       final title = note.title.toLowerCase();
       final desc = note.description.toLowerCase();
       return title.contains(searchQuery.toLowerCase()) || desc.contains(searchQuery.toLowerCase());
@@ -193,7 +178,8 @@ class NoteContentScreenState extends State<NoteContentScreen> {
                     onLongPress: () {
                       final id = note.id;
                       if (id == null) return;
-                      handleLongPress(id);
+
+                      toggleSelection(id);
                     },
                     onClick: () => _handleNoteClick(note),
                     onNoteSelected: (note) {},
@@ -233,7 +219,12 @@ class NoteContentScreenState extends State<NoteContentScreen> {
                     showCheckboxes: showCheckboxes,
                     createdAt: note.createdAt,
                     onNoteSelected: (note) {},
-                    onEnterSelectionMode: enterSelectionMode,
+                    onLongPress: () {
+                      final id = note.id;
+                      if (id == null) return;
+
+                      handleLongPress(id);
+                    },
                   );
                 },
               ),

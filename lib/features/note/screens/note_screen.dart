@@ -68,24 +68,6 @@ class NoteScreenState extends State<NoteScreen> with SingleTickerProviderStateMi
 
   bool get selectionMode => selectedNotes.isNotEmpty || selectedTasks.isNotEmpty;
 
-  String getNoteCountText(int count) {
-    if (count % 10 == 1 && count % 100 != 11) {
-      return 'заметка';
-    } else if (count % 10 >= 2 && count % 10 <= 4 && (count % 100 < 10 || count % 100 >= 20)) {
-      return 'заметки';
-    } else {
-      return 'заметок';
-    }
-  }
-
-  String getElementSuffix(int count) {
-    if (count % 10 >= 2 && count % 10 <= 4 && (count % 100 < 10 || count % 100 >= 20)) {
-      return 'а';
-    } else {
-      return 'ов';
-    }
-  }
-
   @override
   void initState() {
     super.initState();
@@ -158,7 +140,7 @@ class NoteScreenState extends State<NoteScreen> with SingleTickerProviderStateMi
     final noteContentScreenState = noteContentScreenKey.currentState;
     if (noteContentScreenState != null) {
       setState(() {
-        noteCount = noteContentScreenState.allNotes.length;
+        noteCount = noteContentScreenState.notes.length;
       });
     }
   }
@@ -258,7 +240,7 @@ class NoteScreenState extends State<NoteScreen> with SingleTickerProviderStateMi
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: GestureDetector(
-                onTap: toggleExpand,
+                onTap: selectionMode ? null : toggleExpand,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
@@ -266,7 +248,10 @@ class NoteScreenState extends State<NoteScreen> with SingleTickerProviderStateMi
                       mainAxisAlignment: MainAxisAlignment.start,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(title ?? TaskUtils.getTitleText(selectionMode: selectionMode, selectedCount: selectedTasks.length, type: ScreenType.notes), style: const TextStyle(fontSize: 32)),
+                        Text(
+                          selectedNotes.isNotEmpty ? TaskUtils.getTitleText(selectionMode: true, selectedCount: selectedNotes.length, type: ScreenType.notes) : (title ?? 'Все заметки'),
+                          style: const TextStyle(fontSize: 32),
+                        ),
                       ],
                     ),
                     const SizedBox(width: 4),
@@ -295,7 +280,7 @@ class NoteScreenState extends State<NoteScreen> with SingleTickerProviderStateMi
                 builder: (context, vm, _) {
                   final count = vm.noteCount;
 
-                  return Text('$count ${getNoteCountText(count)}', style: TextStyle(fontSize: AppSizes.fontSizeSm, color: AppColors.darkGrey));
+                  return Text('$count ${TaskUtils.getNoteCountText(count)}', style: TextStyle(fontSize: AppSizes.fontSizeSm, color: AppColors.darkGrey));
                 },
               ),
             ),
@@ -316,7 +301,7 @@ class NoteScreenState extends State<NoteScreen> with SingleTickerProviderStateMi
                       });
 
                       final state = noteContentScreenKey.currentState;
-                      state?.updateFilteredNotes(state.allNotes, query);
+                      state?.updateFilteredNotes(state.notes, query);
                     },
                     onClear: () {
                       searchController.clear();
@@ -326,7 +311,7 @@ class NoteScreenState extends State<NoteScreen> with SingleTickerProviderStateMi
                       });
 
                       final state = noteContentScreenKey.currentState;
-                      state?.updateFilteredNotes(state.allNotes, '');
+                      state?.updateFilteredNotes(state.notes, '');
                     },
                   ),
                   Positioned.fill(

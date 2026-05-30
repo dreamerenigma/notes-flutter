@@ -201,9 +201,10 @@ class SettingsScreenState extends State<SettingsScreen> {
                   title: 'Папка по умолчанию',
                   onTap: () async {
                     final result = await selectNotebookBottomSheetDialog(context: context, categories: CategoryItems.categories, selected: settings?.defaultCategoryItem);
-                    if (result == null || settings == null) return;
 
-                    await settingsController.updateDefaultCategory(result.id, result.color.toARGB32());
+                    if (result?.id case final id?) {
+                      await settingsController.updateDefaultCategory(id, result!.color.toARGB32());
+                    }
                   },
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,

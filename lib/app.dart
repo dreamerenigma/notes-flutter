@@ -92,8 +92,9 @@ class App extends StatelessWidget {
             GlobalWidgetsLocalizations.delegate,
           ],
           supportedLocales: const [
-            Locale('en'),
             Locale('ru'),
+            Locale('en'),
+            Locale('es'),
           ],
           initialBinding: GeneralBindings(),
           home: const NoteScreen(),

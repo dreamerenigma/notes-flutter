@@ -1,5 +1,3 @@
-import '../../note/models/category_item.dart';
-
 class FolderModel {
   final int? id;
   final String icon;
@@ -24,7 +22,6 @@ class FolderModel {
     int? position,
     DateTime? createdAt,
     DateTime? updatedAt,
-    List<CategoryItem>? categories,
   }) {
     return FolderModel(
       id: id ?? this.id,
@@ -49,10 +46,10 @@ class FolderModel {
 
   factory FolderModel.fromMap(Map<String, dynamic> map) {
     return FolderModel(
-      id: map['id'] as int,
-      icon: map['icon'] ?? '',
-      title: map['title'] ?? '',
-      position: map['position'] ?? 0,
+      id: map['id'] as int?,
+      icon: map['icon'] as String,
+      title: map['title'] as String,
+      position: map['position'] as int? ?? 0,
       createdAt: map['created_at'] != null ? DateTime.fromMillisecondsSinceEpoch(map['created_at']) : null,
       updatedAt: map['updated_at'] != null ? DateTime.fromMillisecondsSinceEpoch(map['updated_at']) : null,
     );

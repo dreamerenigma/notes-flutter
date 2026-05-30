@@ -44,7 +44,14 @@ class AddTaskBottomSheetState extends State<AddTaskBottomSheet> {
     super.initState();
     viewModel = Provider.of<TaskViewModel>(context, listen: false);
     currentDate = widget.taskType == 'Edit' ? DateFormat('dd MMMM yyyy г., HH:mm').format(DateTime.now()) : DateFormat('dd MMMM yyyy г.').format(DateTime.now());
+    if (widget.task != null) {
+      _textController.text = widget.task!.title;
+      selectedDueDate = widget.task!.dueDate;
+      isWarningIconSelected = widget.task!.isImportant;
+    }
+
     _textController.addListener(_handleTextInputChange);
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _requestFocus();
     });
@@ -147,7 +154,7 @@ class AddTaskBottomSheetState extends State<AddTaskBottomSheet> {
                           () async {
                             _requestFocus();
 
-                            final pickedDate = await showCustomCalendarDialog(context, widget.task?.dueDate);
+                            final pickedDate = await showCustomCalendarDialog(context, selectedDueDate ?? widget.task?.dueDate);
 
                             if (pickedDate != null) {
                               setState(() {

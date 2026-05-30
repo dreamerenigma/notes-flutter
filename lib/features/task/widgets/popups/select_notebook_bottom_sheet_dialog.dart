@@ -3,15 +3,15 @@ import 'package:get/get_utils/src/extensions/context_extensions.dart';
 import 'package:notes/features/task/widgets/buttons/custom_radio_button.dart';
 import '../../../../utils/constants/app_colors.dart';
 import '../../../../utils/constants/app_sizes.dart';
-import '../../../note/models/category_item.dart';
+import '../../../note/models/category_model.dart';
 import '../../../note/widgets/tiles/category_tile.dart';
 import '../tiles/category_item_tile.dart';
 
-Future<CategoryItem?> selectNotebookBottomSheetDialog({required BuildContext context, required List<CategoryItem> categories, required CategoryItem? selected}) {
+Future<CategoryModel?> selectNotebookBottomSheetDialog({required BuildContext context, required List<CategoryModel> categories, required CategoryModel? selected}) {
   String current = selected?.title ?? 'Без категории';
-  int selectedValue = categories.firstWhere((e) => e.title == current, orElse: () => categories.last).id;
+  int? selectedValue = categories.firstWhere((e) => e.title == current, orElse: () => categories.last).id;
 
-  return showModalBottomSheet<CategoryItem>(
+  return showModalBottomSheet<CategoryModel>(
     context: context,
     isScrollControlled: true,
     shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
@@ -83,7 +83,7 @@ Future<CategoryItem?> selectNotebookBottomSheetDialog({required BuildContext con
                         PopupMenuItem(
                           enabled: false,
                           padding: EdgeInsets.zero,
-                          child: CategoryTile(item: CategoryItem(title: 'Создать', color: AppColors.red, id: 999, stripeColor: AppColors.red), isSelected: false, onTap: () {}),
+                          child: CategoryTile(item: CategoryModel(title: 'Создать', color: AppColors.red, id: 999, stripeColor: AppColors.red), isSelected: false, onTap: () {}),
                         ),
                       ],
                     ),

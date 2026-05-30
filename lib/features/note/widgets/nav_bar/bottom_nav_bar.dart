@@ -19,7 +19,7 @@ class BottomNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final baseColor = color ?? (context.isDarkMode ? AppColors.white : AppColors.white).getBackgroundColor();
+    final baseColor = color ?? (context.isDarkMode ? AppColors.black : AppColors.white).getBackgroundColor();
 
     return Theme(
       data: Theme.of(context).copyWith(splashFactory: NoSplash.splashFactory),

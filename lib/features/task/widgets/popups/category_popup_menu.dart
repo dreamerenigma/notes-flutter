@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:notes/utils/constants/app_vectors.dart';
 import '../../../../utils/constants/app_colors.dart';
-import '../../../note/models/category_item.dart';
+import '../../../note/models/category_model.dart';
 import '../../../note/widgets/tiles/category_tile.dart';
 import '../tiles/category_item_tile.dart';
 
@@ -10,8 +10,6 @@ class CategoryPopupMenu {
   static const String defaultCategory = 'Без категории';
 
   static Future<Map<String, dynamic>?> show(BuildContext context, RelativeRect position, String? selectedCategory) {
-    final effectiveSelected = selectedCategory ?? defaultCategory;
-
     return showMenu<Map<String, dynamic>>(
       context: context,
       position: position,
@@ -30,7 +28,7 @@ class CategoryPopupMenu {
         PopupMenuItem(
           enabled: false,
           padding: EdgeInsets.symmetric(horizontal: 6),
-          child: CategoryTile(item: CategoryItem(title: 'Создать', color: AppColors.red, id: 999, stripeColor: AppColors.red), isSelected: false, onTap: () {}),
+          child: CategoryTile(item: CategoryModel(title: 'Создать', color: AppColors.red, id: 999, stripeColor: AppColors.red), isSelected: false, onTap: () {}),
         ),
       ],
     );

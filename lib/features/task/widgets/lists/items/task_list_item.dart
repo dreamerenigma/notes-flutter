@@ -16,14 +16,14 @@ import '../../../models/task_view_model.dart';
 import '../../../screens/add_edit_task_screen.dart';
 
 class TaskListItem extends StatefulWidget {
-  final void Function(TaskModel) onTaskSelected;
-  final Function(bool) onSelectionChanged;
   final TaskModel task;
   final VoidCallback onDelete;
   final VoidCallback onClick;
   final bool isSelected;
   final bool showCheckboxes;
   final VoidCallback onLongPress;
+  final void Function(TaskModel) onTaskSelected;
+  final Function(bool) onSelectionChanged;
 
   const TaskListItem({
     super.key,

@@ -6,12 +6,17 @@ import 'package:notes/features/utils/widgets/scrolls/no_glow_scroll_behavior.dar
 import '../../../../utils/constants/app_colors.dart';
 import '../../../../utils/constants/app_sizes.dart';
 import '../../../../utils/constants/app_vectors.dart';
+import '../../../data/repositories/category_repository.dart';
+import '../../../data/repositories/folder_repository.dart';
 import '../../settings/widgets/app_bars/custom_app_bar.dart';
 import '../../task/data/default_categories.dart';
-import '../../task/widgets/popups/new_note_bottom_sheet_dialog.dart';
-import '../../note/models/category_item.dart';
+import '../../note/widgets/popups/new_note_bottom_sheet_dialog.dart';
+import '../../note/models/category_model.dart';
+import '../../utils/widgets/dividers/custom_divider.dart';
 import '../models/folder_model.dart';
+import '../models/folder_view_model.dart';
 import '../widgets/popups/delete_folder_dialog.dart';
+import '../widgets/popups/edit_note_bottom_sheet_dialog.dart';
 import '../widgets/popups/folder_bottom_sheet_dialog.dart';
 
 class ChangeFolderScreen extends StatefulWidget {
@@ -22,30 +27,74 @@ class ChangeFolderScreen extends StatefulWidget {
 }
 
 class _ChangeFolderScreenState extends State<ChangeFolderScreen> {
+  final FolderRepository folderRepository = Get.find<FolderRepository>();
+  final CategoryRepository categoryRepository = Get.find<CategoryRepository>();
   final random = Random();
-  List<CategoryItem> categories = List.from(defaultCategories);
-  List<FolderModel> folders = [];
-  Map<int?, List<CategoryItem>> folderCategories = {};
+  final folderVM = Get.find<FolderViewModel>();
+  List<CategoryModel> categories = List.from(defaultCategories);
+  RxList<FolderModel> folders = <FolderModel>[].obs;
+  Map<int?, List<CategoryModel>> folderCategories = {};
   bool isReorderMode = false;
   String? selectedCategory;
-
-  Color generateRandomColor() {
-    return HSLColor.fromAHSL(1, random.nextDouble() * 360, 0.7, 0.55).toColor();
-  }
 
   @override
   void initState() {
     super.initState();
     categories = List.from(defaultCategories);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      folderVM.loadData();
+    });
   }
 
-  void _onCategorySelected(String text, Color color) {
+  Future<void> editFolder(FolderModel folder, BuildContext context) async {
+    final FolderViewModel viewModel = Get.find<FolderViewModel>();
+
+    final updatedTitle = await showFolderBottomSheetDialog(
+      context,
+      title: 'Изменить папку',
+      hintText: 'Имя категории',
+      initialText: folder.title,
+      actionIcon: SvgPicture.asset(AppVectors.delete, width: 25, height: 25, colorFilter: ColorFilter.mode(context.isDarkMode ? AppColors.white : AppColors.black, BlendMode.srcIn)),
+      onActionTap: () async {
+        final shouldDelete = await showDeleteFolderDialog(context);
+
+        if (shouldDelete != true || folder.id == null) return;
+
+        await viewModel.deleteFolder(folder.id!);
+
+        setState(() {
+          folders.removeWhere((f) => f.id == folder.id);
+          folderCategories.remove(folder.id);
+        });
+
+        Navigator.pop(context);
+      },
+    );
+
+    if (updatedTitle == null || folder.id == null) return;
+
+    final updatedFolder = folder.copyWith(title: updatedTitle, updatedAt: DateTime.now());
+
+    await folderRepository.updateFolder(updatedFolder);
+
+    final index = folderVM.folders.indexWhere((f) => f.id == folder.id);
+    if (index != -1) {
+      folderVM.folders[index] = updatedFolder;
+      folderVM.folders.refresh();
+    }
+  }
+
+  Future<void> editCategory(FolderModel folder, BuildContext context) async {
+
+  }
+
+  void onCategorySelected(String text, Color color) {
     setState(() {
       selectedCategory = text;
     });
   }
 
-  void _onReorder(int oldIndex, int newIndex) {
+  void onReorder(int oldIndex, int newIndex) {
     setState(() {
       if (newIndex > oldIndex) newIndex--;
 
@@ -72,18 +121,16 @@ class _ChangeFolderScreenState extends State<ChangeFolderScreen> {
                 splashColor: context.isDarkMode ? AppColors.youngNight : AppColors.softGrey,
                 highlightColor: context.isDarkMode ? AppColors.youngNight : AppColors.softGrey,
                 onTap: () async {
-                  final FolderModel? newFolder = await showFolderBottomSheetDialog(context, title: 'Новая папка', hintText: 'Имя');
+                  final title = await showFolderBottomSheetDialog(context, title: 'Новая папка', hintText: 'Имя');
 
-                  if (newFolder != null) {
-                    final folder = FolderModel(title: newFolder.title, icon: newFolder.icon, position: folders.length, createdAt: DateTime.now(), updatedAt: DateTime.now());
-                    final randomColor = generateRandomColor();
-                    final defaultCategory = CategoryItem(id: DateTime.now().millisecondsSinceEpoch, title: 'Блокнот по умолчанию', color: randomColor, stripeColor: randomColor);
-
-                    setState(() {
-                      folders.add(folder);
-                      folderCategories[folder.id] = [defaultCategory];
-                    });
+                  if (title == null) return;
+                  if (title.trim().isEmpty) {
+                    return;
                   }
+
+                  final folder = FolderModel(title: title.trim(), icon: '');
+
+                  await folderVM.createFolder(folder);
                 },
                 child: Center(
                   child: SvgPicture.asset(AppVectors.addFolder, width: 26, height: 26, colorFilter: ColorFilter.mode(context.isDarkMode ? AppColors.white : AppColors.black, BlendMode.srcIn)),
@@ -99,21 +146,33 @@ class _ChangeFolderScreenState extends State<ChangeFolderScreen> {
           padding: const EdgeInsets.all(12),
           children: [
             _buildFolderWidget(context, FolderModel(title: 'Мои задачи', icon: '', id: null, position: null, createdAt: null, updatedAt: null), categories),
-            ...folders.map((folder) => _buildFolderWidget(context, folder, folderCategories[folder.id] ?? [])),
+            Obx(() {
+              final folders = folderVM.folders;
+
+              return Column(
+                children: [
+                  ...folders.map((folder) {
+                    final cats = folderVM.grouped[folder.id] ?? [];
+
+                    return _buildFolderWidget(context, folder, cats);
+                  }),
+                ],
+              );
+            }),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildFolderWidget(BuildContext context, FolderModel folder, List<CategoryItem> categories) {
+  Widget _buildFolderWidget(BuildContext context, FolderModel folder, List<CategoryModel> categories) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(color: context.isDarkMode ? AppColors.blackGrey : AppColors.white, borderRadius: BorderRadius.circular(18)),
       child: Column(
         children: [
           _buildFolderHeader(folder),
-          _buildDivider(context, indent: 48),
+          CustomDivider(indent: 48),
           SingleChildScrollView(
             child: ScrollConfiguration(
               behavior: NoGlowScrollBehavior(),
@@ -122,7 +181,7 @@ class _ChangeFolderScreenState extends State<ChangeFolderScreen> {
                 buildDefaultDragHandles: false,
                 physics: const NeverScrollableScrollPhysics(),
                 padding: const EdgeInsets.symmetric(horizontal: 6),
-                onReorder: _onReorder,
+                onReorder: onReorder,
                 children: [
                   for (int i = 0; i < categories.length; i++)
                     _buildCustomSectionItem(categories[i], i),
@@ -170,17 +229,8 @@ class _ChangeFolderScreenState extends State<ChangeFolderScreen> {
           splashColor: AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()),
           highlightColor: AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()),
           hoverColor: AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()),
-          onTap: () {
-            showFolderBottomSheetDialog(
-              context,
-              title: 'Изменить папку',
-              hintText: 'Имя категории',
-              initialText: folder.title,
-              actionIcon: SvgPicture.asset(AppVectors.delete, width: 25, height: 25, colorFilter: ColorFilter.mode(context.isDarkMode ? AppColors.white : AppColors.black, BlendMode.srcIn)),
-              onActionTap: () {
-                showDeleteFolderDialog(context);
-              },
-            );
+          onTap: () async {
+            await editFolder(folder, context);
           },
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
@@ -197,25 +247,15 @@ class _ChangeFolderScreenState extends State<ChangeFolderScreen> {
     );
   }
 
-  Widget _buildCustomSectionItem(CategoryItem item, int index) {
+  Widget _buildCustomSectionItem(CategoryModel item, int index) {
     return Column(
       key: ValueKey(item.id),
       children: [
         _buildCustomSection(context, item.title, item.color, item.color, index: index),
 
         if (index != categories.length + 1)
-          _buildDivider(context, indent: 82, endIndent: 2),
+          CustomDivider(indent: 82, endIndent: 2),
       ],
-    );
-  }
-
-  Widget _buildDivider(BuildContext context, {double left = 10, double right = 10, double indent = 45, double endIndent = 8}) {
-    return Container(
-      key: UniqueKey(),
-      child: Padding(
-        padding: EdgeInsets.only(left: left, right: right),
-        child: Divider(height: 0, thickness: 1, indent: indent, endIndent: endIndent, color: context.isDarkMode ? AppColors.darkSlate : AppColors.buttonDisabled),
-      ),
     );
   }
 
@@ -227,7 +267,9 @@ class _ChangeFolderScreenState extends State<ChangeFolderScreen> {
         splashColor: AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()),
         highlightColor: AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()),
         hoverColor: AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()),
-        onTap: () => _onCategorySelected(text, containerColor),
+        onTap: () {
+          showEditNoteBottomSheetDialog(context, initialText: text);
+        },
         onLongPress: () {
           setState(() {
             isReorderMode = true;
@@ -290,12 +332,13 @@ class _ChangeFolderScreenState extends State<ChangeFolderScreen> {
         highlightColor: AppColors.blueAccent.withAlpha((0.4 * 255).toInt()),
         hoverColor: AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()),
         onTap: () async {
-          final CategoryItem? newCategory = await showNewNoteBottomSheetDialog(context);
+          final CategoryModel? newCategory = await showNewNoteBottomSheetDialog(context);
 
           if (newCategory != null) {
-            setState(() {
-              folderCategories[folder.id]?.insert(0, newCategory);
-            });
+            final categoryWithFolder = newCategory.copyWith(folderId: folder.id);
+
+            await categoryRepository.insertCategory(categoryWithFolder);
+            await folderVM.loadData();
           }
         },
         child: Padding(

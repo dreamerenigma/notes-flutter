@@ -8,8 +8,8 @@ import '../../../note/widgets/popups/light_dialog.dart';
 class CustomRadioButton extends StatefulWidget {
   final String? title;
   final String? imagePath;
-  final int value;
-  final int groupValue;
+  final int? value;
+  final int? groupValue;
   final ValueChanged<int?> onChanged;
   final EdgeInsetsGeometry padding;
   final double? fontSize;

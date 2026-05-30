@@ -28,7 +28,7 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 18,
+      version: 20,
       onConfigure: (db) async {
         log("⚙️ DB CONFIGURE");
       },
@@ -100,13 +100,14 @@ class DatabaseHelper {
             stripe_color INTEGER,
             position INTEGER,
             created_at INTEGER,
-            updated_at INTEGER
+            updated_at INTEGER,
+            svg_asset TEXT
           )
         ''');
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         try {
-          if (oldVersion < 18) {
+          if (oldVersion < 20) {
 
           }
         } catch (e) {
@@ -118,6 +119,7 @@ class DatabaseHelper {
 
   Future<void> closeDatabase() async {
     if (_database != null) {
+      log("🧹 Closing database");
       await _database!.close();
       _database = null;
       _databaseFuture = null;

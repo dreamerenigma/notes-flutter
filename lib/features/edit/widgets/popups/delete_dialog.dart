@@ -56,13 +56,13 @@ void showDeleteDialog(BuildContext context, VoidCallback onDelete, {required int
               left: 0,
               right: 0,
               child: Container(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.only(top: 16, bottom: 8),
                 decoration: BoxDecoration(color: context.isDarkMode ? AppColors.greySlate : AppColors.white, borderRadius: const BorderRadius.vertical(top: Radius.circular(25), bottom: Radius.circular(25))),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(getDeleteConfirmationText(selectedCount, allCount, type: type), style: TextStyle(fontSize: AppSizes.fontSizeMd)),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 16),
                     Row(
                       children: [
                         Expanded(

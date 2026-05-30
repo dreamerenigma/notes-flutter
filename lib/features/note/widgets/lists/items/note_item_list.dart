@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:get/get_utils/src/extensions/context_extensions.dart';
 import 'package:notes/features/note/models/note_model.dart';
@@ -6,16 +7,17 @@ import '../../../../../routes/custom_page_route.dart';
 import '../../../../../utils/constants/app_colors.dart';
 import '../../../../../utils/constants/app_sizes.dart';
 import '../../../../../utils/formatters/date_formatter.dart';
+import '../../../../../utils/popups/loaders.dart';
 import '../../../screens/add_edit_note_screen.dart';
 
 class NoteItemList extends StatefulWidget {
   final NoteModel note;
   final VoidCallback onDelete;
   final VoidCallback onClick;
-  final VoidCallback onEnterSelectionMode;
   final bool isSelected;
   final bool showCheckboxes;
   final DateTime createdAt;
+  final VoidCallback onLongPress;
   final Function(int) onSelectionChanged;
   final void Function(NoteModel) onNoteSelected;
 
@@ -24,10 +26,10 @@ class NoteItemList extends StatefulWidget {
     required this.note,
     required this.onDelete,
     required this.onClick,
-    required this.onEnterSelectionMode,
     required this.isSelected,
     required this.showCheckboxes,
     required this.createdAt,
+    required this.onLongPress,
     required this.onSelectionChanged,
     required this.onNoteSelected,
   });
@@ -60,7 +62,10 @@ class NoteItemListState extends State<NoteItemList> {
 
   @override
   Widget build(BuildContext context) {
-
+    log('🟦 BUILD NOTE ITEM');
+    log('note id: ${widget.note.id}');
+    log('showCheckboxes: ${widget.showCheckboxes}');
+    log('isSelected: ${widget.isSelected}');
 
     return GestureDetector(
       onTap: () {
@@ -70,7 +75,7 @@ class NoteItemListState extends State<NoteItemList> {
             createPageRoute(AddEditNoteScreen(noteType: 'Edit', noteTitle: widget.note.title, noteDescription: widget.note.description, noteID: widget.note.id, createdAt: widget.note.createdAt)),
           ).then((result) {
             if (result == 'saved') {
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Заметка обновлена')));
+              AppLoaders.successSnackbar(message: 'Заметка обновлена', duration: 4);
             }
           });
         } else {
@@ -96,14 +101,14 @@ class NoteItemListState extends State<NoteItemList> {
         });
       },
       onLongPress: () {
-        if (!widget.showCheckboxes) {
-          widget.onEnterSelectionMode();
-        }
-
         final id = widget.note.id;
         if (id == null) return;
 
-        widget.onSelectionChanged(id);
+        if (!widget.showCheckboxes) {
+          widget.onLongPress();
+        } else {
+          widget.onSelectionChanged(id);
+        }
       },
       onLongPressStart: (_) {
         setState(() => isPressed = true);
@@ -150,9 +155,7 @@ class NoteItemListState extends State<NoteItemList> {
                 ),
               ],
             ),
-            trailing: widget.showCheckboxes
-              ? (widget.isSelected ? const Icon(Icons.check_box_rounded, color: AppColors.blueAccent) : const Icon(Icons.check_box_outline_blank, color: AppColors.darkGrey))
-              : null,
+            trailing: widget.showCheckboxes ? (widget.isSelected ? Icon(Icons.check_box_rounded, color: AppColors.blueAccent) : Icon(Icons.check_box_outline_blank, color: AppColors.darkGrey)) : null,
           ),
         ),
       ),

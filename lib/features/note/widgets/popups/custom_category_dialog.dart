@@ -3,7 +3,7 @@ import 'package:get/get_utils/src/extensions/context_extensions.dart';
 import 'package:get_storage/get_storage.dart';
 import '../../../../utils/constants/app_colors.dart';
 import '../../../../utils/constants/app_sizes.dart';
-import '../../../task/widgets/popups/new_note_bottom_sheet_dialog.dart';
+import 'new_note_bottom_sheet_dialog.dart';
 
 class CustomCategoryDialog extends StatefulWidget {
   const CustomCategoryDialog({super.key});

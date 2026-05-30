@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import '../../../generated/l10n/l10n.dart';
@@ -76,7 +77,7 @@ class LanguagesController extends GetxController {
                         padding: const EdgeInsets.only(left: 16.0, right: 6.0),
                         child: Row(
                           children: [
-                            Image.asset(AppVectors.rus, width: 25, height: 25),
+                            SvgPicture.asset(AppVectors.rus, width: 25, height: 25),
                             const SizedBox(width: 16),
                             Text(S.of(context).russianLanguage),
                           ],
@@ -92,7 +93,7 @@ class LanguagesController extends GetxController {
                         padding: const EdgeInsets.only(left: 16.0, right: 6.0),
                         child: Row(
                           children: [
-                            Image.asset(AppVectors.usa, width: 25, height: 25),
+                            SvgPicture.asset(AppVectors.usa, width: 25, height: 25),
                             const SizedBox(width: 16),
                             Text(S.of(context).englishLanguage),
                           ],
@@ -108,7 +109,7 @@ class LanguagesController extends GetxController {
                         padding: const EdgeInsets.only(left: 16.0, right: 6.0),
                         child: Row(
                           children: [
-                            Image.asset(AppVectors.esp, width: 25, height: 25),
+                            SvgPicture.asset(AppVectors.esp, width: 25, height: 25),
                             const SizedBox(width: 16),
                             Text(S.of(context).spanishLanguage),
                           ],
