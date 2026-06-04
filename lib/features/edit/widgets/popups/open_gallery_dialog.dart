@@ -2,13 +2,14 @@ import 'dart:developer';
 import 'package:bootstrap_icons/bootstrap_icons.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get_utils/src/extensions/context_extensions.dart';
 import 'package:heroicons/heroicons.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:solar_icons/solar_icons.dart';
 import '../../../../routes/custom_page_route.dart';
 import '../../../../utils/constants/app_colors.dart';
 import '../../../../utils/constants/app_sizes.dart';
+import '../../../../utils/constants/app_vectors.dart';
 import '../../screens/add_image_picker_screen.dart';
 import '../../screens/simple_camera_screen.dart';
 
@@ -111,7 +112,7 @@ Widget _buildOptionSend(BuildContext context, void Function(XFile?) onImagePicke
         pickImageFromCamera(context, onImagePicked);
       }),
       _buildDivider(context),
-      _buildOption(context, Icon(SolarIconsOutline.scanner), 'Сканировать документ', () async {
+      _buildOption(context, SvgPicture.asset(AppVectors.scanner), 'Сканировать документ', () async {
         final path = await Navigator.push(context, MaterialPageRoute(builder: (_) => const SimpleCameraScreen()));
 
         if (path != null) {

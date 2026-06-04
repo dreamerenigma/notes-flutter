@@ -3,10 +3,10 @@ description: "Notes"
 
 publish_to: 'none'
 
-version: 1.0.6+158
+version: 1.0.8+349
 
 environment:
-  sdk: ^3.10.8
+  sdk: ^3.12.0
 
 #-------------------- PACKAGES --------------------#
 dependencies:
@@ -49,13 +49,10 @@ dependencies:
   coolicons: ^1.0.0
   fluentui_system_icons: ^1.1.273
   flutter_lucide: ^1.4.0
-  solar_icons: ^0.0.5
-  flutter_phosphor_icons: ^0.0.1+6
   feather_icons: ^1.2.0
   flutter_tabler_icons: ^1.39.0
   iconsax: ^0.0.8
   iconoir_flutter: ^7.11.0
-  ionicons: ^0.2.2
 
   # State Management
   get: ^4.7.3

@@ -1,4 +1,5 @@
 import 'package:sqflite/sqflite.dart';
+import '../../features/note/models/note_model.dart';
 import '../database/database_helper.dart';
 
 class NoteLocalDataSource {
@@ -20,10 +21,10 @@ class NoteLocalDataSource {
     return await db.query('notes');
   }
 
-  Future<void> update(Map<String, dynamic> note) async {
+  Future<void> update(NoteModel note) async {
     final db = await _db;
 
-    await db.update('notes', note, where: 'id = ?', whereArgs: [note['id']]);
+    await db.update('notes', note.toMap(), where: 'id = ?', whereArgs: [note.id]);
   }
 
   Future<void> delete(int id) async {

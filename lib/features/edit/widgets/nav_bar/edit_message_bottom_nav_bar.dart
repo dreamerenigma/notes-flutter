@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
-import 'package:solar_icons/solar_icons.dart';
 import '../../../../utils/constants/app_colors.dart';
 import '../../../../utils/constants/app_sizes.dart';
 import '../../../../utils/constants/app_vectors.dart';
@@ -36,7 +35,7 @@ class EditMessageBottomNavBar extends StatelessWidget {
               'Стиль',
               onTextStyle,
             ),
-            _buildBottomAppBarItem(context, Icon(SolarIconsOutline.gallery, size: 25), 'Галерея', onGallery),
+            _buildBottomAppBarItem(context, SvgPicture.asset(AppVectors.gallery, width: 25, height: 25, colorFilter: ColorFilter.mode(context.isDarkMode ? AppColors.white : AppColors.black, BlendMode.srcIn)), 'Галерея', onGallery),
             _buildBottomAppBarItem(context, Icon(Icons.draw_outlined, size: 25), 'Рисунок', onHandwritingInput),
           ],
         )

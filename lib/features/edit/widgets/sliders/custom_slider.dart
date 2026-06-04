@@ -22,22 +22,16 @@ class CustomSlider extends StatelessWidget {
         activeTrackColor: AppColors.blueAccent,
         inactiveTrackColor: AppColors.darkerGrey,
         thumbColor: AppColors.white,
-        overlayColor: AppColors.blueAccent.withAlpha((0.2 * 255).toInt()),
+        overlayColor: AppColors.transparent,
+        overlayShape: const RoundSliderOverlayShape(overlayRadius: 0),
         trackHeight: 20,
         thumbShape: CustomSliderThumbShape(),
         trackShape: CustomSliderTrackShape(min: min, max: max),
-        overlayShape: const RoundSliderOverlayShape(overlayRadius: 24),
         tickMarkShape: const RoundSliderTickMarkShape(tickMarkRadius: 4),
         activeTickMarkColor: AppColors.transparent,
         inactiveTickMarkColor: AppColors.transparent,
       ),
-      child: Slider(
-        value: value,
-        min: min,
-        max: max,
-        divisions: 4,
-        onChanged: onChanged,
-      ),
+      child: Slider(value: value, min: min, max: max, divisions: 4, onChanged: onChanged),
     );
   }
 }
@@ -60,14 +54,12 @@ class CustomSliderThumbShape extends SliderComponentShape {
         required TextDirection textDirection,
         required double textScaleFactor,
         required double value}) {
+
     final Canvas canvas = context.canvas;
-
-    final Paint thumbPaint = Paint()
-      ..color = sliderTheme.thumbColor!
-      ..style = PaintingStyle.fill;
-
-    const Radius thumbRadius = Radius.circular(12.0);
-    final Rect thumbRect = Rect.fromCenter(center: center, width: 14, height: 14);
+    const Radius thumbRadius = Radius.circular(12);
+    final Paint thumbPaint = Paint()..color = sliderTheme.thumbColor!..style = PaintingStyle.fill;
+    final Offset shiftedCenter = Offset(center.dx - 10, center.dy);
+    final Rect thumbRect = Rect.fromCenter(center: shiftedCenter, width: 12, height: 12);
     final RRect thumbRRect = RRect.fromRectAndRadius(thumbRect, thumbRadius);
 
     canvas.drawRRect(thumbRRect, thumbPaint);
@@ -83,8 +75,8 @@ class CustomSliderTrackShape extends SliderTrackShape {
   @override
   Rect getPreferredRect({
     required RenderBox parentBox,
-    Offset offset = Offset.zero,
     required SliderThemeData sliderTheme,
+    Offset offset = Offset.zero,
     bool isEnabled = false,
     bool isDiscrete = false,
   }) {
@@ -99,52 +91,29 @@ class CustomSliderTrackShape extends SliderTrackShape {
   void paint(PaintingContext context, Offset offset,
       {required SliderThemeData sliderTheme,
         required Animation<double> enableAnimation,
-        bool isDiscrete = false,
-        bool isEnabled = false,
         required RenderBox parentBox,
         required TextDirection textDirection,
         required Offset thumbCenter,
+        bool isDiscrete = false,
+        bool isEnabled = false,
         Offset? secondaryOffset
       }) {
     final Canvas canvas = context.canvas;
 
-    final Paint activeTrackPaint = Paint()
-      ..color = sliderTheme.activeTrackColor ?? AppColors.blue
-      ..style = PaintingStyle.fill;
-
-    final Paint inactiveTrackPaint = Paint()
-      ..color = sliderTheme.inactiveTrackColor ?? AppColors.grey
-      ..style = PaintingStyle.fill;
+    final Paint activeTrackPaint = Paint()..color = sliderTheme.activeTrackColor ?? AppColors.blue..style = PaintingStyle.fill;
+    final Paint inactiveTrackPaint = Paint()..color = sliderTheme.inactiveTrackColor ?? AppColors.grey..style = PaintingStyle.fill;
 
     final double trackHeight = sliderTheme.trackHeight ?? 20;
     final double trackWidth = parentBox.size.width;
 
-    final Rect trackRect = Rect.fromLTWH(
-      offset.dx,
-      offset.dy + (parentBox.size.height - trackHeight) / 2,
-      trackWidth,
-      trackHeight,
-    );
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(trackRect, Radius.circular(trackHeight / 2)),
-      inactiveTrackPaint,
-    );
+    final Rect trackRect = Rect.fromLTWH(offset.dx, offset.dy + (parentBox.size.height - trackHeight) / 2, trackWidth, trackHeight);
+    canvas.drawRRect(RRect.fromRectAndRadius(trackRect, Radius.circular(trackHeight / 2)), inactiveTrackPaint);
 
     final double thumbPosition = thumbCenter.dx - offset.dx;
     final double activeTrackWidth = (thumbPosition / trackWidth) * trackWidth;
-
     final double constrainedWidth = activeTrackWidth.clamp(0, trackWidth);
 
-    // Draw active track
-    final Rect activeTrackRect = Rect.fromLTWH(
-      offset.dx,
-      offset.dy + (parentBox.size.height - trackHeight) / 2,
-      constrainedWidth,
-      trackHeight,
-    );
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(activeTrackRect, Radius.circular(trackHeight / 2)),
-      activeTrackPaint,
-    );
+    final Rect activeTrackRect = Rect.fromLTWH(offset.dx, offset.dy + (parentBox.size.height - trackHeight) / 2, constrainedWidth, trackHeight);
+    canvas.drawRRect(RRect.fromRectAndRadius(activeTrackRect, Radius.circular(trackHeight / 2)), activeTrackPaint);
   }
 }

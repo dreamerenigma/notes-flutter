@@ -1,11 +1,12 @@
 import 'dart:typed_data';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get_utils/src/extensions/context_extensions.dart';
 import 'package:notes/routes/custom_page_route.dart';
 import 'package:notes/features/utils/widgets/scrolls/no_glow_scroll_behavior.dart';
 import 'package:photo_manager/photo_manager.dart';
+import '../../../utils/constants/app_vectors.dart';
 import '../widgets/images/asset_entity_images.dart';
 import 'full_screen_image_screen.dart';
 import '../../../utils/constants/app_colors.dart';
@@ -108,7 +109,7 @@ class AddImagePickerScreenState extends State<AddImagePickerScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text('Все фото', style: TextStyle(fontSize: AppSizes.fontSizeXl, fontWeight: FontWeight.w400)),
-            const Padding(padding: EdgeInsets.only(right: 8), child: Icon(PhosphorIcons.copy_simple)),
+            Padding(padding: EdgeInsets.only(right: 8), child: SvgPicture.asset(AppVectors.copy)),
           ],
         ),
       ),

@@ -45,6 +45,11 @@ class AppVectors {
   static const String calendar = "assets/vectors/calendar.svg";
   static const String addFolder = "assets/vectors/add_folder.svg";
   static const String dragAndDrop = "assets/vectors/drag_and_drop.svg";
+  static const String language = "assets/vectors/language.svg";
+  static const String textAa = "assets/vectors/text_aa.svg";
+  static const String copy = "assets/vectors/copy.svg";
+  static const String gallery = "assets/vectors/gallery.svg";
+  static const String scanner = "assets/vectors/scanner.svg";
 
   /// -- Flags country
   static const String abw = '${pathFlags}abw$format';

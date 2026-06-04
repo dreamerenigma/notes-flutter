@@ -8,7 +8,6 @@ import 'package:get/get_instance/src/extension_instance.dart';
 import 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart';
 import 'package:get/get_utils/src/extensions/context_extensions.dart';
 import 'package:get_storage/get_storage.dart';
-import 'package:ionicons/ionicons.dart';
 import 'package:notes/features/settings/controllers/language_controller.dart';
 import 'package:notes/features/settings/controllers/themes_controller.dart';
 import 'package:notes/features/settings/screens/privacy_policy_screen.dart';
@@ -217,7 +216,7 @@ class SettingsScreenState extends State<SettingsScreen> {
               _buildDivider(context),
               Obx(() {
                 return _buildSettingsRow(
-                  leading: const Icon(Ionicons.language_outline, size: 24, color: AppColors.darkGrey),
+                  leading: SvgPicture.asset(AppVectors.language, width: 24, height: 24, colorFilter: ColorFilter.mode(AppColors.darkGrey, BlendMode.srcIn)),
                   title: 'Языковые параметры',
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,

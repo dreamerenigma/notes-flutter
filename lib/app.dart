@@ -86,16 +86,8 @@ class App extends StatelessWidget {
           darkTheme: NotesAppTheme.getDarkTheme(),
           getPages: AppRoutes.pages,
           locale: Locale(languageController.selectedLanguage.value),
-          localizationsDelegates: const [
-            AppLocalizationDelegate(),
-            ...GlobalMaterialLocalizations.delegates,
-            GlobalWidgetsLocalizations.delegate,
-          ],
-          supportedLocales: const [
-            Locale('ru'),
-            Locale('en'),
-            Locale('es'),
-          ],
+          localizationsDelegates: const [AppLocalizationDelegate(), ...GlobalMaterialLocalizations.delegates, GlobalWidgetsLocalizations.delegate],
+          supportedLocales: const [Locale('ru'), Locale('en'), Locale('es')],
           initialBinding: GeneralBindings(),
           home: const NoteScreen(),
         ),

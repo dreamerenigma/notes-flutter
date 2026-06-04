@@ -17,7 +17,7 @@ class NoteRepository {
   }
 
   Future<void> updateNote(NoteModel note) async {
-    await local.update(note.toMap());
+    await local.update(note);
   }
 
   Future<void> deleteNote(int id) async {
