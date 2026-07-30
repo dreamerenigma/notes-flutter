@@ -33,6 +33,14 @@ class DateFormatter {
   }
 
   static String _plural(int value) {
-    return value == 1 ? '' : 'ы';
+    if (value % 10 == 1 && value % 100 != 11) {
+      return 'а';
+    }
+
+    if (value % 10 >= 2 && value % 10 <= 4 && (value % 100 < 10 || value % 100 >= 20)) {
+      return 'ы';
+    }
+
+    return '';
   }
 }

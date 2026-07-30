@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Скачано с сайта svg4.ru / Downloaded from svg4.ru -->
+
+<svg
+   width="800"
+   height="800"
+   viewBox="0 0 6400 6400"
+   version="1.1"
+   id="svg3"
+   sodipodi:docname="circle_plus.svg"
+   inkscape:version="1.4.3 (0d15f75, 2025-12-25)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs3" />
+  <sodipodi:namedview
+     id="namedview3"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="0.55726091"
+     inkscape:cx="156.12077"
+     inkscape:cy="523.09429"
+     inkscape:window-width="1920"
+     inkscape:window-height="1009"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg3" />
+  <path
+     fill="#000000"
+     d="m 1951.0794,2964.5854 h 2457.669 a 245.76691,245.76691 0 1 1 0,491.5338 h -2457.669 a 245.76691,245.76691 0 0 1 0,-491.5338 z"
+     id="path1"
+     style="stroke-width:7.68022" />
+  <path
+     fill="#000000"
+     d="m 2934.1469,4439.1868 v -2457.669 a 245.76696,245.76696 0 1 1 491.5339,0 v 2457.669 a 245.76696,245.76696 0 0 1 -491.5339,0 z"
+     id="path2"
+     style="stroke-width:7.68022" />
+  <path
+     fill="#000000"
+     d="m 3205.2918,5941.3047 a 2736.028,2736.028 0 1 0 0,-5472.05592 2736.028,2736.028 0 0 0 0,5472.05592 z m 0,456.0047 a 3192.0327,3192.0327 0 1 1 0,-6384.065284 3192.0327,3192.0327 0 0 1 0,6384.065284 z"
+     id="path3"
+     style="stroke-width:7.12508" />
+</svg>

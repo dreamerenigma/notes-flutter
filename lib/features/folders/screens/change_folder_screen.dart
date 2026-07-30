@@ -181,7 +181,7 @@ class _ChangeFolderScreenState extends State<ChangeFolderScreen> {
                 buildDefaultDragHandles: false,
                 physics: const NeverScrollableScrollPhysics(),
                 padding: const EdgeInsets.symmetric(horizontal: 6),
-                onReorder: onReorder,
+                onReorderItem: onReorder,
                 children: [
                   for (int i = 0; i < categories.length; i++)
                     _buildCustomSectionItem(categories[i], i),

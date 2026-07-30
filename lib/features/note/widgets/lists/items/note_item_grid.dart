@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -50,7 +51,6 @@ class NoteItemState extends State<NoteItemGrid> {
   void initState() {
     super.initState();
     displayTime = DateFormatter.formatTime(widget.note.createdAt);
-
     timer = Timer.periodic(const Duration(minutes: 1), (Timer timer) {
       setState(() {
         displayTime = DateFormatter.formatTime(widget.note.createdAt);
@@ -69,10 +69,7 @@ class NoteItemState extends State<NoteItemGrid> {
     return GestureDetector(
       onTap: () {
         if (!widget.showCheckboxes) {
-          Navigator.push(
-            context,
-            createPageRoute(AddEditNoteScreen(noteType: 'Edit', noteTitle: widget.note.title, noteDescription: widget.note.description, noteID: widget.note.id, createdAt: widget.note.createdAt)),
-          ).then((result) {
+          Navigator.push(context, createPageRoute(AddEditNoteScreen(noteType: 'Edit', note: widget.note))).then((result) {
             if (result == 'saved') {
               AppLoaders.successSnackbar(message: 'Заметка обновлена', duration: 4);
             }
@@ -114,14 +111,9 @@ class NoteItemState extends State<NoteItemGrid> {
         duration: const Duration(milliseconds: 120),
         curve: Curves.easeOut,
         child: Container(
-          margin: EdgeInsets.only(
-            left: widget.isLeftColumn ? 12 : 0,
-            right: widget.showCheckboxes ? 8.0 : 12.0,
-            top: 6,
-            bottom: 6,
-          ),
+          margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
           decoration: BoxDecoration(
-            color: widget.isSelected ? AppColors.blueAccent.withAlpha((0.3 * 255).toInt()) : (context.isDarkMode ? AppColors.greySlate : AppColors.softGrey),
+            color: widget.isSelected ? AppColors.blueAccent.withAlpha((0.3 * 255).toInt()) : (context.isDarkMode ? AppColors.nightGrey : AppColors.softGrey),
             borderRadius: BorderRadius.circular(20),
             boxShadow: widget.showCheckboxes
               ? [
@@ -131,72 +123,57 @@ class NoteItemState extends State<NoteItemGrid> {
           ),
           child: Stack(
             children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 4),
-                            child: Text(widget.note.title, style: TextStyle(fontSize: AppSizes.fontSizeMd, fontWeight: FontWeight.w400), overflow: TextOverflow.ellipsis),
-                          ),
-                          Row(
-                            children: [
-                              Text(displayTime, style: TextStyle(color: context.isDarkMode ? AppColors.darkGrey : AppColors.darkGrey)),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (widget.note.imagePath != null)
+                    ClipRRect(borderRadius: const BorderRadius.vertical(top: Radius.circular(20)), child: Image.file(File(widget.note.imagePath!), width: double.infinity, height: 160, fit: BoxFit.cover)),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(widget.note.title, style: TextStyle(fontSize: AppSizes.fontSizeMd, fontWeight: FontWeight.w400), overflow: TextOverflow.ellipsis),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            if (widget.note.isFavorite) ...[
+                              const Icon(Icons.star_rounded, size: 14, color: AppColors.secondary),
                               const SizedBox(width: 4),
-                              SizedBox(width: 1.5, height: 14, child: Container(color: AppColors.darkGrey)),
                             ],
-                          ),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: widget.showCheckboxes
-                                    ? ShaderMask(
-                                  shaderCallback: (rect) {
-                                    return const LinearGradient(
-                                      begin: Alignment.centerLeft,
-                                      end: Alignment.centerRight,
-                                      colors: [AppColors.black, AppColors.transparent],
-                                      stops: [0.82, 0.92],
-                                    ).createShader(rect);
-                                  },
-                                  blendMode: BlendMode.dstIn,
-                                  child: Text(
-                                    widget.note.description,
-                                    maxLines: 3,
-                                    overflow: TextOverflow.clip,
-                                    style: TextStyle(color: context.isDarkMode ? AppColors.darkGrey : AppColors.darkGrey),
-                                  ),
-                                )
-                                    : Text(
-                                  widget.note.description,
-                                  maxLines: 3,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(color: context.isDarkMode ? AppColors.darkGrey : AppColors.darkGrey),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
+                            Text(displayTime, style: TextStyle(color: AppColors.darkGrey, fontSize: 13)),
+                            const SizedBox(width: 4),
+                            Padding(
+                              padding: const EdgeInsets.only(top: 2),
+                              child: Container(width: 1.2, height: 14, color: context.isDarkMode ? AppColors.darkGrey : AppColors.darkerGrey),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 2),
+                        widget.showCheckboxes
+                          ? ShaderMask(
+                              shaderCallback: (rect) {
+                                return const LinearGradient(
+                                  begin: Alignment.centerLeft,
+                                  end: Alignment.centerRight,
+                                  colors: [AppColors.black, AppColors.transparent],
+                                  stops: [0.82, 0.92],
+                                ).createShader(rect);
+                              },
+                              blendMode: BlendMode.dstIn,
+                              child: Text(widget.note.description, maxLines: 3, overflow: TextOverflow.clip, style: const TextStyle(color: AppColors.darkGrey)))
+                          : Text(widget.note.description, maxLines: 3, overflow: TextOverflow.ellipsis, style: const TextStyle(color: AppColors.darkGrey),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
               if (widget.showCheckboxes)
                 Positioned(
                   bottom: 10,
                   right: 10,
-                  child: widget.isSelected ? SvgPicture.asset(AppVectors.checkbox, width: 20, height: 20) : const Icon(
-                    FluentIcons.checkbox_unchecked_24_regular,
-                    color: AppColors.darkGrey,
-                    size: 22,
-                  ),
+                  child: widget.isSelected ? SvgPicture.asset(AppVectors.checkbox, width: 20, height: 20) : const Icon(FluentIcons.checkbox_unchecked_24_regular, color: AppColors.darkGrey, size: 22),
                 ),
             ],
           ),

@@ -28,7 +28,7 @@ class EditMessageBottomNavBar extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 8.0),
         child: Row(
           children: [
-            _buildBottomAppBarItem(context, Icon(Icons.check_circle_outline, size: 25), 'Список', onList),
+            _buildBottomAppBarItem(context, Icon(Icons.check_circle_outline, color: context.isDarkMode ? AppColors.white : AppColors.black, size: 25), 'Список', onList),
             _buildBottomAppBarItem(
               context,
               SvgPicture.asset(AppVectors.textStyle, width: 22, height: 22, colorFilter: ColorFilter.mode(context.isDarkMode ? AppColors.white : AppColors.black, BlendMode.srcIn)),
@@ -36,7 +36,7 @@ class EditMessageBottomNavBar extends StatelessWidget {
               onTextStyle,
             ),
             _buildBottomAppBarItem(context, SvgPicture.asset(AppVectors.gallery, width: 25, height: 25, colorFilter: ColorFilter.mode(context.isDarkMode ? AppColors.white : AppColors.black, BlendMode.srcIn)), 'Галерея', onGallery),
-            _buildBottomAppBarItem(context, Icon(Icons.draw_outlined, size: 25), 'Рисунок', onHandwritingInput),
+            _buildBottomAppBarItem(context, Icon(Icons.draw_outlined, color: context.isDarkMode ? AppColors.white : AppColors.black, size: 25), 'Рисунок', onHandwritingInput),
           ],
         )
       ),
@@ -50,8 +50,9 @@ class EditMessageBottomNavBar extends StatelessWidget {
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(12),
-          splashColor: AppColors.youngNight,
-          highlightColor: AppColors.youngNight,
+          splashColor: context.isDarkMode ? AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()) : AppColors.grey.withAlpha((0.4 * 255).toInt()),
+          highlightColor: context.isDarkMode ? AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()) : AppColors.grey.withAlpha((0.4 * 255).toInt()),
+          hoverColor: context.isDarkMode ? AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()) : AppColors.grey.withAlpha((0.4 * 255).toInt()),
           child: SizedBox.expand(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,

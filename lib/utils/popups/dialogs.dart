@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../features/note/widgets/popups/light_dialog.dart';
+import '../../features/settings/widgets/dialogs/light_dialog.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_sizes.dart';
 import 'animated_snackbar.dart';

@@ -1,8 +1,10 @@
+import 'dart:developer';
 import 'dart:typed_data';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get_utils/src/extensions/context_extensions.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:notes/routes/custom_page_route.dart';
 import 'package:notes/features/utils/widgets/scrolls/no_glow_scroll_behavior.dart';
 import 'package:photo_manager/photo_manager.dart';
@@ -20,6 +22,7 @@ class AddImagePickerScreen extends StatefulWidget {
 }
 
 class AddImagePickerScreenState extends State<AddImagePickerScreen> {
+  final Map<AssetEntity, Future<Uint8List?>> _thumbnailCache = {};
   List<AssetPathEntity> _albums = [];
   List<AssetEntity> _images = [];
   List<AssetEntity> orderedSelectedImages = [];
@@ -38,7 +41,13 @@ class AddImagePickerScreenState extends State<AddImagePickerScreen> {
     if (permitted.isAuth) {
       final albums = await PhotoManager.getAssetPathList(
         type: RequestType.image,
+        filterOption: FilterOptionGroup(
+          orders: [
+            const OrderOption(type: OrderOptionType.createDate, asc: false),
+          ],
+        ),
       );
+
       setState(() {
         _albums = albums;
         if (_albums.isNotEmpty) {
@@ -67,10 +76,6 @@ class AddImagePickerScreenState extends State<AddImagePickerScreen> {
     });
   }
 
-  Future<Uint8List?> _getThumbnailData(AssetEntity image) async {
-    return await image.thumbnailDataWithSize(const ThumbnailSize(100, 100));
-  }
-
   void setImagePath(String path) {
     setState(() {
       imagePath = path;
@@ -92,6 +97,22 @@ class AddImagePickerScreenState extends State<AddImagePickerScreen> {
     }
   }
 
+  Future<Uint8List?> _getCachedThumbnailData(AssetEntity image) {
+    return _thumbnailCache.putIfAbsent(image, () => image.thumbnailDataWithSize(const ThumbnailSize(100, 100)));
+  }
+
+  Future<void> _openSystemPicker() async {
+    final ImagePicker picker = ImagePicker();
+
+    final List<XFile> images = await picker.pickMultiImage();
+
+    if (images.isNotEmpty) {
+      for (final image in images) {
+        log(image.path);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -105,13 +126,19 @@ class AddImagePickerScreenState extends State<AddImagePickerScreen> {
             Navigator.of(context).pop();
           },
         ),
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text('Все фото', style: TextStyle(fontSize: AppSizes.fontSizeXl, fontWeight: FontWeight.w400)),
-            Padding(padding: EdgeInsets.only(right: 8), child: SvgPicture.asset(AppVectors.copy)),
-          ],
-        ),
+        title: Text('Все фото', style: TextStyle(fontSize: AppSizes.fontSizeXl, fontWeight: FontWeight.w400)),
+        actions: [
+          IconButton(
+            padding: const EdgeInsets.only(right: 8),
+            icon: SvgPicture.asset(
+              AppVectors.copy,
+              width: 22,
+              height: 22,
+              colorFilter: ColorFilter.mode(context.isDarkMode ? AppColors.white : AppColors.black, BlendMode.srcIn),
+            ),
+            onPressed: _openSystemPicker,
+          ),
+        ],
       ),
       body: ScrollConfiguration(
         behavior: NoGlowScrollBehavior(),
@@ -119,11 +146,7 @@ class AddImagePickerScreenState extends State<AddImagePickerScreen> {
           children: [
             Expanded(
               child: GridView.builder(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 4,
-                  crossAxisSpacing: 8.0,
-                  mainAxisSpacing: 8.0,
-                ),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 4, crossAxisSpacing: 8.0, mainAxisSpacing: 8.0),
                 itemCount: _images.length,
                 itemBuilder: (context, index) {
                   final image = _images[index];
@@ -134,7 +157,7 @@ class AddImagePickerScreenState extends State<AddImagePickerScreen> {
                       children: [
                         ClipRRect(
                           borderRadius: BorderRadius.circular(8.0),
-                          child: AssetEntityImage(image, fit: BoxFit.cover, width: 100, height: 100),
+                          child: CustomAssetEntityImage(image, fit: BoxFit.cover, width: 100, height: 100),
                         ),
                         if (orderedSelectedImages.contains(image))
                           Container(
@@ -209,59 +232,55 @@ class AddImagePickerScreenState extends State<AddImagePickerScreen> {
           Padding(
             padding: const EdgeInsets.only(left: 15, right: 12, bottom: 25),
             child: selectedImages.isNotEmpty
-                ? SizedBox(
-              height: 70,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: selectedImages.length,
-                itemBuilder: (context, index) {
-                  final image = selectedImages.toList()[index];
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                    child: Stack(
-                      children: [
-                        FutureBuilder<Uint8List?>(
-                          future: _getThumbnailData(image),
-                          builder: (context, snapshot) {
-                            if (snapshot.connectionState == ConnectionState.done && snapshot.hasData) {
-                              return ClipRRect(
-                                borderRadius: BorderRadius.circular(8),
-                                child: Image.memory(snapshot.data!, width: 70, height: 70, fit: BoxFit.cover),
-                              );
-                            }
-                            return const Center(child: CircularProgressIndicator(
-                              valueColor: AlwaysStoppedAnimation<Color>(AppColors.blueAccent),
-                            ));
-                          },
-                        ),
-                        Positioned(
-                          top: 4,
-                          right: 4,
-                          child: GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                _toggleSelection(image);
-                              });
-                            },
-                            child: Container(
-                              width: 20,
-                              height: 20,
-                              decoration: BoxDecoration(color: AppColors.black.withAlpha((0.2 * 255).toInt()), shape: BoxShape.circle),
-                              child: const Center(child: Icon(Icons.close, size: 16, color: AppColors.white)),
+              ? SizedBox(
+                  height: 70,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: selectedImages.length,
+                    itemBuilder: (context, index) {
+                      final image = selectedImages.toList()[index];
+
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                        child: Stack(
+                          children: [
+                            FutureBuilder<Uint8List?>(
+                              future: _getCachedThumbnailData(image),
+                              builder: (context, snapshot) {
+                                if (snapshot.connectionState == ConnectionState.done && snapshot.hasData) {
+                                  return ClipRRect(borderRadius: BorderRadius.circular(8), child: Image.memory(snapshot.data!, width: 70, height: 70, fit: BoxFit.cover));
+                                }
+                                return const Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(AppColors.blueAccent)));
+                              },
                             ),
-                          ),
+                            Positioned(
+                              top: 4,
+                              right: 4,
+                              child: GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    _toggleSelection(image);
+                                  });
+                                },
+                                child: Container(
+                                  width: 20,
+                                  height: 20,
+                                  decoration: BoxDecoration(color: AppColors.black.withAlpha((0.2 * 255).toInt()), shape: BoxShape.circle),
+                                  child: const Center(child: Icon(Icons.close, size: 16, color: AppColors.white)),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                  );
-                },
-              ),
-            )
-                : const Center(
-              child: Padding(
-                padding: EdgeInsets.only(top: 25),
-                child: Text('Выберите элементы которые нужно добавить.', style: TextStyle(color: AppColors.darkGrey)),
-              ),
+                      );
+                    },
+                  ),
+                )
+              : const Center(
+                  child: Padding(
+                    padding: EdgeInsets.only(top: 25),
+                    child: Text('Выберите элементы которые нужно добавить.', style: TextStyle(color: AppColors.darkGrey, fontWeight: FontWeight.w400)),
+                  ),
             ),
           ),
         ],

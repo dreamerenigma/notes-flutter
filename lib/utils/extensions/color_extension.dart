@@ -36,7 +36,22 @@ extension ColorExtension on Color {
     return hsl.withLightness((hsl.lightness - amount).clamp(0.0, 1.0)).toColor();
   }
 
-  Color getBackgroundColor() {
+  Color getBackgroundColor(bool isDark) {
+    if (isDark) {
+      switch (this) {
+        case AppColors.lightGreen:
+          return lighten(0.15);
+        case AppColors.lightBlue:
+          return lighten(0.15);
+        case AppColors.secondary:
+          return lighten(0.1);
+        case AppColors.red:
+          return lighten(0.15);
+        default:
+          return lighten(0.08);
+      }
+    }
+
     switch (this) {
       case AppColors.lightGreen:
         return darken(0.4);
@@ -47,7 +62,7 @@ extension ColorExtension on Color {
       case AppColors.red:
         return darken(0.45);
       default:
-        return darken(0.25);
+        return darken(0.05);
     }
   }
 }

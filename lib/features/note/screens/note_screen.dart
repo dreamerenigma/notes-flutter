@@ -24,10 +24,10 @@ import '../models/note_model.dart';
 import '../../task/models/task_model.dart';
 import '../../edit/widgets/popups/delete_dialog.dart';
 import '../models/note_view_model.dart';
-import '../widgets/app_bars/note_app_bar.dart';
+import '../widgets/bars/app_bars/note_app_bar.dart';
+import '../widgets/bars/nav_bar/bottom_nav_bar.dart';
+import '../widgets/bars/nav_bar/select_bottom_nav_bar.dart';
 import '../widgets/inputs/notes_search_field.dart';
-import '../widgets/nav_bar/bottom_nav_bar.dart';
-import '../widgets/nav_bar/select_bottom_nav_bar.dart';
 import '../../folders/widgets/popups/custom_folder_dialog.dart';
 import '../widgets/popups/custom_snack_bar_dialog.dart';
 import '../widgets/popups/note_popup_menu.dart';
@@ -110,16 +110,24 @@ class NoteScreenState extends State<NoteScreen> with SingleTickerProviderStateMi
 
     await WidgetsBinding.instance.endOfFrame;
     final color = context.read<AppState>().getColor('notes');
+    final isCategoryColor = context.read<AppState>().isCategoryColor('notes');
 
-    final result = await showDialog<Map<String, dynamic>>(context: context, barrierColor: AppColors.transparent, builder: (_) => CustomFolderDialog(type: FolderDialogType.notes, backgroundColor: (color ?? AppColors.black).getBackgroundColor()));
+    final result = await showDialog<Map<String, dynamic>>(context: context, barrierColor: AppColors.transparent,
+      builder: (_) => CustomFolderDialog(
+        type: FolderDialogType.notes, backgroundColor: isCategoryColor ? color!.getBackgroundColor(context.isDarkMode) : color ?? (context.isDarkMode ? AppColors.nightGrey : AppColors.softGrey), useCategoryColor: true,
+      ),
+    );
+
+    log('RESULT = $result');
 
     if (!mounted) return;
 
     if (result != null) {
       final title = result['text'] as String?;
-      final color = result['color'];
+      final color = result['color'] as Color?;
+      final isCategoryColor = result['isCategoryColor'] as bool? ?? false;
 
-      context.read<AppState>().setFolder('notes', title ?? 'Все заметки', color ?? AppColors.transparent);
+      context.read<AppState>().setFolder('notes', title ?? 'Все заметки', color, isCategoryColor: isCategoryColor);
     }
 
     setState(() {
@@ -176,9 +184,6 @@ class NoteScreenState extends State<NoteScreen> with SingleTickerProviderStateMi
       }
 
       selectedNoteCount = selectedNotes.length;
-
-      log("🟢 SELECT ALL:");
-      log("selectedNotes: $selectedNotes");
     });
   }
 
@@ -216,12 +221,14 @@ class NoteScreenState extends State<NoteScreen> with SingleTickerProviderStateMi
 
   @override
   Widget build(BuildContext context) {
+    final appState = context.watch<AppState>();
     final noteViewModel = Provider.of<NoteViewModel>(context, listen: false);
     final allNotes = context.watch<NoteViewModel>().sortedNotes;
     final hasNotes = allNotes.isNotEmpty;
     final title = context.watch<AppState>().getTitle('notes');
-    final color = context.watch<AppState>().getColor('notes');
-    final baseColor = color ?? (context.isDarkMode ? AppColors.black : AppColors.softGrey).getBackgroundColor();
+    final color = appState.getColor('notes');
+    final isCategoryColor = appState.isCategoryColor('notes');
+    final baseColor = isCategoryColor ? color!.getBackgroundColor(context.isDarkMode) : color ?? (context.isDarkMode ? AppColors.black : AppColors.white);
 
     return Scaffold(
       backgroundColor: baseColor,
@@ -244,15 +251,13 @@ class NoteScreenState extends State<NoteScreen> with SingleTickerProviderStateMi
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          selectedNotes.isNotEmpty ? TaskUtils.getTitleText(selectionMode: true, selectedCount: selectedNotes.length, type: ScreenType.notes) : (title ?? 'Все заметки'),
-                          style: const TextStyle(fontSize: 32),
-                        ),
-                      ],
+                    Flexible(
+                      child: Text(
+                        selectedNotes.isNotEmpty ? TaskUtils.getTitleText(selectionMode: true, selectedCount: selectedNotes.length, type: ScreenType.notes) : (title ?? 'Все заметки'),
+                        style: const TextStyle(fontSize: 32),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
                     const SizedBox(width: 4),
                     if (!selectionMode)
@@ -278,7 +283,7 @@ class NoteScreenState extends State<NoteScreen> with SingleTickerProviderStateMi
               padding: const EdgeInsets.symmetric(horizontal: 18),
               child: selectionMode ? const SizedBox(height: 20) : Consumer<NoteViewModel>(
                 builder: (context, vm, _) {
-                  final count = vm.noteCount;
+                  final count = vm.filteredNotes.length;
 
                   return Text('$count ${TaskUtils.getNoteCountText(count)}', style: TextStyle(fontSize: AppSizes.fontSizeSm, color: AppColors.darkGrey));
                 },
@@ -353,7 +358,7 @@ class NoteScreenState extends State<NoteScreen> with SingleTickerProviderStateMi
       ),
       floatingActionButton: _buildFAB(),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-      bottomNavigationBar: _buildBottomNavBar(allNotes, noteViewModel, color),
+      bottomNavigationBar: _buildBottomNavBar(allNotes, noteViewModel, baseColor),
     );
   }
 
@@ -383,7 +388,7 @@ class NoteScreenState extends State<NoteScreen> with SingleTickerProviderStateMi
         child: AppFAB(
           heroTag: 'note',
           onPressed: () {
-            Navigator.push(context, createPageRoute(AddEditNoteScreen(createdAt: DateTime.now())));
+            Navigator.push(context, createPageRoute(AddEditNoteScreen()));
           },
         ),
       );

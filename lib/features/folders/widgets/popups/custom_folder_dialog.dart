@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
@@ -35,11 +33,13 @@ class CategoryIconData {
 class CustomFolderDialog extends StatefulWidget {
   final FolderDialogType type;
   final Color backgroundColor;
+  final bool useCategoryColor;
 
   const CustomFolderDialog({
     super.key,
     required this.type,
     required this.backgroundColor,
+    this.useCategoryColor = false,
   });
 
   @override
@@ -66,7 +66,6 @@ class CustomFolderDialogState extends State<CustomFolderDialog> {
           'Избранное': const CategoryIconData(icon: AppVectors.favorite),
           'Недавно удаленное': const CategoryIconData(icon: AppVectors.delete),
         };
-
       case FolderDialogType.tasks:
         return {
           'Все задачи': const CategoryIconData(icon: AppVectors.note),
@@ -118,14 +117,14 @@ class CustomFolderDialogState extends State<CustomFolderDialog> {
   @override
   void initState() {
     super.initState();
-    selectedCategory = box.read('${_prefix}_selectedCategory');
+    selectedCategory = box.read('${_prefix}_selectedCategory') ?? 'Все заметки';
     isMyNotesExpanded = box.read('${_prefix}_expanded') ?? true;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       folderVM.loadData();
     });
   }
 
-  void _onCategorySelected(String category, Color color) {
+  void _onCategorySelected(String category, Color? color) {
     if (category ==  _getMyItemsTitle()) {
       final newValue = !isMyNotesExpanded;
 
@@ -141,8 +140,14 @@ class CustomFolderDialogState extends State<CustomFolderDialog> {
       selectedCategory = category;
     });
 
+    if (widget.type == FolderDialogType.notes) {
+      context.read<NoteViewModel>().setCategoryFilter(category);
+    }
+
+    final isCustomCategory = !categoryIcons.containsKey(category);
+
     box.write('${_prefix}_selectedCategory', category);
-    Navigator.pop(context, {'text': category, 'color': color});
+    Navigator.pop(context, {'text': category, 'color': color, 'isCategoryColor': isCustomCategory});
   }
 
   int getAllCount(List notes) => notes.length;
@@ -162,172 +167,186 @@ class CustomFolderDialogState extends State<CustomFolderDialog> {
     final everydayCount = getCountByCategory(notes, 'Повседневное');
     final workCount = getCountByCategory(notes, 'Работа');
 
-    return Dialog(
-      insetPadding: const EdgeInsets.only(top: 120, left: 0, right: 0, bottom: 0),
-      alignment: Alignment.topCenter,
-      backgroundColor: widget.backgroundColor,
-      child: ConstrainedBox(constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.75, maxWidth: MediaQuery.of(context).size.width),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          child: SizedBox(
-            width: MediaQuery.of(context).size.width,
-            child: ScrollConfiguration(
-              behavior: NoGlowScrollBehavior(),
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _buildDialogContainer(
-                      context,
-                      children: [
-                        ...categoryIcons.entries.map((entry) {
-                          final data = entry.value;
-
-                          return Column(
-                            children: [
-                              _buildDialogItemNoCategory(entry.key, context.isDarkMode ? AppColors.black : AppColors.white, iconPath: data.icon, iconSize: data.size, count: _getCount(entry.key), onTap: () => _onCategorySelected(entry.key, context.isDarkMode ? AppColors.black : AppColors.white)),
-                              if (entry.key != categoryIcons.keys.last)
-                                CustomDivider(),
-                            ],
-                          );
-                        }),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return TweenAnimationBuilder<double>(
+      duration: const Duration(milliseconds: 250),
+      curve: Curves.easeOutCubic,
+      tween: Tween(begin: 0, end: 1),
+      builder: (context, value, child) {
+        return Opacity(opacity: value, child: Transform.translate(offset: Offset(0, (1 - value) * -20), child: Transform.scale(scale: 0.96 + value * 0.04, child: child)));
+      },
+      child: Dialog(
+        insetPadding: const EdgeInsets.only(top: 125, left: 16, right: 16, bottom: 70),
+        alignment: Alignment.topCenter,
+        backgroundColor: widget.backgroundColor,
+        child: Container(
+          decoration: BoxDecoration(
+            color: widget.backgroundColor,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(color: AppColors.black.withAlpha((0.4 * 255).toInt()), offset: const Offset(0, 8), blurRadius: 20, spreadRadius: 0),
+            ],
+          ),
+          child: ConstrainedBox(constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.75, maxWidth: MediaQuery.of(context).size.width),
+            child: SizedBox(
+              width: MediaQuery.of(context).size.width,
+              child: ScrollConfiguration(
+                behavior: NoGlowScrollBehavior(),
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _buildDialogContainer(
+                        context,
                         children: [
-                          Text('Папки', style: TextStyle(fontSize: AppSizes.fontSizeSm, color: AppColors.darkGrey)),
-                          Builder(
-                            builder: (context) {
-                              return InkWell(
-                                key: _manageKey,
-                                borderRadius: BorderRadius.circular(8),
-                                splashColor: AppColors.blueAccent.withAlpha(60),
-                                highlightColor: AppColors.blueAccent.withAlpha(60),
-                                onTap: () async {
-                                  final RenderBox box = _manageKey.currentContext!.findRenderObject() as RenderBox;
-                                  final RenderBox overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
-                                  final Offset position = box.localToGlobal(Offset.zero);
-                                  final RelativeRect positionRect = RelativeRect.fromRect(Rect.fromLTWH(position.dx + 5, position.dy + box.size.height, box.size.width, 0), Offset.zero & overlay.size);
+                          ...categoryIcons.entries.map((entry) {
+                            final data = entry.value;
 
-                                  final result = await AppPopupMenu.show<int>(
-                                    context: context,
-                                    position: positionRect,
-                                    maxWidth: 180,
-                                    items: [
-                                      PopupMenuItems.item(value: 1, text: 'Новая папка', context: context),
-                                      PopupMenuItems.divider(),
-                                      PopupMenuItems.item(value: 2, text: 'Изменить', context: context),
-                                    ],
-                                  );
-
-                                  switch (result) {
-                                    case 1:
-                                      showFolderBottomSheetDialog(
-                                        context,
-                                        title: 'Новая папка',
-                                        hintText: 'Имя',
-                                        onCreate: (title) async {
-                                          log("ON CREATE: $title");
-                                          final folder = FolderModel(title: title.trim(), icon: '');
-                                          await folderVM.createFolder(folder);
-                                          log("ON CREATE: $title");
-                                        },
-                                      );
-                                      break;
-                                    case 2:
-                                      Navigator.of(context).push(createPageRoute(ChangeFolderScreen()));
-                                      break;
-                                  }
-                                },
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                  child: Text('Управление', style: TextStyle(fontSize: AppSizes.fontSizeSm, color: AppColors.blueAccent)),
-                                ),
-                              );
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    _buildDialogContainer(
-                      context,
-                      children: [
-                        _buildDialogItemNoCategory(
-                          _getMyItemsTitle(),
-                          AppColors.darkGrey,
-                          iconPath: AppVectors.folder,
-                          showArrow: true,
-                          isExpanded: isMyNotesExpanded,
-                          onTap: () {
-                            setState(() {
-                              isMyNotesExpanded = !isMyNotesExpanded;
-                              box.write('${_prefix}_expanded', isMyNotesExpanded);
-                            });
-                          },
-                        ),
-                        if (isMyNotesExpanded) ...[
-                          CustomDivider(),
-                          _buildDialogItem('Путешествия', AppColors.secondary, AppColors.secondary, count: travelCount),
-                          CustomDivider(left: 42),
-                          _buildDialogItem('Личное', AppColors.lightBlue, AppColors.lightBlue, count: personalCount),
-                          CustomDivider(left: 42),
-                          _buildDialogItem('Повседневное', AppColors.lightGreen, AppColors.lightGreen, count: everydayCount),
-                          CustomDivider(left: 42),
-                          _buildDialogItem('Работа', AppColors.red, AppColors.red, count: workCount),
-                          CustomDivider(left: 42),
-                          _buildDialogCreateCategory('Создать', null),
-                        ],
-                      ],
-                    ),
-                    SizedBox(height: 12),
-                    Obx(() {
-                      return Column(
-                        children: [
-                          ...folderVM.folders.map((folder) {
-                            final categories = folderVM.grouped[folder.id] ?? [];
-
-                            return Padding(
-                              padding: const EdgeInsets.only(bottom: 12),
-                              child: _buildDialogContainer(
-                                context,
-                                children: [
-                                  _buildDialogItemNoCategory(folder.title, AppColors.darkGrey, iconPath: AppVectors.folder, showArrow: true, isExpanded: folderVM.isExpanded(folder.id), onTap: () => folderVM.toggleFolder(folder.id)),
-                                  if (folderVM.isExpanded(folder.id))
-                                    CustomDivider(),
-                                  if (folderVM.isExpanded(folder.id)) ...[
-                                    ...categories.asMap().entries.map((entry) {
-                                      final index = entry.key;
-                                      final cat = entry.value;
-                                      final count = context.watch<NoteViewModel>().allNotes.where((n) => n.category == cat.title).length;
-
-                                      return Column(
-                                        children: [
-                                          _buildDialogItem(cat.title, cat.color, cat.stripeColor, count: count, onTap: () => _onCategorySelected(cat.title, cat.color)),
-
-                                          if (index != categories.length - 1)
-                                            CustomDivider(left: 42),
-                                        ],
-                                      );
-                                    }),
-                                  ],
-                                  if (folderVM.isExpanded(folder.id))
-                                    CustomDivider(left: 42),
-                                  if (folderVM.isExpanded(folder.id))
-                                    _buildDialogCreateCategory('Создать', folder),
-                                ],
-                              ),
+                            return Column(
+                              children: [
+                                _buildDialogItemNoCategory(entry.key, context.isDarkMode ? AppColors.black : AppColors.white, iconPath: data.icon, iconSize: data.size, count: _getCount(entry.key), onTap: () => _onCategorySelected(entry.key, context.isDarkMode ? AppColors.black : AppColors.white)),
+                                if (entry.key != categoryIcons.keys.last)
+                                  CustomDivider(),
+                              ],
                             );
                           }),
                         ],
-                      );
-                    }),
-                    SizedBox(height: 12),
-                  ],
+                      ),
+                      const SizedBox(height: 8),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Padding(padding: const EdgeInsets.only(left: 12), child: Text('Папки', style: TextStyle(fontSize: AppSizes.fontSizeSm, color: AppColors.darkGrey))),
+                            Builder(
+                              builder: (context) {
+                                return InkWell(
+                                  key: _manageKey,
+                                  borderRadius: BorderRadius.circular(8),
+                                  splashColor: AppColors.blueAccent.withAlpha(60),
+                                  highlightColor: AppColors.blueAccent.withAlpha(60),
+                                  onTap: () async {
+                                    final RenderBox box = _manageKey.currentContext!.findRenderObject() as RenderBox;
+                                    final RenderBox overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
+                                    final Offset position = box.localToGlobal(Offset.zero);
+                                    final RelativeRect positionRect = RelativeRect.fromRect(Rect.fromLTWH(position.dx + 5, position.dy + box.size.height, box.size.width, 0), Offset.zero & overlay.size);
+
+                                    final result = await AppPopupMenu.show<int>(
+                                      context: context,
+                                      position: positionRect,
+                                      maxWidth: 180,
+                                      items: [
+                                        PopupMenuItems.item(value: 1, text: 'Новая папка', context: context),
+                                        PopupMenuItems.divider(context),
+                                        PopupMenuItems.item(value: 2, text: 'Изменить', context: context),
+                                      ],
+                                    );
+
+                                    switch (result) {
+                                      case 1:
+                                        showFolderBottomSheetDialog(
+                                          context,
+                                          title: 'Новая папка',
+                                          hintText: 'Имя',
+                                          onCreate: (title) async {
+                                            final folder = FolderModel(title: title.trim(), icon: '');
+                                            await folderVM.createFolder(folder);
+                                          },
+                                        );
+                                        break;
+                                      case 2:
+                                        Navigator.of(context).push(createPageRoute(ChangeFolderScreen()));
+                                        break;
+                                    }
+                                  },
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                    child: Text('Управление', style: TextStyle(fontSize: AppSizes.fontSizeSm, color: AppColors.blueAccent)),
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      _buildDialogContainer(
+                        context,
+                        children: [
+                          _buildDialogItemNoCategory(
+                            _getMyItemsTitle(),
+                            AppColors.darkGrey,
+                            iconPath: AppVectors.folder,
+                            showArrow: true,
+                            isExpanded: isMyNotesExpanded,
+                            onTap: () {
+                              setState(() {
+                                isMyNotesExpanded = !isMyNotesExpanded;
+                                box.write('${_prefix}_expanded', isMyNotesExpanded);
+                              });
+                            },
+                          ),
+                          if (isMyNotesExpanded) ...[
+                            CustomDivider(),
+                            _buildDialogItem('Путешествия', AppColors.secondary, AppColors.secondary, count: travelCount),
+                            CustomDivider(left: 42),
+                            _buildDialogItem('Личное', AppColors.lightBlue, AppColors.lightBlue, count: personalCount),
+                            CustomDivider(left: 42),
+                            _buildDialogItem('Повседневное', AppColors.lightGreen, AppColors.lightGreen, count: everydayCount),
+                            CustomDivider(left: 42),
+                            _buildDialogItem('Работа', AppColors.red, AppColors.red, count: workCount),
+                            CustomDivider(left: 42),
+                            _buildDialogCreateCategory('Создать', null),
+                          ],
+                        ],
+                      ),
+                      if (folderVM.folders.isNotEmpty)
+                        const SizedBox(height: 12),
+                      Obx(() {
+                        return Column(
+                          children: [
+                            ...folderVM.folders.asMap().entries.map((entry) {
+                              final index = entry.key;
+                              final folder = entry.value;
+                              final categories = folderVM.grouped[folder.id] ?? [];
+
+                              return Padding(
+                                padding: EdgeInsets.only(bottom: index != folderVM.folders.length - 1 ? 12 : 0),
+                                child: _buildDialogContainer(
+                                  context,
+                                  children: [
+                                    _buildDialogItemNoCategory(folder.title, AppColors.darkGrey, iconPath: AppVectors.folder, showArrow: true, isExpanded: folderVM.isExpanded(folder.id), onTap: () => folderVM.toggleFolder(folder.id)),
+                                    if (folderVM.isExpanded(folder.id))
+                                      CustomDivider(),
+                                    if (folderVM.isExpanded(folder.id)) ...[
+                                      ...categories.asMap().entries.map((entry) {
+                                        final index = entry.key;
+                                        final cat = entry.value;
+                                        final count = context.watch<NoteViewModel>().allNotes.where((n) => n.category == cat.title).length;
+
+                                        return Column(
+                                          children: [
+                                            _buildDialogItem(cat.title, cat.color, cat.stripeColor, count: count, onTap: () => _onCategorySelected(cat.title, cat.color)),
+
+                                            if (index != categories.length - 1)
+                                              CustomDivider(left: 42),
+                                          ],
+                                        );
+                                      }),
+                                    ],
+                                    if (folderVM.isExpanded(folder.id))
+                                      CustomDivider(left: 42),
+                                    if (folderVM.isExpanded(folder.id))
+                                      _buildDialogCreateCategory('Создать', folder),
+                                  ],
+                                ),
+                              );
+                            }),
+                          ],
+                        );
+                      }),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -403,9 +422,9 @@ class CustomFolderDialogState extends State<CustomFolderDialog> {
       child: InkWell(
         borderRadius: BorderRadius.circular(AppSizes.inputFieldRadius),
         onTap: onTap,
-        splashColor: AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()),
-        highlightColor: AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()),
-        hoverColor: AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()),
+        splashColor: context.isDarkMode ? AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()) : AppColors.lightBackground,
+        highlightColor: context.isDarkMode ? AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()) : AppColors.lightBackground,
+        hoverColor: context.isDarkMode ? AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()) : AppColors.lightBackground,
         child: Container(
           decoration: BoxDecoration(
             color: isSelected ? AppColors.blueAccent.withAlpha((0.2 * 255).toInt()) : AppColors.transparent,

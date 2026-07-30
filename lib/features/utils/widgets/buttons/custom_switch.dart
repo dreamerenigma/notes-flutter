@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get_utils/src/extensions/context_extensions.dart';
 import '../../../../utils/constants/app_colors.dart';
-import '../../../note/widgets/popups/light_dialog.dart';
+import '../../../settings/widgets/dialogs/light_dialog.dart';
 
 class CustomSwitch extends StatefulWidget {
   final bool value;

@@ -6,6 +6,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get_utils/src/extensions/context_extensions.dart';
 import 'package:heroicons/heroicons.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:notes/features/utils/widgets/dividers/custom_divider.dart';
 import '../../../../routes/custom_page_route.dart';
 import '../../../../utils/constants/app_colors.dart';
 import '../../../../utils/constants/app_sizes.dart';
@@ -49,6 +50,8 @@ void showOpenGalleryDialog(BuildContext context, void Function(XFile?) onImagePi
   log('[log] Открытие диалога для выбора изображения');
   showDialog(
     context: context,
+    barrierDismissible: true,
+    barrierColor: AppColors.black54,
     builder: (BuildContext context) {
       return Dialog(
         insetPadding: const EdgeInsets.all(12),
@@ -108,29 +111,37 @@ Widget _buildOptionSend(BuildContext context, void Function(XFile?) onImagePicke
   return Column(
     mainAxisSize: MainAxisSize.min,
     children: [
-      _buildOption(context, Icon(BootstrapIcons.camera), 'Сделать фото', () {
+      _buildOption(context, Icon(BootstrapIcons.camera, size: 24), 'Сделать фото', () {
         pickImageFromCamera(context, onImagePicked);
       }),
-      _buildDivider(context),
-      _buildOption(context, SvgPicture.asset(AppVectors.scanner), 'Сканировать документ', () async {
+      CustomDivider(indent: 66, endIndent: 20, left: 0, right: 0),
+      _buildOption(context, SvgPicture.asset(AppVectors.scanner, width: 24, height: 24, colorFilter: ColorFilter.mode(context.isDarkMode ? AppColors.white : AppColors.black, BlendMode.srcIn)), 'Сканировать документ', () async {
         final path = await Navigator.push(context, MaterialPageRoute(builder: (_) => const SimpleCameraScreen()));
 
         if (path != null) {
           log('Фото документа: $path');
         }
       }),
-      _buildDivider(context),
-      _buildOption(context, HeroIcon(HeroIcons.creditCard), 'Добавить карту', () {
+      CustomDivider(indent: 66, endIndent: 20, left: 0, right: 0),
+      _buildOption(context, HeroIcon(HeroIcons.creditCard, size: 24), 'Добавить карту', () {
 
       }),
-      _buildDivider(context),
-      _buildOption(context, Icon(Icons.photo_library_outlined), 'Выбрать из Галереи', () async {
-        final selectedImagePath = await Navigator.push<String>(context, createPageRoute(const AddImagePickerScreen()));
+      CustomDivider(indent: 66, endIndent: 20, left: 0, right: 0),
+      _buildOption(
+        context,
+        Icon(Icons.photo_library_outlined, size: 24),
+        'Выбрать из Галереи',
+        () async {
+          final selectedImagePath = await Navigator.push<String>(context, createPageRoute(const AddImagePickerScreen()));
 
-        if (selectedImagePath != null) {
-          log('Selected image path: $selectedImagePath');
-        }
-      }),
+          if (selectedImagePath != null) {
+            log('Selected image path: $selectedImagePath');
+            onImagePicked(XFile(selectedImagePath));
+
+            Navigator.pop(context);
+          }
+        },
+      ),
     ],
   );
 }
@@ -139,31 +150,25 @@ Widget _buildOption(BuildContext context, Widget icon, String text, VoidCallback
   return Material(
     color: AppColors.transparent,
     child: Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 6),
       child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        splashColor: AppColors.softNight,
         splashFactory: NoSplash.splashFactory,
-        highlightColor: AppColors.lightSoftNight,
+        borderRadius: BorderRadius.circular(8),
+        splashColor: context.isDarkMode ? AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()) : AppColors.softGrey,
+        highlightColor: context.isDarkMode ? AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()) : AppColors.softGrey,
+        hoverColor: context.isDarkMode ? AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()) : AppColors.softGrey,
+        onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 16),
+          padding: const EdgeInsets.all(16),
           child: Row(
             children: [
               icon,
-              const SizedBox(width: 18),
-              Text(text, style: TextStyle(fontSize: AppSizes.fontSizeMd)),
+              const SizedBox(width: 20),
+              Text(text, style: TextStyle(fontSize: AppSizes.fontSizeMd, fontWeight: FontWeight.w500)),
             ],
           ),
         ),
       ),
     ),
-  );
-}
-
-Widget _buildDivider(BuildContext context) {
-  return Padding(
-    padding: const EdgeInsets.only(left: 65, right: 25),
-    child: Divider(height: 0, thickness: 0, color: context.isDarkMode ? AppColors.darkerGrey : AppColors.buttonDisabled),
   );
 }

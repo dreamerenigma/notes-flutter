@@ -15,8 +15,10 @@ import '../../../utils/constants/app_colors.dart';
 import '../../../utils/constants/app_vectors.dart';
 import '../../../utils/extensions/color_extension.dart';
 import '../../../utils/popups/dialogs.dart';
-import '../../note/widgets/app_bars/note_app_bar.dart';
 import '../../folders/widgets/popups/custom_folder_dialog.dart';
+import '../../note/widgets/bars/app_bars/note_app_bar.dart';
+import '../../note/widgets/bars/nav_bar/bottom_nav_bar.dart';
+import '../../note/widgets/bars/nav_bar/select_bottom_nav_bar.dart';
 import '../utils/task_utils.dart';
 import '../models/task_model.dart';
 import '../widgets/groups/task_group_header.dart';
@@ -26,8 +28,6 @@ import '../widgets/popups/tasks_popup_menu.dart';
 import 'add_edit_task_screen.dart';
 import '../../edit/widgets/popups/delete_dialog.dart';
 import '../../note/screens/note_screen.dart';
-import '../../note/widgets/nav_bar/bottom_nav_bar.dart';
-import '../../note/widgets/nav_bar/select_bottom_nav_bar.dart';
 import '../models/task_view_model.dart';
 import '../widgets/lists/items/task_list_item.dart';
 import '../widgets/popups/add_task_bottom_sheet_dialog.dart';
@@ -97,7 +97,10 @@ class _TaskScreenState extends State<TaskScreen> with SingleTickerProviderStateM
       widget.onFolderDialogChanged?.call(true);
 
       final color = context.read<AppState>().getColor('tasks');
-      final result = await showDialog<Map<String, dynamic>>(context: context, barrierColor: AppColors.transparent, builder: (_) => CustomFolderDialog(type: FolderDialogType.tasks, backgroundColor: (color ?? AppColors.black).getBackgroundColor()));
+      final result = await showDialog<Map<String, dynamic>>(context: context, barrierColor: AppColors.transparent,
+          builder: (_) => CustomFolderDialog(type: FolderDialogType.tasks, backgroundColor: (color ?? AppColors.black).getBackgroundColor(context.isDarkMode),
+        ),
+      );
 
       if (!mounted) return;
 
@@ -288,8 +291,10 @@ class _TaskScreenState extends State<TaskScreen> with SingleTickerProviderStateM
           final tasks = viewModel.allTasks;
           final groupedTasks = TaskUtils.groupTasks(tasks, showCompleted);
           final title = context.watch<AppState>().getTitle('tasks');
-          final color = context.watch<AppState>().getColor('tasks');
-          final baseColor = color ?? (context.isDarkMode ? AppColors.black : AppColors.softGrey).getBackgroundColor();
+          final appState = context.watch<AppState>();
+          final color = appState.getColor('notes');
+          final isCategoryColor = appState.isCategoryColor('notes');
+          final baseColor = isCategoryColor ? color!.getBackgroundColor(context.isDarkMode) : color ?? (context.isDarkMode ? AppColors.black : AppColors.white);
 
           return ScrollbarTheme(
             data: ScrollbarThemeData(
@@ -462,7 +467,7 @@ class _TaskScreenState extends State<TaskScreen> with SingleTickerProviderStateM
                       ),
                     ],
                   ),
-                  bottomNavigationBar: _buildBottomNavBar(context, viewModel, tasks, color),
+                  bottomNavigationBar: _buildBottomNavBar(context, viewModel, tasks, baseColor),
                 ),
               ),
             ),

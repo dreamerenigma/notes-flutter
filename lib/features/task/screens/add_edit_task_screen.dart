@@ -32,6 +32,7 @@ class AddEditTaskScreen extends StatefulWidget {
 }
 
 class AddEditTaskScreenState extends State<AddEditTaskScreen> {
+  final GlobalKey moreKey = GlobalKey();
   final TextEditingController taskTitleController = TextEditingController();
   final TextEditingController taskDescriptionController = TextEditingController();
   final TextEditingController noteController = TextEditingController();
@@ -184,6 +185,8 @@ class AddEditTaskScreenState extends State<AddEditTaskScreen> {
         showMore: false,
         selectedNotes: const [],
         allNotes: const [],
+        moreKey: moreKey,
+        isFavorite: false,
       ),
     );
   }

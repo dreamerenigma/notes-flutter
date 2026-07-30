@@ -8,6 +8,7 @@ class AppVectors {
   static const String format = '.svg';
 
   /// -- Vectors
+  static const String logo = "assets/vectors/notes_logo.svg";
   static const String moreGrid = "assets/vectors/more_grid.svg";
   static const String documentGreyLight = "assets/vectors/document_grey_light.svg";
   static const String documentGreyDark = "assets/vectors/document_grey_dark.svg";
@@ -35,6 +36,7 @@ class AppVectors {
   static const String noTasks = "assets/vectors/no_tasks.svg";
   static const String lock = "assets/vectors/lock.svg";
   static const String change = "assets/vectors/change.svg";
+  static const String profile = "assets/vectors/profile.svg";
   static const String confidential = "assets/vectors/confidential.svg";
   static const String watermark = "assets/vectors/watermark.svg";
   static const String arrowDropDown = "assets/vectors/arrow_drop_down.svg";
@@ -50,6 +52,19 @@ class AppVectors {
   static const String copy = "assets/vectors/copy.svg";
   static const String gallery = "assets/vectors/gallery.svg";
   static const String scanner = "assets/vectors/scanner.svg";
+  static const String palette = "assets/vectors/palette.svg";
+  static const String picture = "assets/vectors/picture.svg";
+  static const String image = "assets/vectors/image.svg";
+  static const String exportDocument = "assets/vectors/export_document.svg";
+  static const String shareOnDevice = "assets/vectors/share_on_device.svg";
+  static const String arrowDown = "assets/vectors/arrow_down.svg";
+  static const String keyboard = "assets/vectors/keyboard.svg";
+  static const String colorWheel = "assets/vectors/color_wheel.svg";
+  static const String pen = "assets/vectors/pen.svg";
+  static const String pencil = "assets/vectors/pencil.svg";
+  static const String circlePlus = "assets/vectors/circle_plus.svg";
+  static const String clearData = "assets/vectors/clear_data.svg";
+  static const String deleteAccount = "assets/vectors/delete_account.svg";
 
   /// -- Flags country
   static const String abw = '${pathFlags}abw$format';

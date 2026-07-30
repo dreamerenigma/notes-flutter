@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Скачано с сайта svg4.ru / Downloaded from svg4.ru -->
+
+<svg
+   width="800"
+   height="800"
+   fill="#000000"
+   viewBox="0 0 200 200"
+   data-name="Layer 1"
+   id="Layer_1"
+   version="1.1"
+   sodipodi:docname="export_document.svg"
+   inkscape:version="1.4.3 (0d15f75, 2025-12-25)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs14" />
+  <sodipodi:namedview
+     id="namedview14"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     showguides="true"
+     inkscape:zoom="0.1767767"
+     inkscape:cx="322.44069"
+     inkscape:cy="-404.46508"
+     inkscape:window-width="1920"
+     inkscape:window-height="1009"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="Layer_1" />
+  <path
+     d="m 61.82674,1.375 v 7.081897 h 96.30328 c 3.9112,0 7.08189,3.170673 7.08189,7.081897 V 144.83825 h 7.08189 V 15.538794 C 172.2938,7.7163467 165.95244,1.375 158.13002,1.375 Z"
+     id="path11"
+     sodipodi:nodetypes="ccssccssc"
+     style="fill:#000000;stroke-width:7.08189" />
+  <path
+     d="M 122.02725,1.375 V 8.456897 H 44.819656 c -3.911223,0 -7.081897,3.170673 -7.081897,7.081897 V 120.84567 H 30.655862 V 15.538794 C 30.655862,7.7163467 36.997209,1.375 44.819656,1.375 Z"
+     id="path12"
+     sodipodi:nodetypes="ccssccssc"
+     style="fill:#000000;stroke-width:7.08189" />
+  <path
+     d="m 44.819656,199.66812 v -7.0819 0 c -3.911223,0 -7.081897,-3.17068 -7.081897,-7.08189 v -79.69151 h -7.081897 v 79.69151 c 0,7.82243 6.341347,14.16379 14.163794,14.16379 z"
+     id="path13"
+     sodipodi:nodetypes="ccssccsc"
+     style="fill:#000000;stroke-width:7.08189" />
+  <path
+     d="m 143.32885,136.99333 c -4.03669,-2.26621 -6.44454,-5.09898 -6.44454,-8.14417 a 43.128753,43.128753 0 0 1 -1.48719,11.2602 c -7.0819,28.82331 -42.491382,50.84802 -85.832591,52.40604 h -4.744873 v 7.08189 h 5.098967 C 112.66423,198.53502 163.72471,177.28931 171.30234,150.02402 a 26.698752,26.698752 0 0 0 0.99146,-7.01108 61.754143,61.754143 0 0 1 -28.96495,-6.01961 z m -40.93336,49.57328 a 74.359919,74.359919 0 0 0 39.23369,-42.49139 63.312159,63.312159 0 0 0 22.30798,5.59471 c -5.31142,14.5887 -27.69022,28.75249 -61.54167,36.75504 z"
+     id="path14"
+     style="fill:#000000;stroke-width:7.08189" />
+  <rect
+     style="fill:#000000;fill-rule:evenodd;stroke:#000000;stroke-width:0.833076;stroke-linecap:square;stroke-miterlimit:146.2;stroke-dasharray:none;stroke-opacity:1;paint-order:stroke fill markers"
+     id="rect14"
+     width="93.440773"
+     height="8.2719698"
+     x="54.260509"
+     y="30.887884"
+     rx="3.9710546"
+     ry="4.1359849" />
+  <rect
+     style="fill:#000000;fill-rule:evenodd;stroke:#000000;stroke-width:0.833076;stroke-linecap:square;stroke-miterlimit:146.2;stroke-dasharray:none;stroke-opacity:1;paint-order:stroke fill markers"
+     id="rect14-9"
+     width="93.440773"
+     height="8.2719698"
+     x="54.259155"
+     y="60.880985"
+     rx="3.9710546"
+     ry="4.1359849" />
+  <rect
+     style="fill:#000000;fill-rule:evenodd;stroke:#000000;stroke-width:0.833076;stroke-linecap:square;stroke-miterlimit:146.2;stroke-dasharray:none;stroke-opacity:1;paint-order:stroke fill markers"
+     id="rect14-9-8"
+     width="93.440773"
+     height="8.2719698"
+     x="54.26186"
+     y="94.475769"
+     rx="3.9710546"
+     ry="4.1359849" />
+</svg>

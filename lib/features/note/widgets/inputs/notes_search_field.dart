@@ -48,7 +48,7 @@ class _NotesSearchFieldState extends State<NotesSearchField> {
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         fillColor: widget.isFocused
           ? (context.isDarkMode ? AppColors.blackGrey : AppColors.white)
-          : (widget.selectionMode ? (context.isDarkMode ? AppColors.black : AppColors.white.withAlpha((0.5 * 255).toInt())) : (context.isDarkMode ? AppColors.deepNight : AppColors.softGrey)),
+          : (widget.selectionMode ? (context.isDarkMode ? AppColors.black : AppColors.white.withAlpha((0.5 * 255).toInt())) : (context.isDarkMode ? AppColors.nightGrey : AppColors.softGrey)),
         prefixIcon: Padding(
           padding: const EdgeInsets.only(left: 8),
           child: Icon(Icons.search_rounded, color: widget.selectionMode ? (context.isDarkMode ? AppColors.greyDarkerV1 : AppColors.grey) : (context.isDarkMode ? AppColors.grey : AppColors.black)),

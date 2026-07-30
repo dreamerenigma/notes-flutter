@@ -1,16 +1,15 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:ui' as ui;
 import 'package:bootstrap_icons/bootstrap_icons.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get_utils/src/extensions/context_extensions.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:intl/intl.dart';
 import 'package:notes/features/utils/widgets/scrolls/no_glow_scroll_behavior.dart';
 import '../../../../utils/constants/app_colors.dart';
 import '../../../../utils/constants/app_sizes.dart';
-import '../../../note/widgets/popups/custom_category_dialog.dart';
 
 class NoteForm extends StatefulWidget {
   final TextEditingController noteTitleController;
@@ -24,6 +23,7 @@ class NoteForm extends StatefulWidget {
   final bool isBold;
   final bool isListMode;
   final ValueChanged<bool> onListModeChanged;
+  final ValueChanged<String?> onImageChanged;
 
   const NoteForm({
     super.key,
@@ -36,8 +36,9 @@ class NoteForm extends StatefulWidget {
     required this.isBold,
     required this.isListMode,
     required this.onListModeChanged,
+    required this.imagePath,
+    required this.onImageChanged,
     this.createdAt,
-    this.imagePath,
   });
 
   @override
@@ -48,36 +49,28 @@ class NoteFormState extends State<NoteForm> {
   final List<FocusNode> listFocusNodes = [];
   final GlobalKey<NoteFormState> noteFormKey = GlobalKey<NoteFormState>();
   final urlRegex = RegExp(r'((https?://)?[\w\-]+(\.[\w\-]+)+[/#?]?.*)');
-  final List<String> undoStack = [];
-  final List<String> redoStack = [];
   final List<TextEditingController> listControllers = [];
-  late String displayTime;
-  late Color selectedColor;
   late bool isDark;
   String? selectedCategoryText;
-  String? imagePath;
   bool hasUnsavedChanges = false;
   bool isPressed = false;
   bool isEditing = true;
   bool isFocused = false;
-  Timer? _debounce;
-
   FocusNode? activeFocusNode;
 
   @override
   void initState() {
     super.initState();
-    displayTime = widget.isNewNote ? 'Сегодня ${DateFormat('HH:mm').format(DateTime.now())}' : widget.createdAt!;
-    imagePath = widget.imagePath;
     listControllers.add(TextEditingController());
     listFocusNodes.add(FocusNode());
     widget.noteTitleController.addListener(_onFormChanged);
     widget.noteDescriptionController.addListener(_onFormChanged);
+    widget.noteDescriptionFocusNode.addListener(_focusListener);
     selectedCategoryText = null;
-    widget.noteDescriptionFocusNode.addListener(() {
-      setState(() {
-        isFocused = widget.noteDescriptionFocusNode.hasFocus;
-      });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _focusListener();
+      }
     });
   }
 
@@ -85,6 +78,7 @@ class NoteFormState extends State<NoteForm> {
   void dispose() {
     widget.noteTitleController.removeListener(_onFormChanged);
     widget.noteDescriptionController.removeListener(_onFormChanged);
+    widget.noteDescriptionFocusNode.removeListener(_focusListener);
     for (final controller in listControllers) {
       controller.dispose();
     }
@@ -94,21 +88,19 @@ class NoteFormState extends State<NoteForm> {
     super.dispose();
   }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    selectedColor = context.isDarkMode ? AppColors.darkSlate.withAlpha((0.6 * 255).toInt()) : AppColors.softGrey.withAlpha((0.6 * 255).toInt());
-  }
+  void _focusListener() {
+    if (!mounted) return;
 
-  void _onFormChanged() {
     setState(() {
-      hasUnsavedChanges = true;
+      isFocused = widget.noteDescriptionFocusNode.hasFocus;
     });
   }
 
-  void updateImagePath(String? newImagePath) {
+  void _onFormChanged() {
+    if (!mounted) return;
+
     setState(() {
-      imagePath = newImagePath;
+      hasUnsavedChanges = true;
     });
   }
 
@@ -117,9 +109,7 @@ class NoteFormState extends State<NoteForm> {
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
 
     if (image != null) {
-      setState(() {
-        imagePath = image.path;
-      });
+      widget.onImageChanged(image.path);
     }
   }
 
@@ -184,6 +174,16 @@ class NoteFormState extends State<NoteForm> {
     setState(() {});
   }
 
+
+
+  Future<ui.Image> _getImageInfo(File file) async {
+    final bytes = await file.readAsBytes();
+    final codec = await ui.instantiateImageCodec(bytes);
+    final frame = await codec.getNextFrame();
+
+    return frame.image;
+  }
+
   @override
   Widget build(BuildContext context) {
     return ScrollbarTheme(
@@ -201,118 +201,59 @@ class NoteFormState extends State<NoteForm> {
           behavior: NoGlowScrollBehavior(),
           child: SingleChildScrollView(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (isEditing)
-                  TextSelectionTheme(
-                    data: TextSelectionThemeData(
-                      cursorColor: AppColors.blue,
-                      selectionColor: AppColors.blue.withAlpha((0.3 * 255).toInt()),
-                      selectionHandleColor: AppColors.blue,
-                    ),
-                    child: TextField(
-                      controller: widget.noteTitleController,
-                      focusNode: widget.noteTitleFocusNode,
-                      onChanged: (value) {
-                        _debounce?.cancel();
-                        _debounce = Timer(const Duration(milliseconds: 400), () {
-                          undoStack.add(value);
-                          redoStack.clear();
-                        });
-                      },
-                      decoration: const InputDecoration(
-                        hintText: 'Название',
-                        hintStyle: TextStyle(fontSize: 32, fontWeight: FontWeight.w400, color: AppColors.darkGrey),
-                        border: InputBorder.none,
-                        enabledBorder: InputBorder.none,
-                        focusedBorder: InputBorder.none,
-                      ),
-                      textCapitalization: TextCapitalization.sentences,
-                      style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w500),
-                    ),
-                  ),
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        Text(displayTime, style: TextStyle(fontSize: AppSizes.fontSizeSm, fontWeight: FontWeight.w300, color: AppColors.darkGrey)),
-                        const SizedBox(width: 8),
-                        Material(
-                          color: AppColors.transparent,
-                          borderRadius: BorderRadius.circular(AppSizes.spaceBtwInputFields),
-                          child: Ink(
-                            decoration: BoxDecoration(color: selectedColor, borderRadius: BorderRadius.circular(AppSizes.spaceBtwInputFields)),
-                            child: InkWell(
-                              borderRadius: BorderRadius.circular(AppSizes.spaceBtwInputFields),
-                              onTap: () async {
-                                final currentFocus = FocusScope.of(context).focusedChild;
 
-                                final result = await showDialog<Map<String, dynamic>>(
-                                  context: context,
-                                  barrierColor: AppColors.transparent,
-                                  builder: (BuildContext context) {
-                                    return const CustomCategoryDialog();
-                                  },
-                                );
+                  if (widget.imagePath != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 16),
+                      child: Center(
+                        child: FutureBuilder<ui.Image>(
+                          future: _getImageInfo(File(widget.imagePath!)),
+                          builder: (context, snapshot) {
+                            if (!snapshot.hasData) {
+                              return const CircularProgressIndicator();
+                            }
 
-                                if (result != null) {
-                                  setState(() {
-                                    selectedCategoryText = result['text'] as String;
-                                    selectedColor = result['color'] as Color;
-                                  });
+                            final image = snapshot.data!;
+                            final aspectRatio = image.width / image.height;
 
-                                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                                    currentFocus?.requestFocus();
-                                  });
-                                }
+                            double width = 250;
+                            double height = 250;
 
-                                isPressed = !isPressed;
-                              },
-                              child: Container(
-                                padding: const EdgeInsets.only(left: 12, right: 8, top: 4, bottom: 4),
-                                decoration: BoxDecoration(color: selectedColor, borderRadius: BorderRadius.circular(25)),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Text(selectedCategoryText ?? 'Без категории', style: TextStyle(fontSize: AppSizes.fontSizeSm, color: AppColors.darkGrey)),
-                                    const SizedBox(width: 4),
-                                    const Icon(Icons.arrow_drop_down_outlined, size: 20, color: AppColors.darkGrey),
-                                  ],
+                            if (aspectRatio < 1) {
+                              height = 350;
+                            }
+
+                            if (aspectRatio > 1) {
+                              width = 350;
+                              height = 250;
+                            }
+
+                            return  Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                ClipRRect(borderRadius: BorderRadius.circular(14), child: Image.file(File(widget.imagePath!), width: width, height: height, fit: BoxFit.cover)),
+                                Positioned(
+                                  top: 8,
+                                  right: 8,
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        widget.onImageChanged(null);
+                                      });
+                                    },
+                                    child: CircleAvatar(radius: 11, backgroundColor: AppColors.black.withAlpha((0.2 * 255).toInt()), child: const Icon(Icons.close_rounded, color: AppColors.white, size: 20)),
+                                  ),
                                 ),
-                              ),
-                            ),
-                          ),
+                              ],
+                            );
+                          },
                         ),
-                      ],
-                    ),
-                  ),
-                  if (imagePath != null)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 16),
-                    child: Center(
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          ClipRRect(borderRadius: BorderRadius.circular(14), child: Image.file(File(imagePath!), width: 250, height: 250, fit: BoxFit.cover)),
-                          Positioned(
-                            top: 8,
-                            right: 8,
-                            child: GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  imagePath = null;
-                                });
-                              },
-                              child: CircleAvatar(radius: 11, backgroundColor: AppColors.grey.withAlpha((0.7 * 255).toInt()), child: const Icon(Icons.close_rounded, color: AppColors.white, size: 20)),
-                            ),
-                          ),
-                        ],
                       ),
                     ),
-                  ),
                   SizedBox(height: 14),
                   widget.isListMode ? _buildListEditor() : Stack(
                     children: [
@@ -335,7 +276,7 @@ class NoteFormState extends State<NoteForm> {
                               contentPadding: EdgeInsets.zero,
                             ),
                             textCapitalization: TextCapitalization.sentences,
-                            style: TextStyle(fontSize: AppSizes.fontSizeMd, fontWeight: widget.isBold ? FontWeight.w700 : FontWeight.w400, height: 1.5, fontFamily: 'Poppins'),
+                            style: TextStyle(fontSize: 15, fontWeight: widget.isBold ? FontWeight.w700 : FontWeight.w400, height: 1.45, fontFamily: 'Poppins'),
                             maxLines: 30,
                           ),
                         ),
@@ -350,7 +291,7 @@ class NoteFormState extends State<NoteForm> {
                             child: AbsorbPointer(
                               child: RichText(
                                 text: TextSpan(
-                                  style: TextStyle(fontSize: AppSizes.fontSizeMd, fontWeight: widget.isBold ? FontWeight.w700 : FontWeight.w400, height: 1.4, letterSpacing: 0.5, fontFamily: 'Poppins'),
+                                  style: TextStyle(color: context.isDarkMode ? AppColors.white : AppColors.black, fontSize: 15, fontWeight: widget.isBold ? FontWeight.w700 : FontWeight.w400, height: 1.4, letterSpacing: 0.5, fontFamily: 'Poppins'),
                                   children: buildLinkSpans(widget.noteDescriptionController.text),
                                 ),
                               ),
@@ -364,10 +305,7 @@ class NoteFormState extends State<NoteForm> {
                     builder: (context, characterCount, child) {
                       return Padding(
                         padding: const EdgeInsets.symmetric(vertical: 8),
-                        child: Align(
-                          alignment: Alignment.bottomRight,
-                          child: Text('$characterCount', style: TextStyle(fontSize: AppSizes.fontSizeSm, color: AppColors.darkGrey)),
-                        ),
+                        child: Align(alignment: Alignment.bottomRight, child: Text('$characterCount', style: TextStyle(fontSize: AppSizes.fontSizeSm, color: AppColors.darkGrey))),
                       );
                     },
                   ),
@@ -416,7 +354,7 @@ class NoteFormState extends State<NoteForm> {
                     return KeyEventResult.handled;
                   }
 
-                  // ===== BACKSPACE =====
+                  /// ===== BACKSPACE =====
                   if (event.logicalKey == LogicalKeyboardKey.backspace) {
                     final controller = listControllers[index];
 
@@ -475,7 +413,7 @@ class NoteFormState extends State<NoteForm> {
                     ),
                     textCapitalization:
                     TextCapitalization.sentences,
-                    style: TextStyle(fontSize: AppSizes.fontSizeMd, fontWeight: widget.isBold ? FontWeight.w700 : FontWeight.w400, height: 1.5, fontFamily: 'Poppins'),
+                    style: TextStyle(color: context.isDarkMode ? AppColors.white : AppColors.black, fontSize: AppSizes.fontSizeMd, fontWeight: widget.isBold ? FontWeight.w700 : FontWeight.w400, height: 1.5, fontFamily: 'Poppins'),
                     onTap: () {
                       activeFocusNode = listFocusNodes[index];
                     },

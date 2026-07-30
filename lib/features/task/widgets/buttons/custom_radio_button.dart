@@ -3,16 +3,17 @@ import 'package:flutter_svg/svg.dart';
 import '../../../../utils/constants/app_colors.dart';
 import '../../../../utils/constants/app_sizes.dart';
 import '../../../../utils/platforms/platform_utils.dart';
-import '../../../note/widgets/popups/light_dialog.dart';
+import '../../../settings/widgets/dialogs/light_dialog.dart';
 
-class CustomRadioButton extends StatefulWidget {
+class CustomRadioButton<T> extends StatefulWidget {
   final String? title;
   final String? imagePath;
-  final int? value;
-  final int? groupValue;
-  final ValueChanged<int?> onChanged;
+  final T? value;
+  final T? groupValue;
+  final ValueChanged<T?> onChanged;
   final EdgeInsetsGeometry padding;
   final double? fontSize;
+  final Color? activeColor;
 
   const CustomRadioButton({
     super.key,
@@ -23,19 +24,20 @@ class CustomRadioButton extends StatefulWidget {
     this.imagePath,
     this.padding = const EdgeInsets.symmetric(horizontal: 25, vertical: 10),
     this.fontSize,
+    this.activeColor,
   });
 
   @override
   State<CustomRadioButton> createState() => _CustomRadioButtonState();
 }
 
-class _CustomRadioButtonState extends State<CustomRadioButton> {
+class _CustomRadioButtonState<T> extends State<CustomRadioButton<T>> {
   bool _isHovered = false;
 
   @override
   Widget build(BuildContext context) {
     final bool isSelected = widget.value == widget.groupValue;
-    final Color selectedColor = colorsController.getColor(colorsController.selectedColorScheme.value);
+    final Color selectedColor = widget.activeColor ?? colorsController.getColor(colorsController.selectedColorScheme.value);
     final double textSize = widget.fontSize ?? (isWebOrWindows ? 15 : AppSizes.fontSizeMd);
 
     return GestureDetector(

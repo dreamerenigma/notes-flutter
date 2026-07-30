@@ -8,10 +8,11 @@ import '../../../../utils/constants/app_colors.dart';
 import '../../../../utils/constants/app_images.dart';
 import '../../../../utils/constants/app_sizes.dart';
 import '../../../../utils/constants/app_vectors.dart';
+import '../../../note/controllers/note_text_style_controller.dart';
 import '../buttons/toolbar_icon_button.dart';
 import '../sliders/custom_slider.dart';
 
-Future<bool?> showTextStyleBottomSheetDialog(BuildContext context, Function(String) onBackgroundSelected) {
+Future<bool?> showTextStyleBottomSheetDialog(BuildContext context, Function(String) onBackgroundSelected, TextEditingController textController, TextFormattingController formattingController) {
   return showModalBottomSheet<bool>(
     context: context,
     isScrollControlled: true,
@@ -19,15 +20,22 @@ Future<bool?> showTextStyleBottomSheetDialog(BuildContext context, Function(Stri
     enableDrag: false,
     backgroundColor: context.isDarkMode ? AppColors.blackGrey : AppColors.white,
     builder: (BuildContext context) {
-      return FocusScope(node: FocusScopeNode(), child: SliderBottomSheetContent(onBackgroundSelected: onBackgroundSelected));
+      return FocusScope(node: FocusScopeNode(), child: SliderBottomSheetContent(onBackgroundSelected: onBackgroundSelected, textController: textController, formattingController: formattingController));
     },
   );
 }
 
 class SliderBottomSheetContent extends StatefulWidget {
   final Function(String) onBackgroundSelected;
+  final TextEditingController textController;
+  final TextFormattingController formattingController;
 
-  const SliderBottomSheetContent({super.key, required this.onBackgroundSelected});
+  const SliderBottomSheetContent({
+    super.key,
+    required this.onBackgroundSelected,
+    required this.textController,
+    required this.formattingController,
+  });
 
   @override
   SliderBottomSheetContentState createState() => SliderBottomSheetContentState();
@@ -48,6 +56,16 @@ class SliderBottomSheetContentState extends State<SliderBottomSheetContent> {
     sliderValue = storage.read('sliderValue') ?? 0.5;
     selectedBgImageIndex = storage.read('selectedBackgroundIndex') ?? 0;
     isBold = storage.read<bool>('isBold') ?? false;
+  }
+
+  void changeTextColor(Color color) {
+    final selection = widget.formattingController.selection;
+
+    if (selection == null || selection.isCollapsed) {
+      return;
+    }
+
+    widget.formattingController.applyColor(selection.start, selection.end, color);
   }
 
   @override

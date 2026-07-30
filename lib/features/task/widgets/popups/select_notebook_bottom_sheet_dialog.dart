@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get_utils/src/extensions/context_extensions.dart';
 import 'package:notes/features/task/widgets/buttons/custom_radio_button.dart';
+import 'package:notes/features/utils/widgets/dividers/custom_divider.dart';
 import '../../../../utils/constants/app_colors.dart';
 import '../../../../utils/constants/app_sizes.dart';
 import '../../../note/models/category_model.dart';
@@ -75,11 +76,11 @@ Future<CategoryModel?> selectNotebookBottomSheetDialog({required BuildContext co
                                 ),
                                 padding: item.svgAsset != null ? const EdgeInsets.only(left: 16, right: 20, top: 10, bottom: 10) : const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                               ),
-                              if (!isLast) const Divider(height: 0, indent: 57, endIndent: 20, color: AppColors.softNight),
+                              if (!isLast) CustomDivider(indent: 46, endIndent: 10),
                             ],
                           );
                         }),
-                        const Divider(height: 0, indent: 57, endIndent: 20, color: AppColors.softNight),
+                        CustomDivider(indent: 46, endIndent: 10),
                         PopupMenuItem(
                           enabled: false,
                           padding: EdgeInsets.zero,

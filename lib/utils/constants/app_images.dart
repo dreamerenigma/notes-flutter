@@ -7,6 +7,7 @@ class AppImages {
   /// -- Logos
   static const String appLogo = 'assets/images/logos/notes-logo.png';
   static const String logoSplash = 'assets/images/logos/notes-splash-logo.png';
+  static const String logoIS = 'assets/images/logos/input-studios-logo.png';
 
   /// -- Flags
   static const String russiaFlag = "assets/icons/flags/russia.png";

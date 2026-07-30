@@ -8,6 +8,7 @@ class CustomDivider extends StatelessWidget {
   final double indent;
   final double endIndent;
   final double thickness;
+  final Color? color;
 
   const CustomDivider({
     super.key,
@@ -16,13 +17,14 @@ class CustomDivider extends StatelessWidget {
     this.indent = 45,
     this.endIndent = 8,
     this.thickness = 1,
+    this.color,
   });
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsets.only(left: left, right: right),
-      child: Divider(height: 0, thickness: thickness, indent: indent, endIndent: endIndent, color: context.isDarkMode ? AppColors.darkSlate : AppColors.buttonDisabled),
+      child: Divider(height: 0, thickness: thickness, indent: indent, endIndent: endIndent, color:  color ?? (context.isDarkMode ? AppColors.darkSlate : AppColors.buttonDisabled)),
     );
   }
 }

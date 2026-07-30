@@ -35,6 +35,7 @@ class AppColors {
   // Neutral Shades
   static const Color transparent = Color(0x00FFFFFF);
   static const Color black = Color(0xFF000000);
+  static const Color black54 = Color(0x8A000000);
   static const Color softBlack = Color(0xFF070707);
   static const Color darkBackground = Color(0xFF0D0D0D);
   static const Color nightGrey = Color(0xFF171717);

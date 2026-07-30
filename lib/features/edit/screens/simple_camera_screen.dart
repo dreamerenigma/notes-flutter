@@ -1,6 +1,5 @@
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
-
 import '../../../utils/constants/app_colors.dart';
 import '../widgets/popups/open_gallery_dialog.dart';
 

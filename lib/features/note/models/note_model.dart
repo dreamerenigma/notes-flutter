@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 
 class NoteModel implements SelectableItem {
   @override
-  final int? id;
+  final int id;
   final int? categoryColor;
   final String title;
   final String description;
@@ -17,7 +17,7 @@ class NoteModel implements SelectableItem {
   final bool isSelected;
 
   NoteModel({
-    required this.id,
+    this.id = 0,
     required this.title,
     required this.description,
     required this.createdAt,
@@ -60,7 +60,7 @@ class NoteModel implements SelectableItem {
 
   factory NoteModel.fromMap(Map<String, dynamic> map) {
     return NoteModel(
-      id: map['id'] as int?,
+      id: map['id']! as int,
       title: map['title'] as String? ?? '',
       description: map['description'] as String? ?? '',
       createdAt: DateTime.parse(map['created_at']),

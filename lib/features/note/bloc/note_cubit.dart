@@ -25,7 +25,7 @@ class NoteCubit extends Bloc<NoteEvent, NoteState> {
 
   Future<void> _onAddNote(AddNote event, Emitter<NoteState> emit) async {
     try {
-      final note = NoteModel(id: 0, title: event.title, description: event.description, createdAt: DateTime.now(), updatedAt: DateTime.now());
+      final note = NoteModel(id: 0, title: event.title, description: event.description, createdAt: DateTime.now(), updatedAt: DateTime.now(), imagePath: event.imagePath);
       await repository.addNote(note);
       add(LoadNotes());
     } catch (e) {

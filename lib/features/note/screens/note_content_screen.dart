@@ -92,11 +92,10 @@ class NoteContentScreenState extends State<NoteContentScreen> {
   void _handleNoteClick(NoteModel note) {
     if (showCheckboxes) {
       final id = note.id;
-      if (id == null) return;
 
       toggleSelection(id);
     } else {
-      Navigator.push(context, createPageRoute(AddEditNoteScreen(noteType: 'Edit', noteTitle: note.title, noteDescription: note.description, noteID: note.id, createdAt: note.createdAt)));
+      Navigator.push(context, createPageRoute(AddEditNoteScreen(noteType: 'Edit', note: note)));
     }
   }
 
@@ -132,106 +131,107 @@ class NoteContentScreenState extends State<NoteContentScreen> {
   @override
   Widget build(BuildContext context) {
     final viewModel = Provider.of<NoteViewModel>(context);
-    final notes = viewModel.allNotes;
+    final notes = viewModel.filteredNotes;
     final isGrid = widget.isGridView;
 
     final filteredNotes = notes.where((note) {
       final title = note.title.toLowerCase();
       final desc = note.description.toLowerCase();
-      return title.contains(searchQuery.toLowerCase()) || desc.contains(searchQuery.toLowerCase());
+      final q = searchQuery.toLowerCase();
+
+      return title.contains(q) || desc.contains(q);
     }).toList();
 
-    return Column(
-      children: [
-        Expanded(
-          child: isGrid ? ScrollbarTheme(
-            data: ScrollbarThemeData(
-              minThumbLength: 30,
-              thickness: WidgetStateProperty.all(6),
-              radius: const Radius.circular(10),
-              thumbColor: WidgetStatePropertyAll(AppColors.darkerGrey),
-            ),
-            child: Scrollbar(
-              controller: scrollController,
-              thumbVisibility: true,
-              child: MasonryGridView.count(
-                controller: scrollController,
-                crossAxisCount: 2,
-                mainAxisSpacing: 2,
-                crossAxisSpacing: 2,
-                itemCount: filteredNotes.length,
-                itemBuilder: (context, index) {
-                  final note = filteredNotes[index];
-
-                  return NoteItemGrid(
-                    key: ValueKey(note.id),
-                    note: note,
-                    onDelete: () {},
-                    onSelectionChanged: (isSelected) {
-                      final id = note.id;
-                      if (id == null) return;
-
-                      toggleSelection(id);
-                    },
-                    isSelected: widget.selectedNotes.contains(note.id),
-                    showCheckboxes: showCheckboxes,
-                    onLongPress: () {
-                      final id = note.id;
-                      if (id == null) return;
-
-                      toggleSelection(id);
-                    },
-                    onClick: () => _handleNoteClick(note),
-                    onNoteSelected: (note) {},
-                    isLeftColumn: index % 2 == 0,
-                  );
-                },
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      child: Column(
+        children: [
+          Expanded(
+            child: isGrid ? ScrollbarTheme(
+              data: ScrollbarThemeData(
+                minThumbLength: 30,
+                thickness: WidgetStateProperty.all(6),
+                radius: const Radius.circular(10),
+                thumbColor: WidgetStatePropertyAll(AppColors.darkerGrey),
               ),
-            ),
-          ) : ScrollbarTheme(
-            data: ScrollbarThemeData(
-              minThumbLength: 30,
-              thickness: WidgetStateProperty.all(6),
-              radius: const Radius.circular(10),
-              thumbColor: WidgetStatePropertyAll(AppColors.darkerGrey),
-            ),
-            child: Scrollbar(
-              controller: scrollController,
-              child: ListView.builder(
+              child: Scrollbar(
                 controller: scrollController,
-                itemCount: filteredNotes.length,
-                padding: const EdgeInsets.only(bottom: 70),
-                itemBuilder: (context, index) {
-                  final note = filteredNotes[index];
+                thumbVisibility: true,
+                child: MasonryGridView.count(
+                  controller: scrollController,
+                  crossAxisCount: 2,
+                  mainAxisSpacing: 2,
+                  crossAxisSpacing: 2,
+                  itemCount: filteredNotes.length,
+                  itemBuilder: (context, index) {
+                    final note = filteredNotes[index];
 
-                  return NoteItemList(
-                    key: ValueKey(note.id),
-                    note: note,
-                    onDelete: () {},
-                    onClick: () => _handleNoteClick(note),
-                    isSelected: widget.selectedNotes.contains(note.id),
-                    onSelectionChanged: (isSelected) {
-                      final id = note.id;
-                      if (id == null) return;
+                    return NoteItemGrid(
+                      key: ValueKey(note.id),
+                      note: note,
+                      onDelete: () {},
+                      onSelectionChanged: (isSelected) {
+                        final id = note.id;
 
-                      toggleSelection(id);
-                    },
-                    showCheckboxes: showCheckboxes,
-                    createdAt: note.createdAt,
-                    onNoteSelected: (note) {},
-                    onLongPress: () {
-                      final id = note.id;
-                      if (id == null) return;
+                        toggleSelection(id);
+                      },
+                      isSelected: widget.selectedNotes.contains(note.id),
+                      showCheckboxes: showCheckboxes,
+                      onLongPress: () {
+                        final id = note.id;
 
-                      handleLongPress(id);
-                    },
-                  );
-                },
+                        toggleSelection(id);
+                      },
+                      onClick: () => _handleNoteClick(note),
+                      onNoteSelected: (note) {},
+                      isLeftColumn: index % 2 == 0,
+                    );
+                  },
+                ),
+              ),
+            ) : ScrollbarTheme(
+              data: ScrollbarThemeData(
+                minThumbLength: 30,
+                thickness: WidgetStateProperty.all(6),
+                radius: const Radius.circular(10),
+                thumbColor: WidgetStatePropertyAll(AppColors.darkerGrey),
+              ),
+              child: Scrollbar(
+                controller: scrollController,
+                child: ListView.builder(
+                  controller: scrollController,
+                  itemCount: filteredNotes.length,
+                  padding: const EdgeInsets.only(bottom: 70),
+                  itemBuilder: (context, index) {
+                    final note = filteredNotes[index];
+
+                    return NoteItemList(
+                      key: ValueKey(note.id),
+                      note: note,
+                      onDelete: () {},
+                      onClick: () => _handleNoteClick(note),
+                      isSelected: widget.selectedNotes.contains(note.id),
+                      onSelectionChanged: (isSelected) {
+                        final id = note.id;
+
+                        toggleSelection(id);
+                      },
+                      showCheckboxes: showCheckboxes,
+                      createdAt: note.createdAt,
+                      onNoteSelected: (note) {},
+                      onLongPress: () {
+                        final id = note.id;
+
+                        handleLongPress(id);
+                      },
+                    );
+                  },
+                ),
               ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

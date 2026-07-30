@@ -6,8 +6,10 @@ class NoteRepository {
 
   NoteRepository(this.local);
 
-  Future<void> addNote(NoteModel note) async {
-    await local.insert(note.toMap());
+  Future<int> addNote(NoteModel note) async {
+    final id = await local.insert(note.toMap());
+
+    return id;
   }
 
   Future<List<NoteModel>> getNotes() async {

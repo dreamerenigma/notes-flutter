@@ -5,10 +5,10 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:notes/bindings/general_bindings.dart';
 import 'package:notes/features/note/bloc/note_cubit.dart';
 import 'package:notes/routes/app_routes.dart';
+import 'package:notes/routes/routes.dart';
 import 'package:notes/utils/devices/device_utility.dart';
 import 'package:provider/provider.dart';
 import 'package:notes/generated/l10n/l10n.dart';
-import 'package:notes/utils/constants/app_colors.dart';
 import 'package:notes/utils/theme/theme.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -41,10 +41,6 @@ Future<void> initApp() async {
 
   /// -- System Ui mode
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: SystemUiOverlay.values);
-
-  /// -- Set system UI status bar color globally
-  DeviceUtils.setStatusBarColor(AppColors.transparent);
-  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(statusBarColor: AppColors.transparent, statusBarIconBrightness: Brightness.light));
 
   /// -- Set setting orientation to portrait only
   DeviceUtils.setPreferredOrientations([DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
@@ -80,6 +76,8 @@ class App extends StatelessWidget {
           BlocProvider<TaskCubit>(create: (_) => TaskCubit(taskRepository)),
         ],
         child: GetMaterialApp(
+          initialBinding: GeneralBindings(),
+          initialRoute: NotesRoutes.splash,
           debugShowCheckedModeBanner: false,
           themeMode: themesController.getThemeMode(),
           theme: NotesAppTheme.getLightTheme(),
@@ -88,7 +86,6 @@ class App extends StatelessWidget {
           locale: Locale(languageController.selectedLanguage.value),
           localizationsDelegates: const [AppLocalizationDelegate(), ...GlobalMaterialLocalizations.delegates, GlobalWidgetsLocalizations.delegate],
           supportedLocales: const [Locale('ru'), Locale('en'), Locale('es')],
-          initialBinding: GeneralBindings(),
           home: const NoteScreen(),
         ),
       ),

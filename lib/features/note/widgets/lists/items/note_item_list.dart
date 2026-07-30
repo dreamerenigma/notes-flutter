@@ -72,7 +72,7 @@ class NoteItemListState extends State<NoteItemList> {
         if (!widget.showCheckboxes) {
           Navigator.push(
             context,
-            createPageRoute(AddEditNoteScreen(noteType: 'Edit', noteTitle: widget.note.title, noteDescription: widget.note.description, noteID: widget.note.id, createdAt: widget.note.createdAt)),
+            createPageRoute(AddEditNoteScreen(noteType: 'Edit', note: widget.note)),
           ).then((result) {
             if (result == 'saved') {
               AppLoaders.successSnackbar(message: 'Заметка обновлена', duration: 4);
@@ -80,7 +80,6 @@ class NoteItemListState extends State<NoteItemList> {
           });
         } else {
           final id = widget.note.id;
-          if (id == null) return;
 
           widget.onSelectionChanged(id);
         }
@@ -102,7 +101,6 @@ class NoteItemListState extends State<NoteItemList> {
       },
       onLongPress: () {
         final id = widget.note.id;
-        if (id == null) return;
 
         if (!widget.showCheckboxes) {
           widget.onLongPress();
@@ -123,7 +121,7 @@ class NoteItemListState extends State<NoteItemList> {
         child: Container(
           margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6).copyWith(right: widget.showCheckboxes ? 8.0 : 10),
           decoration: BoxDecoration(
-            color: widget.isSelected ? AppColors.blueAccent.withAlpha((0.3 * 255).toInt()) : (context.isDarkMode ? AppColors.greySlate : AppColors.softGrey),
+            color: widget.isSelected ? AppColors.blueAccent.withAlpha((0.3 * 255).toInt()) : (context.isDarkMode ? AppColors.greySlate : AppColors.white),
             borderRadius: BorderRadius.circular(20),
             boxShadow: widget.showCheckboxes
               ? [

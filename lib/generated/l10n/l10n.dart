@@ -90,18 +90,53 @@ class S {
   }
 
   /// `Russian`
-  String get russianLanguage {
-    return Intl.message('Russian', name: 'russianLanguage', desc: '', args: []);
+  String get russian {
+    return Intl.message('Russian', name: 'russian', desc: '', args: []);
   }
 
   /// `English`
-  String get englishLanguage {
-    return Intl.message('English', name: 'englishLanguage', desc: '', args: []);
+  String get english {
+    return Intl.message('English', name: 'english', desc: '', args: []);
+  }
+
+  /// `French`
+  String get french {
+    return Intl.message('French', name: 'french', desc: '', args: []);
+  }
+
+  /// `Deutsch`
+  String get deutsch {
+    return Intl.message('Deutsch', name: 'deutsch', desc: '', args: []);
+  }
+
+  /// `Italian`
+  String get italian {
+    return Intl.message('Italian', name: 'italian', desc: '', args: []);
+  }
+
+  /// `Portuguese`
+  String get portuguese {
+    return Intl.message('Portuguese', name: 'portuguese', desc: '', args: []);
   }
 
   /// `Spanish`
-  String get spanishLanguage {
-    return Intl.message('Spanish', name: 'spanishLanguage', desc: '', args: []);
+  String get spanish {
+    return Intl.message('Spanish', name: 'spanish', desc: '', args: []);
+  }
+
+  /// `Chinese`
+  String get chinese {
+    return Intl.message('Chinese', name: 'chinese', desc: '', args: []);
+  }
+
+  /// `Korean`
+  String get korean {
+    return Intl.message('Korean', name: 'korean', desc: '', args: []);
+  }
+
+  /// `Japanese`
+  String get japanese {
+    return Intl.message('Japanese', name: 'japanese', desc: '', args: []);
   }
 
   /// `Select theme`
@@ -137,6 +172,11 @@ class S {
   /// `ОК`
   String get ok {
     return Intl.message('ОК', name: 'ok', desc: '', args: []);
+  }
+
+  /// `Apply`
+  String get apply {
+    return Intl.message('Apply', name: 'apply', desc: '', args: []);
   }
 
   /// `Version`
@@ -236,6 +276,7 @@ class AppLocalizationDelegate extends LocalizationsDelegate<S> {
   List<Locale> get supportedLocales {
     return const <Locale>[
       Locale.fromSubtags(languageCode: 'en'),
+      Locale.fromSubtags(languageCode: 'es'),
       Locale.fromSubtags(languageCode: 'ru'),
     ];
   }

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:notes/features/utils/widgets/scrolls/no_glow_scroll_behavior.dart';
 import '../../../../utils/constants/app_colors.dart';
+import '../../../../utils/constants/app_languages.dart';
 import '../../../../utils/constants/app_sizes.dart';
 import '../../controllers/language_controller.dart';
 
@@ -35,14 +37,20 @@ void showLanguageBottomSheetDialog(BuildContext context, Function(String) onSave
               const SizedBox(height: 12),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 6),
-                child: Column(
-                  children: [
-                    const SizedBox(height: 12),
-                    _buildLanguageTile(context, tempLanguage, 'ru', 'Русский'),
-                    _buildLanguageTile(context, tempLanguage, 'en', 'English'),
-                    _buildLanguageTile(context, tempLanguage, 'es', 'Español'),
-                    const SizedBox(height: 12),
-                  ],
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxHeight: 260),
+                  child: ScrollConfiguration(
+                    behavior: NoGlowScrollBehavior(),
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: AppLanguages.codes.length,
+                      itemBuilder: (context, index) {
+                        final code = AppLanguages.codes[index];
+
+                        return _buildLanguageTile(context, tempLanguage, code, controller.getLanguageName(context, code));
+                      },
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(height: 12),
@@ -93,9 +101,9 @@ Widget _buildLanguageTile(BuildContext context, RxString tempLanguage, String va
       child: InkWell(
         splashFactory: NoSplash.splashFactory,
         borderRadius: BorderRadius.circular(AppSizes.inputFieldRadius),
-        splashColor: AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()),
-        highlightColor: AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()),
-        hoverColor: AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()),
+        splashColor: context.isDarkMode ? AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()) : AppColors.grey.withAlpha((0.4 * 255).toInt()),
+        highlightColor: context.isDarkMode ? AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()) : AppColors.grey.withAlpha((0.4 * 255).toInt()),
+        hoverColor: context.isDarkMode ? AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()) : AppColors.grey.withAlpha((0.4 * 255).toInt()),
         onTap: () {
           tempLanguage.value = value;
         },

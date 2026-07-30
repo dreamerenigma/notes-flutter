@@ -11,6 +11,7 @@ import 'package:get_storage/get_storage.dart';
 import 'package:notes/features/settings/controllers/language_controller.dart';
 import 'package:notes/features/settings/controllers/themes_controller.dart';
 import 'package:notes/features/settings/screens/privacy_policy_screen.dart';
+import 'package:notes/features/settings/screens/set_password_screen.dart';
 import 'package:notes/features/utils/widgets/scrolls/no_glow_scroll_behavior.dart';
 import 'package:notes/utils/platforms/platform_utils.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -30,13 +31,18 @@ import '../../../utils/popups/items/popup_menu_items.dart';
 import '../../task/widgets/items/category_items.dart';
 import '../../task/widgets/popups/select_notebook_bottom_sheet_dialog.dart';
 import '../../utils/widgets/buttons/custom_switch.dart';
+import '../controllers/colors_controller.dart';
 import '../controllers/settings_controller.dart';
 import '../models/settings_model.dart';
 import '../widgets/app_bars/custom_app_bar.dart';
-import '../widgets/popups/add_watermark_dialog.dart';
-import '../widgets/popups/language_bottom_sheet_dialog.dart';
-import '../widgets/popups/theme_bottom_sheet_dialog.dart';
+import '../widgets/dialogs/add_watermark_dialog.dart';
+import '../widgets/dialogs/color_scheme_dialog.dart';
+import '../widgets/dialogs/language_bottom_sheet_dialog.dart';
+import '../widgets/dialogs/theme_bottom_sheet_dialog.dart';
+import '../widgets/dialogs/theme_dialog.dart';
+import '../widgets/rows/settings_row.dart';
 import 'font_size_screen.dart';
+import 'manage_account_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -48,6 +54,7 @@ class SettingsScreen extends StatefulWidget {
 class SettingsScreenState extends State<SettingsScreen> {
   final GetStorage storage = GetStorage();
   final GlobalKey _manageKey = GlobalKey();
+  final colorsController = Get.find<ColorsController>();
   final themesController = ThemesController.instance;
   final languagesController = LanguagesController.instance;
   final settingsController = SettingsController.instance;
@@ -61,6 +68,7 @@ class SettingsScreenState extends State<SettingsScreen> {
   @override
   void initState() {
     super.initState();
+    isPasswordEnabled = storage.read<bool>('password_enabled') ?? false;
     watermarkText = storage.read('watermarkText') ?? 'Из Заметок Honor';
     repo = Get.find<SettingsRepository>();
     loadAppVersion();
@@ -76,7 +84,7 @@ class SettingsScreenState extends State<SettingsScreen> {
 
   void openThemeSelector(BuildContext context) {
     if (isWebOrWindows) {
-      themesController.showThemeSelectionDialog(context);
+      showThemeDialog(context, themesController);
     } else {
       showThemeBottomSheetDialog(context, themesController);
     }
@@ -86,6 +94,8 @@ class SettingsScreenState extends State<SettingsScreen> {
     setState(() {
       isPasswordEnabled = value;
     });
+
+    storage.write('password_enabled', value);
   }
 
   Future<void> loadSettings() async {
@@ -139,7 +149,7 @@ class SettingsScreenState extends State<SettingsScreen> {
           onChanged: (int? value) {},
           context: context,
         ),
-        PopupMenuItems.divider(),
+        PopupMenuItems.divider(context),
         PopupMenuItems.radioItem(
           value: WeekStartType.sunday.value,
           text: 'воскресенье',
@@ -160,6 +170,14 @@ class SettingsScreenState extends State<SettingsScreen> {
     setState(() => settingsController.weekStart.value = result);
 
     await settingsController.updateWeekStart(result);
+  }
+
+  Future<void> _openPasswordScreen() async {
+    final result = await Navigator.push<bool>(context, createPageRoute(const SetPasswordScreen()));
+
+    if (result == true) {
+      togglePassword(true);
+    }
   }
 
   @override
@@ -183,9 +201,9 @@ class SettingsScreenState extends State<SettingsScreen> {
             title: 'Общие',
             children: [
               Obx(() {
-                return _buildSettingsRow(
+                return SettingsRow(
                   leading: Icon(themesController.getThemeIcon(), size: 24, color: AppColors.darkGrey),
-                  title: themesController.getThemeDescription(),
+                  title: themesController.getThemeDescription(context),
                   onTap: () {
                     showThemeBottomSheetDialog(context, themesController);
                   },
@@ -193,9 +211,25 @@ class SettingsScreenState extends State<SettingsScreen> {
               }),
               _buildDivider(context),
               Obx(() {
+                final color = colorsController.getColor(colorsController.selectedColorScheme.value);
+
+                return SettingsRow(
+                  leading: SvgPicture.asset(AppVectors.palette, width: 23, height: 23, colorFilter: const ColorFilter.mode(AppColors.darkGrey, BlendMode.srcIn)),
+                  title: 'Цвет приложения',
+                  onTap: () async {
+                    showColorSchemeSelectionDialog(context);
+                  },
+                  trailing: Padding(
+                    padding: const EdgeInsets.only(right: 4),
+                    child: buildColorAppIndicator(color),
+                  ),
+                );
+              }),
+              _buildDivider(context),
+              Obx(() {
                 final settings = settingsController.settings.value;
 
-                return _buildSettingsRow(
+                return SettingsRow(
                   leading: SvgPicture.asset(AppVectors.defaultFolder, width: 23, height: 23, colorFilter: const ColorFilter.mode(AppColors.darkGrey, BlendMode.srcIn)),
                   title: 'Папка по умолчанию',
                   onTap: () async {
@@ -215,13 +249,13 @@ class SettingsScreenState extends State<SettingsScreen> {
               }),
               _buildDivider(context),
               Obx(() {
-                return _buildSettingsRow(
+                return SettingsRow(
                   leading: SvgPicture.asset(AppVectors.language, width: 24, height: 24, colorFilter: ColorFilter.mode(AppColors.darkGrey, BlendMode.srcIn)),
                   title: 'Языковые параметры',
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(languagesController.getLanguageTitle(), style: TextStyle(fontSize: AppSizes.fontSizeSm, color: AppColors.darkGrey)),
+                      Text(languagesController.getLanguageTitle(context), style: TextStyle(fontSize: AppSizes.fontSizeSm, color: AppColors.darkGrey)),
                       const Icon(Icons.keyboard_arrow_right_rounded, size: 24, color: AppColors.darkGrey),
                     ],
                   ),
@@ -238,7 +272,7 @@ class SettingsScreenState extends State<SettingsScreen> {
                 );
               }),
               _buildDivider(context),
-              _buildSettingsRow(
+              SettingsRow(
                 leading: SvgPicture.asset(AppVectors.font, width: 23, height: 23, colorFilter: const ColorFilter.mode(AppColors.darkGrey, BlendMode.srcIn)),
                 title: 'Размер шрифта',
                 onTap: () {
@@ -246,7 +280,7 @@ class SettingsScreenState extends State<SettingsScreen> {
                 },
               ),
               _buildDivider(context),
-              _buildSettingsRow(
+              SettingsRow(
                 leading: SvgPicture.asset(AppVectors.calendar, width: 23, height: 23, colorFilter: const ColorFilter.mode(AppColors.darkGrey, BlendMode.srcIn)),
                 title: 'Начало недели',
                 onTap: selectWeekStart,
@@ -276,7 +310,7 @@ class SettingsScreenState extends State<SettingsScreen> {
                 ),
               ),
               _buildDivider(context),
-              _buildSettingsRow(
+              SettingsRow(
                 leading: SvgPicture.asset(AppVectors.watermark, width: 24, height: 24, colorFilter: const ColorFilter.mode(AppColors.darkGrey, BlendMode.srcIn)),
                 title: 'Водяной знак',
                 trailing: Row(
@@ -291,7 +325,7 @@ class SettingsScreenState extends State<SettingsScreen> {
                 },
               ),
               _buildDivider(context),
-              _buildSettingsRow(
+              SettingsRow(
                 leading: Icon(Icons.notifications_none_rounded, size: 23, color: AppColors.darkGrey),
                 title: 'Уведомления',
                 trailing: const Icon(Icons.keyboard_arrow_right_rounded, size: 24, color: AppColors.darkGrey),
@@ -318,24 +352,22 @@ class SettingsScreenState extends State<SettingsScreen> {
           _buildSection(
             title: 'Безопасность',
             children: [
-              _buildSettingsRow(
+              SettingsRow(
                 leading: SvgPicture.asset(AppVectors.lock, width: 23, height: 23, colorFilter: const ColorFilter.mode(AppColors.darkGrey, BlendMode.srcIn)),
                 title: 'Задать пароль',
                 trailing: CustomSwitch(
                   value: isPasswordEnabled,
-                  onChanged: (bool value) {
-                    setState(() {
-                      isPasswordEnabled = value;
-                    });
-                  },
+                  activeColor: AppColors.blueAccent,
+                  borderColor: AppColors.softNight,
+                  onChanged: togglePassword,
                   switchWidth: 34,
                 ),
-                onTap: () {
-                  togglePassword(!isPasswordEnabled);
+                onTap: () async {
+                  await _openPasswordScreen();
                 },
               ),
               _buildDivider(context),
-              _buildSettingsRow(
+              SettingsRow(
                 leading: SvgPicture.asset(AppVectors.change, width: 23, height: 23, colorFilter: const ColorFilter.mode(AppColors.darkGrey, BlendMode.srcIn)),
                 title: 'Изменить пароль',
                 onTap: () {
@@ -343,9 +375,17 @@ class SettingsScreenState extends State<SettingsScreen> {
                   final hasPassword = box.hasData('user_password');
 
                   if (!hasPassword) {
-                    CustomIconSnackBar.showAnimatedSnackBar(context, 'Пожалуйста сначала установите пароль', icon: const Icon(Icons.warning_rounded, color: AppColors.warning), backgroundColor: AppColors.darkerGrey.withAlpha((0.15 * 255).toInt()));
+                    CustomIconSnackBar.showAnimatedSnackBar(context, 'Пожалуйста сначала установите пароль', icon: const Icon(Icons.warning_rounded, color: AppColors.warning), backgroundColor: context.isDarkMode ? AppColors.darkerGrey.withAlpha((0.15 * 255).toInt()) : AppColors.grey.withAlpha((0.2 * 255).toInt()));
                     return;
                   }
+                },
+              ),
+              _buildDivider(context),
+              SettingsRow(
+                leading: SvgPicture.asset(AppVectors.profile, width: 23, height: 23, colorFilter: const ColorFilter.mode(AppColors.darkGrey, BlendMode.srcIn)),
+                title: 'Управление аккаунтом',
+                onTap: () {
+                  Navigator.push(context, createPageRoute(ManageAccountScreen()));
                 },
               ),
             ],
@@ -353,7 +393,7 @@ class SettingsScreenState extends State<SettingsScreen> {
           _buildSection(
             title: 'Другое',
             children: [
-              _buildSettingsRow(
+              SettingsRow(
                 leading: Icon(Icons.share_outlined, size: 23, color: AppColors.darkGrey),
                 title: 'Поделиться',
                 onTap: () {
@@ -365,7 +405,7 @@ class SettingsScreenState extends State<SettingsScreen> {
                 },
               ),
               _buildDivider(context),
-              _buildSettingsRow(
+              SettingsRow(
                 leading: SvgPicture.asset(AppVectors.confidential, width: 23, height: 23, colorFilter: const ColorFilter.mode(AppColors.darkGrey, BlendMode.srcIn)),
                 title: 'Политика конфиденциальности',
                 onTap: () {
@@ -404,41 +444,22 @@ class SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _buildSettingsRow({required String title, Widget? leading, Widget? trailing, VoidCallback? onTap}) {
-    return Material(
-      color: AppColors.transparent,
-      child: InkWell(
-        splashFactory: NoSplash.splashFactory,
-        borderRadius: BorderRadius.circular(AppSizes.inputFieldRadius),
-        splashColor: AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()),
-        highlightColor: AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()),
-        hoverColor: AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()),
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 14),
-          child: Row(
-            children: [
-              if (leading != null) ...[
-                leading,
-                const SizedBox(width: 14),
-              ],
-              Expanded(child: Text(title, style: TextStyle(fontSize: AppSizes.fontSizeMd))),
-              if (trailing != null) ...[
-                trailing,
-              ],
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget buildColorIndicator(Color color) {
     return Container(
       width: 25,
       height: 25,
       padding: const EdgeInsets.all(3),
       decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: color.withAlpha((0.4 * 255).toInt()), width: 2)),
+      child: Container(decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+    );
+  }
+
+  Widget buildColorAppIndicator(Color color) {
+    return Container(
+      width: 18,
+      height: 18,
+      padding: const EdgeInsets.all(3),
+      decoration: BoxDecoration(shape: BoxShape.circle, color: color),
       child: Container(decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
     );
   }

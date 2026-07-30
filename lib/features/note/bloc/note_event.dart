@@ -12,8 +12,13 @@ class LoadNotes extends NoteEvent {}
 class AddNote extends NoteEvent {
   final String title;
   final String description;
+  final String? imagePath;
 
-  const AddNote({required this.title, required this.description});
+  const AddNote({
+    required this.title,
+    required this.description,
+    this.imagePath,
+  });
 
   @override
   List<Object> get props => [title, description];

@@ -2,12 +2,12 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get_utils/src/extensions/context_extensions.dart';
-import '../../../../utils/constants/app_colors.dart';
-import '../../../../utils/constants/app_vectors.dart';
-import '../../models/note_model.dart';
-import '../../../task/models/task_model.dart';
-import '../../../task/models/task_view_model.dart';
-import '../../models/note_view_model.dart';
+import '../../../../../utils/constants/app_colors.dart';
+import '../../../../../utils/constants/app_vectors.dart';
+import '../../../../task/models/task_model.dart';
+import '../../../../task/models/task_view_model.dart';
+import '../../../models/note_model.dart';
+import '../../../models/note_view_model.dart';
 
 class SelectBottomNavBar extends StatefulWidget {
   final VoidCallback onShare;
@@ -118,6 +118,7 @@ class _SelectBottomNavBarState extends State<SelectBottomNavBar> {
     final bool canTap = alwaysActive || isEnabled;
     final disabledColor = context.isDarkMode ? AppColors.steelGrey : AppColors.grey;
     final Color color = canTap ? activeColor : disabledColor;
+    final tapColor = context.isDarkMode ? AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()) : AppColors.grey.withAlpha((0.4 * 255).toInt());
 
     return Material(
       color: AppColors.transparent,
@@ -125,8 +126,9 @@ class _SelectBottomNavBarState extends State<SelectBottomNavBar> {
         onTap: canTap ? onTap : null,
         splashFactory: NoSplash.splashFactory,
         borderRadius: BorderRadius.circular(8),
-        splashColor: canTap ? AppColors.youngNight : AppColors.transparent,
-        highlightColor: canTap ? AppColors.youngNight : AppColors.transparent,
+        splashColor: canTap ? tapColor : AppColors.transparent,
+        highlightColor: canTap ? tapColor : AppColors.transparent,
+        hoverColor: canTap ? tapColor : AppColors.transparent,
         child: Opacity(
           opacity: canTap ? 1.0 : 0.5,
           child: Column(

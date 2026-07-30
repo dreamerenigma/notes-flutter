@@ -53,25 +53,25 @@ class AnimatedSnackBarState extends State<AnimatedSnackBar> with TickerProviderS
 
   @override
   Widget build(BuildContext context) {
-    final bgColor = widget.backgroundColor ?? AppColors.red;
+    final bgColor = widget.backgroundColor ?? (context.isDarkMode ? AppColors.black : AppColors.white);
 
     return SlideTransition(
       position: _offsetAnimation,
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            color: bgColor,
-            boxShadow: [
-              BoxShadow(color: AppColors.black.withAlpha((0.3 * 255).toInt()), offset: Offset(0, 4), blurRadius: 15, spreadRadius: 0),
-            ],
-          ),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
+        borderRadius: BorderRadius.circular(16),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              color: bgColor.withAlpha(context.isDarkMode ? 120 : 150),
+              border: Border.all(color: Colors.white.withAlpha(40), width: 0.8),
+              boxShadow: [
+                BoxShadow(color: Colors.black.withAlpha(45), offset: const Offset(0, 6), blurRadius: 18),
+              ],
+            ),
             child: Row(
-              mainAxisAlignment: widget.icon != null ? MainAxisAlignment.start : MainAxisAlignment.center,
               children: [
                 if (widget.icon != null) ...[
                   AnimatedBuilder(
@@ -88,14 +88,7 @@ class AnimatedSnackBarState extends State<AnimatedSnackBar> with TickerProviderS
                 Expanded(
                   child: Text(
                     widget.message,
-                    style: TextStyle(
-                      color: context.isDarkMode ? AppColors.white.withAlpha((0.85 * 255).toInt()) : AppColors.black.withAlpha((0.85 * 255).toInt()),
-                      fontSize: AppSizes.fontSizeMd,
-                      fontWeight: FontWeight.w400,
-                      fontFamily: 'Roboto',
-                      decoration: TextDecoration.none,
-                    ),
-                    textAlign: widget.icon != null ? TextAlign.start : TextAlign.center,
+                    style: TextStyle(color: context.isDarkMode ? Colors.white.withAlpha(220) : AppColors.black.withAlpha(220), fontSize: AppSizes.fontSizeMd, fontWeight: FontWeight.w400, decoration: TextDecoration.none),
                   ),
                 ),
               ],

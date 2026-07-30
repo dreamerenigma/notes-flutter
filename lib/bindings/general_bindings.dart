@@ -9,6 +9,7 @@ import '../data/repositories/note_repository.dart';
 import '../data/repositories/settings_repository.dart';
 import '../data/repositories/tasks_repository.dart';
 import '../features/folders/models/folder_view_model.dart';
+import '../features/note/controllers/note_text_style_controller.dart';
 import '../features/settings/controllers/colors_controller.dart';
 import '../features/settings/controllers/language_controller.dart';
 import '../features/settings/controllers/themes_controller.dart';
@@ -24,6 +25,7 @@ class GeneralBindings extends Bindings {
     Get.put(ThemesController(Get.find<SettingsRepository>()));
     Get.put(LanguagesController());
     Get.put(ColorsController());
+    Get.put(TextFormattingController());
     Get.put(NoteLocalDataSource(Get.find<DatabaseHelper>()));
     Get.put(NoteRepository(Get.find<NoteLocalDataSource>()));
     Get.put(NoteViewModel(Get.find<NoteRepository>()));

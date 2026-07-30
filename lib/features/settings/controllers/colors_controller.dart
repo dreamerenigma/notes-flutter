@@ -1,28 +1,32 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
-import '../../../generated/l10n/l10n.dart';
 import '../../../utils/constants/app_colors.dart';
-import '../../../utils/constants/app_sizes.dart';
-import '../../note/widgets/popups/light_dialog.dart';
-import '../../note/widgets/tiles/custom_radio_list_tile.dart';
 
 class ColorsController extends GetxController {
   static ColorsController get instance => Get.find();
   var selectedColorScheme = 'blue'.obs;
   final box = GetStorage();
 
+  var defaultIconColor = AppColors.blueAccent.toARGB32().obs;
+
+
   @override
   void onInit() {
     super.onInit();
     selectedColorScheme.value = box.read('selectedColorScheme') ?? 'blue';
+    defaultIconColor.value = box.read('defaultIconColor') ?? AppColors.blueAccent.toARGB32();
     applyColorScheme(selectedColorScheme.value);
+  }
+
+  Color get defaultIconColorValue {
+    return Color(defaultIconColor.value);
   }
 
   Color getColor(String colorScheme) {
     switch (colorScheme) {
       case 'blue':
-        return AppColors.blue;
+        return AppColors.blueAccent;
       case 'red':
         return AppColors.red;
       case 'green':
@@ -47,6 +51,11 @@ class ColorsController extends GetxController {
       default:
         return 'По умолчанию';
     }
+  }
+
+  void setDefaultIconColor(Color color) {
+    defaultIconColor.value = color.toARGB32();
+    box.write('defaultIconColor', color.toARGB32());
   }
 
   void setColorScheme(String colorScheme) {
@@ -87,115 +96,5 @@ class ColorsController extends GetxController {
     }
 
     return MaterialColor(color.toARGB32(), swatch);
-  }
-
-  Future<void> showColorSchemeSelectionDialog(BuildContext context) async {
-    String tempColorScheme = selectedColorScheme.value;
-
-    Widget buildColorOption({
-      required IconData icon,
-      required String title,
-      required String value,
-      required Color color,
-      required String groupValue,
-      required void Function(String?) onChanged,
-    }) {
-      return CustomRadioListTile(
-        icon: icon,
-        title: Text(title),
-        value: value,
-        groupValue: groupValue,
-        onChanged: onChanged,
-        iconColor: color,
-      );
-    }
-
-    return showDialog<void>(
-      context: context,
-      builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (context, setState) => AlertDialog(
-            backgroundColor: context.isDarkMode ? AppColors.blackGrey : AppColors.white,
-            contentPadding: EdgeInsets.zero,
-            titlePadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-            actionsPadding: const EdgeInsets.only(left: 16, right: 16, top: 8, bottom: 16),
-            title: Text(S.of(context).selectColorScheme),
-            content: SizedBox(
-              width: 300,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  buildColorOption(
-                    icon: Icons.color_lens,
-                    title: S.of(context).system,
-                    value: 'default',
-                    color: AppColors.blue,
-                    groupValue: tempColorScheme,
-                    onChanged: (value) => setState(() => tempColorScheme = value as String),
-                  ),
-                  buildColorOption(
-                    icon: Icons.color_lens,
-                    title: S.of(context).blueColor,
-                    value: 'blue',
-                    color: AppColors.blue,
-                    groupValue: tempColorScheme,
-                    onChanged: (value) => setState(() => tempColorScheme = value as String),
-                  ),
-                  buildColorOption(
-                    icon: Icons.color_lens,
-                    title: S.of(context).redColor,
-                    value: 'red',
-                    color: AppColors.red,
-                    groupValue: tempColorScheme,
-                    onChanged: (value) => setState(() => tempColorScheme = value as String),
-                  ),
-                  buildColorOption(
-                    icon: Icons.color_lens,
-                    title: S.of(context).greenColor,
-                    value: 'green',
-                    color: AppColors.green,
-                    groupValue: tempColorScheme,
-                    onChanged: (value) => setState(() => tempColorScheme = value as String),
-                  ),
-                  buildColorOption(
-                    icon: Icons.color_lens,
-                    title: S.of(context).orangeColor,
-                    value: 'orange',
-                    color: AppColors.orange,
-                    groupValue: tempColorScheme,
-                    onChanged: (value) => setState(() => tempColorScheme = value as String),
-                  ),
-                ],
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                style: TextButton.styleFrom(
-                  foregroundColor: colorsController.getColor(colorsController.selectedColorScheme.value),
-                  backgroundColor: colorsController.getColor(colorsController.selectedColorScheme.value).withAlpha((0.1 * 255).toInt()),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                ),
-                child: Text(S.of(context).cancel, style: TextStyle(color: colorsController.getColor(colorsController.selectedColorScheme.value), fontSize: AppSizes.fontSizeSm)),
-              ),
-              TextButton(
-                onPressed: () {
-                  setColorScheme(tempColorScheme);
-                  Navigator.pop(context);
-                },
-                style: TextButton.styleFrom(
-                  foregroundColor: colorsController.getColor(colorsController.selectedColorScheme.value),
-                  backgroundColor: colorsController.getColor(colorsController.selectedColorScheme.value).withAlpha((0.1 * 255).toInt()),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                ),
-                child: Text(S.of(context).ok, style: TextStyle(color: colorsController.getColor(colorsController.selectedColorScheme.value), fontSize: AppSizes.fontSizeSm)),
-              ),
-            ],
-          ),
-        );
-      },
-    );
   }
 }

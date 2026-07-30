@@ -5,11 +5,16 @@ import 'package:flutter_svg/svg.dart';
 import 'package:get/get_utils/src/extensions/context_extensions.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../../utils/constants/app_colors.dart';
 import '../../../utils/constants/app_images.dart';
 import '../../../utils/constants/app_vectors.dart';
-import '../../../utils/popups/dialogs.dart';
+import '../../../utils/popups/app_popup_menu.dart';
+import '../../../utils/popups/items/popup_menu_items.dart';
+import '../../edit/widgets/dialogs/anchored_dialog.dart';
+import '../../edit/widgets/editors/handwriting_editor.dart';
+import '../controllers/note_text_style_controller.dart';
 import '../models/note_model.dart';
 import '../models/note_view_model.dart';
 import '../../edit/widgets/forms/note_form.dart';
@@ -18,21 +23,18 @@ import '../../edit/widgets/nav_bar/edit_message_bottom_nav_bar.dart';
 import '../../edit/widgets/popups/open_gallery_dialog.dart';
 import '../../edit/widgets/popups/save_dialog.dart';
 import '../../edit/widgets/popups/text_style_bottom_sheet_dialog.dart';
+import '../widgets/bars/app_bars/add_edit_note_app_bar.dart';
+import '../widgets/dialogs/send_note_bottom_sheet_dialog.dart';
+import '../widgets/popups/custom_category_dialog.dart';
 
 class AddEditNoteScreen extends StatefulWidget {
   final String noteType;
-  final String? noteTitle;
-  final String? noteDescription;
-  final DateTime createdAt;
-  final int? noteID;
+  final NoteModel? note;
 
   const AddEditNoteScreen({
     super.key,
     this.noteType = 'Add',
-    this.noteTitle,
-    this.noteDescription,
-    this.noteID,
-    required this.createdAt,
+    this.note,
   });
 
   @override
@@ -40,9 +42,12 @@ class AddEditNoteScreen extends StatefulWidget {
 }
 
 class AddEditNoteScreenState extends State<AddEditNoteScreen> {
+  final GlobalKey moreKey = GlobalKey();
+  final GlobalKey _categoryKey = GlobalKey();
   final GlobalKey<NoteFormState> noteFormKey = GlobalKey<NoteFormState>();
   final TextEditingController _noteTitleController = TextEditingController();
   final TextEditingController _noteDescriptionController = TextEditingController();
+  final TextFormattingController formattingController = TextFormattingController();
   final FocusNode _noteTitleFocusNode = FocusNode();
   final FocusNode _noteDescriptionFocusNode = FocusNode();
   final ValueNotifier<int> _characterCountNotifier = ValueNotifier<int>(0);
@@ -51,9 +56,13 @@ class AddEditNoteScreenState extends State<AddEditNoteScreen> {
   late String backgroundImage;
   late String originalTitle;
   late String originalDescription;
+  late String currentNoteType;
+  late String displayTime;
+  late Color selectedColor;
   Timer? _timer;
   String? imagePath;
   String currentText = "";
+  String? selectedCategoryText;
   List<String> undoStack = [];
   List<String> redoStack = [];
   List<String> listItems = [];
@@ -62,16 +71,34 @@ class AddEditNoteScreenState extends State<AddEditNoteScreen> {
   bool hasSavedChanges = false;
   bool isEditing = true;
   bool isListMode = false;
+  bool isFavorite = false;
+  bool isHandwritingMode = false;
+  bool _initialized = false;
+  NoteModel? currentNote;
+  TextEditingValue? savedTextSelection;
+
+  bool get showBottomBar => !isHandwritingMode;
 
   @override
   void initState() {
     super.initState();
 
+    final box = GetStorage();
+
+    backgroundImage = box.read<String>('backgroundImage') ?? '';
+
+    displayTime = widget.noteType == 'Add' ? 'Сегодня ${DateFormat('HH:mm').format(DateTime.now())}' : DateFormat('d MMMM, HH:mm', 'ru').format(widget.note!.createdAt);
+
+    currentNoteType = widget.noteType;
+    currentNote = widget.note;
+
     isBold = storage.read<bool>('isBold') ?? false;
 
-    if (widget.noteType == 'Edit') {
-      _noteTitleController.text = widget.noteTitle ?? '';
-      _noteDescriptionController.text = widget.noteDescription ?? '';
+    if (widget.noteType == 'Edit' && widget.note != null) {
+      imagePath = widget.note!.imagePath;
+
+      _noteTitleController.text = widget.note!.title;
+      _noteDescriptionController.text = widget.note!.description;
     }
 
     _noteTitleFocusNode.addListener(_updateFocusState);
@@ -104,12 +131,16 @@ class AddEditNoteScreenState extends State<AddEditNoteScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final box = GetStorage();
+    if (!_initialized) {
+      selectedColor = context.isDarkMode ? AppColors.darkSlate.withAlpha((0.6 * 255).toInt()) : AppColors.softGrey.withAlpha((0.6 * 255).toInt());
 
-    backgroundImage = box.read('backgroundImage') ?? (context.isDarkMode ? AppImages.noteBgDark : AppImages.noteBgLight);
-
+      _initialized = true;
+    }
     if (widget.noteType == 'Add') {
       FocusScope.of(context).requestFocus(_noteDescriptionFocusNode);
+    }
+    if (backgroundImage.isEmpty) {
+      backgroundImage = context.isDarkMode ? AppImages.noteBgDark : AppImages.noteBgLight;
     }
   }
 
@@ -143,15 +174,17 @@ class AddEditNoteScreenState extends State<AddEditNoteScreen> {
           log('Путь изображения не сохранен');
         }
       });
+
+      log('AddEditNoteScreen imagePath: $imagePath');
     });
   }
 
   void changeBackground(String newBackground) {
+    final box = GetStorage();
+    box.write('backgroundImage', newBackground);
     setState(() {
       backgroundImage = newBackground;
       imagePath = newBackground;
-      final box = GetStorage();
-      box.write('backgroundImage', newBackground);
     });
   }
 
@@ -184,20 +217,23 @@ class AddEditNoteScreenState extends State<AddEditNoteScreen> {
 
     if (noteTitle.isEmpty || noteDescription.isEmpty) return;
 
-    final creationDate = widget.noteType == 'Edit' ? widget.createdAt : DateTime.now();
+    if (currentNoteType == 'Edit') {
 
-    if (widget.noteType == 'Edit') {
-      if (widget.noteID == null) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Error: Note ID is null')));
-        return;
-      }
+      final updatedNote = currentNote!.copyWith(title: noteTitle, description: noteDescription, imagePath: imagePath, updatedAt: DateTime.now());
 
-      final updatedNote = NoteModel(id: widget.noteID!, title: noteTitle, description: noteDescription, createdAt: creationDate, imagePath: imagePath, updatedAt: DateTime.now());
-      Provider.of<NoteViewModel>(context, listen: false).updateNote(updatedNote);
+      await Provider.of<NoteViewModel>(context, listen: false).updateNote(updatedNote);
+
+
     } else {
+
       final newNote = NoteModel(id: 0, title: noteTitle, description: noteDescription, createdAt: DateTime.now(), imagePath: imagePath, updatedAt: DateTime.now());
-      Provider.of<NoteViewModel>(context, listen: false).addNote(newNote);
-      CustomIconSnackBar.showAnimatedSnackBar(context, 'Заметка добавлена', icon: const Icon(Icons.check_circle, color: AppColors.success), backgroundColor: AppColors.darkerGrey.withAlpha((0.15 * 255).toInt()));
+      final createdNote = await Provider.of<NoteViewModel>(context, listen: false).addNote(newNote);
+
+      setState(() {
+        currentNoteType = 'Edit';
+        currentNote = createdNote;
+      });
+
     }
 
     originalTitle = _noteTitleController.text;
@@ -210,8 +246,21 @@ class AddEditNoteScreenState extends State<AddEditNoteScreen> {
     }
   }
 
+  Future<void> _showCategoryDialog() async {
+    final result = await AnchoredDialog.show<Map<String, dynamic>>(context: context, targetKey: _categoryKey, leftOffset: -10, child: const CustomCategoryDialog());
+
+    if(result != null){
+      setState(() {
+        selectedCategoryText = result['text'] as String;
+        selectedColor = result['color'] as Color;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    log('BACKGROUND PATH: $backgroundImage');
+
     return Scaffold(
       body: Stack(
         children: [
@@ -224,7 +273,7 @@ class AddEditNoteScreenState extends State<AddEditNoteScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      IconButton(icon: const Icon(Icons.arrow_back), onPressed: handleBackButton),
+                      IconButton(icon: Icon(Icons.arrow_back, color: context.isDarkMode ? AppColors.white : AppColors.black), onPressed: handleBackButton),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
@@ -278,7 +327,7 @@ class AddEditNoteScreenState extends State<AddEditNoteScreen> {
                             ),
                           if (_noteTitleFocusNode.hasFocus || _noteDescriptionFocusNode.hasFocus)
                             IconButton(
-                              icon: const Icon(Icons.check, size: 27),
+                              icon: Icon(Icons.check_rounded, color: context.isDarkMode ? AppColors.white : AppColors.black, size: 27),
                               onPressed: () async {
                                 _unfocusAllFields();
                                 await saveNote(popAfterSave: false);
@@ -293,65 +342,142 @@ class AddEditNoteScreenState extends State<AddEditNoteScreen> {
                   ),
                 ),
                 Expanded(
-                  child: NoteForm(
-                    key: noteFormKey,
-                    noteTitleController: _noteTitleController,
-                    noteTitleFocusNode: _noteTitleFocusNode,
-                    noteDescriptionController: _noteDescriptionController,
-                    noteDescriptionFocusNode: _noteDescriptionFocusNode,
-                    characterCountNotifier: _characterCountNotifier,
-                    isNewNote: true,
-                    imagePath: imagePath,
-                    isBold: isBold,
-                    isListMode: isListMode,
-                    onListModeChanged: (value) {
-                      setState(() {
-                        isListMode = value;
-                      });
-                    },
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      AddEditNoteAppBar(
+                        titleController: _noteTitleController,
+                        titleFocusNode: _noteTitleFocusNode,
+                        displayTime: displayTime,
+                        selectedColor: selectedColor,
+                        selectedCategoryText: selectedCategoryText,
+                        isEditing: isEditing,
+                        categoryKey: _categoryKey,
+                        onCategoryTap: () {
+                          _showCategoryDialog();
+                        },
+                      ),
+                      Expanded(
+                        child: isHandwritingMode
+                          ? HandwritingEditor(
+                              onClose: () {
+                                setState(() {
+                                  isHandwritingMode = false;
+                                });
+                              },
+                            )
+                          : NoteForm(
+                              key: noteFormKey,
+                              noteTitleController: _noteTitleController,
+                              noteTitleFocusNode: _noteTitleFocusNode,
+                              noteDescriptionController: _noteDescriptionController,
+                              noteDescriptionFocusNode: _noteDescriptionFocusNode,
+                              characterCountNotifier: _characterCountNotifier,
+                              isNewNote: widget.noteType == 'Add',
+                              imagePath: imagePath,
+                              isBold: isBold,
+                              isListMode: isListMode,
+                              onListModeChanged: (value) {
+                                setState(() {
+                                  isListMode = value;
+                                });
+                              },
+                              onImageChanged: (path) {
+                                setState(() {
+                                  imagePath = path;
+                                });
+                              },
+                            ),
+                      ),
+                    ],
                   ),
                 ),
+                ValueListenableBuilder<bool>(
+                  valueListenable: _isFieldFocused,
+                  builder: (context, isFieldFocused, child) {
+                    if (!showBottomBar) {
+                      return const SizedBox.shrink();
+                    }
+
+                    return isFieldFocused
+                      ? EditMessageBottomNavBar(
+                          onList: () {
+                            setState(() {
+                              final wasListMode = isListMode;
+
+                              isListMode = !isListMode;
+
+                              if (!wasListMode && isListMode) {
+                                noteFormKey.currentState?.convertTextToList();
+                              }
+
+                              if (wasListMode && !isListMode) {
+                                noteFormKey.currentState?.convertListToText();
+                              }
+                            });
+                          },
+                          onTextStyle: () async {
+                            savedTextSelection = _noteDescriptionController.value;
+                            formattingController.setSelection(_noteDescriptionController.selection);
+
+                            await showTextStyleBottomSheetDialog(context, changeBackground, _noteDescriptionController, formattingController);
+
+                            if (savedTextSelection != null) {
+                              _noteDescriptionFocusNode.requestFocus();
+                              _noteDescriptionController.value = savedTextSelection!;
+                            }
+                          },
+                          onGallery: () => showImagePickerDialog(context),
+                          onHandwritingInput: () {
+                            _unfocusAllFields();
+
+                            FocusScope.of(context).unfocus();
+
+                            setState(() {
+                              isHandwritingMode = true;
+                            });
+                          },
+                        )
+                      : CustomBottomNavBar(
+                          onShare: () {
+                            showSendNoteBottomSheetDialog(context);
+                          },
+                          onFavorites: () {
+                            final noteViewModel = context.read<NoteViewModel>();
+                            final updatedNote = widget.note!.copyWith(isFavorite: !widget.note!.isFavorite, updatedAt: DateTime.now());
+
+                            noteViewModel.updateNote(updatedNote);
+                          },
+                          onDelete: () {
+                            if (widget.note != null) {
+                              context.read<NoteViewModel>().deleteNote(widget.note!);
+                              Navigator.pop(context);
+                            }
+                          },
+                          onMore: () async {
+                            final result = await AppPopupMenu.showAt<int>(
+                              context: context,
+                              targetKey: moreKey,
+                              maxWidth: 212,
+                              offset: const Offset(-20, -110),
+                              items: [
+                                PopupMenuItems.item(value: 1, text: 'Добавить блокировку', context: context),
+                                PopupMenuItems.divider(context),
+                                PopupMenuItems.item(value: 2, text: 'Печать', context: context),
+                              ],
+                            );
+                            if(result == 1){}
+                            if(result == 2){}
+                          },
+                          currentNote: widget.note,
+                          selectedNotes: const [],
+                          allNotes: const [],
+                          moreKey: moreKey,
+                          isFavorite: widget.note?.isFavorite ?? false,
+                        );
+                  },
+                ),
               ],
-            ),
-          ),
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: ValueListenableBuilder<bool>(
-              valueListenable: _isFieldFocused,
-              builder: (context, isFieldFocused, child) {
-                return isFieldFocused
-                  ? EditMessageBottomNavBar(
-                      onList: () {
-                        setState(() {
-                          final wasListMode = isListMode;
-
-                          isListMode = !isListMode;
-
-                          if (!wasListMode && isListMode) {
-                            noteFormKey.currentState?.convertTextToList();
-                          }
-
-                          if (wasListMode && !isListMode) {
-                            noteFormKey.currentState?.convertListToText();
-                          }
-                        });
-                      },
-                      onTextStyle: () {
-                        showTextStyleBottomSheetDialog(context, changeBackground);
-                      },
-                      onGallery: () => showImagePickerDialog(context),
-                      onHandwritingInput: () {})
-                  : CustomBottomNavBar(
-                      onShare: () {},
-                      onFavorites: () {},
-                      onDelete: () {},
-                      onMore: () {},
-                      selectedNotes: const [],
-                      allNotes: const [],
-                );
-              },
             ),
           ),
         ],

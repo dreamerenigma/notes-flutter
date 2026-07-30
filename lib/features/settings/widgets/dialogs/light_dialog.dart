@@ -3,7 +3,7 @@ import 'package:get/get.dart';
 import '../../../../generated/l10n/l10n.dart';
 import '../../../../utils/constants/app_colors.dart';
 import '../../../../utils/constants/app_sizes.dart';
-import '../../../settings/controllers/colors_controller.dart';
+import '../../controllers/colors_controller.dart';
 
 int selectedRadioButton = 2;
 final colorsController = Get.find<ColorsController>();

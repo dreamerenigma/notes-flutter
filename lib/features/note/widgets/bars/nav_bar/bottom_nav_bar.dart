@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
-import '../../../../utils/constants/app_colors.dart';
-import '../../../../utils/constants/app_vectors.dart';
-import '../../../../utils/extensions/color_extension.dart';
+import '../../../../../utils/constants/app_colors.dart';
+import '../../../../../utils/constants/app_vectors.dart';
+import '../../../../../utils/extensions/color_extension.dart';
 
 class BottomNavBar extends StatelessWidget {
   final int selectedIndex;
@@ -19,7 +19,7 @@ class BottomNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final baseColor = color ?? (context.isDarkMode ? AppColors.black : AppColors.white).getBackgroundColor();
+    final baseColor = color != null ? color!.getBackgroundColor(context.isDarkMode) : (context.isDarkMode ? AppColors.nightGrey : AppColors.white);
 
     return Theme(
       data: Theme.of(context).copyWith(splashFactory: NoSplash.splashFactory),
@@ -64,8 +64,8 @@ class BottomNavBar extends StatelessWidget {
           onTap: () => onItemTapped(index),
           splashFactory: NoSplash.splashFactory,
           borderRadius: BorderRadius.circular(8),
-          splashColor: context.isDarkMode ? AppColors.youngNight : AppColors.softGrey,
-          highlightColor: context.isDarkMode ? AppColors.youngNight : AppColors.softGrey,
+          splashColor: context.isDarkMode ? AppColors.youngNight : AppColors.grey,
+          highlightColor: context.isDarkMode ? AppColors.youngNight : AppColors.grey,
           child: SizedBox.expand(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,

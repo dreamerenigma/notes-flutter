@@ -139,7 +139,7 @@ class _TaskListItemState extends State<TaskListItem> {
         duration: const Duration(milliseconds: 120),
         curve: Curves.easeOut,
         child: Container(
-          margin: const EdgeInsets.symmetric(horizontal: 12).copyWith(right: widget.showCheckboxes ? 8 : 12),
+          margin: const EdgeInsets.symmetric(horizontal: 16).copyWith(right: widget.showCheckboxes ? 8 : 16),
           padding: EdgeInsets.symmetric(vertical: 4),
           decoration: BoxDecoration(
             color: widget.isSelected ? AppColors.blueAccent.withAlpha((0.3 * 255).toInt()) : (context.isDarkMode ? AppColors.greySlate : AppColors.softGrey),

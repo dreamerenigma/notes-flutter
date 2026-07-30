@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import '../../../../utils/constants/app_colors.dart';
-import '../../screens/note_content_screen.dart';
+import 'package:flutter/services.dart';
+import 'package:get/get_utils/src/extensions/context_extensions.dart';
+import '../../../../../utils/constants/app_colors.dart';
+import '../../../screens/note_content_screen.dart';
 
 class NoteAppBar extends StatelessWidget implements PreferredSizeWidget {
   final bool hasSelectedNotes;
@@ -34,6 +36,7 @@ class NoteAppBar extends StatelessWidget implements PreferredSizeWidget {
 
     return AppBar(
       backgroundColor: AppColors.transparent,
+      systemOverlayStyle: SystemUiOverlayStyle(statusBarColor: Colors.transparent, statusBarIconBrightness: context.isDarkMode ? Brightness.light : Brightness.dark),
       leading: showCloseIcon
         ? IconButton(
             icon: const Icon(Icons.close, size: 30),

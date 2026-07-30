@@ -105,9 +105,9 @@ Widget _buildTile(BuildContext context, String selectedValue, void Function(Stri
     child: InkWell(
       splashFactory: NoSplash.splashFactory,
       borderRadius: BorderRadius.circular(AppSizes.inputFieldRadius),
-      splashColor: AppColors.softNight.withAlpha((0.3 * 255).toInt()),
-      highlightColor: AppColors.softNight.withAlpha((0.3 * 255).toInt()),
-      hoverColor: AppColors.softNight.withAlpha((0.3 * 255).toInt()),
+      splashColor: context.isDarkMode ? AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()) : AppColors.lightBackground,
+      highlightColor: context.isDarkMode ? AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()) : AppColors.lightBackground,
+      hoverColor: context.isDarkMode ? AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()) : AppColors.lightBackground,
       onTap: () => onSelect(value),
       child: Container(
         padding: const EdgeInsets.only(left: 16, top: 6, bottom: 6),

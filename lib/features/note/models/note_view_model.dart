@@ -8,6 +8,8 @@ import '../../../data/repositories/note_repository.dart';
 class NoteViewModel extends ChangeNotifier {
   final NoteRepository repository;
 
+  String selectedCategory = 'Все заметки';
+
   NoteViewModel(this.repository) {
     _loadNotes();
   }
@@ -32,9 +34,13 @@ class NoteViewModel extends ChangeNotifier {
     return await fetchAllNotes();
   }
 
-  Future<void> addNote(NoteModel note) async {
-    await repository.addNote(note);
+  Future<NoteModel> addNote(NoteModel note) async {
+    final id = await repository.addNote(note);
+    final savedNote = note.copyWith(id: id);
+
     await _loadNotes();
+
+    return savedNote;
   }
 
   Future<void> updateNote(NoteModel note) async {
@@ -44,7 +50,6 @@ class NoteViewModel extends ChangeNotifier {
 
   Future<void> deleteNote(NoteModel note) async {
     final id = note.id;
-    if (id == null) return;
 
     await repository.deleteNote(id);
     await _loadNotes();
@@ -90,7 +95,6 @@ class NoteViewModel extends ChangeNotifier {
 
   Future<void> toggleSelection(NoteModel note) async {
     final id = note.id;
-    if (id == null) return;
 
     if (_selectedNotes.contains(id)) {
       _selectedNotes.remove(id);
@@ -104,8 +108,9 @@ class NoteViewModel extends ChangeNotifier {
     if (_selectedNotes.length == _allNotes.length) {
       _selectedNotes.clear();
     } else {
-      _selectedNotes = _allNotes.where((e) => e.id != null).map((e) => e.id!).toSet();
+      _selectedNotes = _allNotes.map((e) => e.id).toSet();
     }
+
     notifyListeners();
   }
 
@@ -128,5 +133,25 @@ class NoteViewModel extends ChangeNotifier {
     }
 
     return list;
+  }
+
+  void setCategoryFilter(String category) {
+    selectedCategory = category;
+    notifyListeners();
+  }
+
+  List<NoteModel> get filteredNotes {
+    switch (selectedCategory) {
+      case 'Все заметки':
+        return allNotes.where((note) => !note.isDeleted).toList();
+      case 'Избранное':
+        return allNotes.where((note) => note.isFavorite && !note.isDeleted).toList();
+      case 'Без категории':
+        return allNotes.where((note) => (note.category == null || note.category!.isEmpty) && !note.isDeleted).toList();
+      case 'Недавно удаленное':
+        return allNotes.where((note) => note.isDeleted).toList();
+      default:
+        return allNotes.where((note) => note.category == selectedCategory && !note.isDeleted).toList();
+    }
   }
 }

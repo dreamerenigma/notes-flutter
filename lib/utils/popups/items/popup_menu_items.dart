@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import '../../../features/task/widgets/buttons/custom_radio_button.dart';
 import '../../constants/app_colors.dart';
 import '../../constants/app_sizes.dart';
@@ -12,9 +13,9 @@ class PopupMenuItems {
         color: AppColors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(AppSizes.inputFieldRadius),
-          splashColor: AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()),
-          highlightColor: AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()),
-          hoverColor: AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()),
+          splashColor: context.isDarkMode ? AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()) : AppColors.lightBackground,
+          highlightColor: context.isDarkMode ? AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()) : AppColors.lightBackground,
+          hoverColor: context.isDarkMode ? AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()) : AppColors.lightBackground,
           onTap: () {
             Navigator.pop(context, value);
             onTap?.call();
@@ -46,5 +47,7 @@ class PopupMenuItems {
     );
   }
 
-  static PopupMenuDivider divider() => const PopupMenuDivider(height: 1, indent: 16, endIndent: 20);
+  static PopupMenuDivider divider(BuildContext context) {
+    return PopupMenuDivider(height: 1, indent: 16, endIndent: 20, color: context.isDarkMode ? AppColors.darkSlate : AppColors.buttonDisabled);
+  }
 }

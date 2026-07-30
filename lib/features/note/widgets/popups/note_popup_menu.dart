@@ -84,7 +84,7 @@ class NotePopupMenuState extends State<NotePopupMenu> {
               style: ButtonStyle(
                 backgroundColor: WidgetStateProperty.resolveWith((states) {
                   if (states.contains(WidgetState.pressed)) {
-                    return AppColors.softNight;
+                    return context.isDarkMode ? AppColors.softNight : AppColors.lightGrey;
                   }
                   return AppColors.transparent;
                 }),

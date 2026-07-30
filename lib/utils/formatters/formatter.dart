@@ -15,7 +15,6 @@ class Formatter {
 
   static String formatFileSize(double size) {
     if (size <= 0) return "0 B";
-
     const suffixes = ["B", "KB", "MB", "GB", "TB"];
     int i = (log(size) / log(1024)).floor();
     double adjustedSize = size / pow(1024, i);
