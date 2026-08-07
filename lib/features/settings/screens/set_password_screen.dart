@@ -16,6 +16,7 @@ class SetPasswordScreen extends StatefulWidget {
 class _SetPasswordScreenState extends State<SetPasswordScreen> {
   PasswordStepType step = PasswordStepType.create;
   List<int>? firstPattern;
+  String? errorText;
 
   String get titleText {
     switch (step) {
@@ -43,6 +44,10 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
                 Text(titleText, style: TextStyle(fontSize: AppSizes.fontSizeBg, fontWeight: FontWeight.w600), textAlign: TextAlign.center),
                 const SizedBox(height: 12),
                 Text(subtitleText, style: TextStyle(fontSize: AppSizes.fontSizeSm, color: AppColors.grey, fontWeight: FontWeight.w400), textAlign: TextAlign.center),
+                if (errorText != null) ...[
+                  const SizedBox(height: 12),
+                  Text(errorText!, style: const TextStyle(color: Colors.red, fontWeight: FontWeight.w500), textAlign: TextAlign.center),
+                ],
               ],
             ),
           ),

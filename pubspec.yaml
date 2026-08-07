@@ -2,11 +2,10 @@ name: notes
 description: "Notes"
 
 publish_to: 'none'
-
 version: 1.0.9+164
 
 environment:
-  sdk: ^3.12.0
+  sdk: ^3.12.1
 
 #-------------------- PACKAGES --------------------#
 dependencies:
